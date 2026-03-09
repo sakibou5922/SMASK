@@ -7,7 +7,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@400;700;900&family=Zen+Old+Mincho:wght@400;700;900&family=Shippori+Mincho:wght@400;500;700;800&family=M+PLUS+Rounded+1c:wght@300;400;500;700&family=Shippori+Antique&family=Shippori+Antique+B1&family=Zen+Antique&family=Zen+Antique+Soft&family=Hina+Mincho&family=Kaisei+Decol:wght@400;700&family=Kaisei+Opti:wght@400;700&family=Kaisei+Tokumin:wght@400;700&family=Kaisei+HarunoUmi:wght@400;700&family=Klee+One:wght@400;600&family=BIZ+UDMincho:wght@400;700&family=M+PLUS+1p:wght@300;400;500;700&family=M+PLUS+1:wght@300;400;500;700&family=M+PLUS+2:wght@300;400;500;700&family=BIZ+UDGothic:wght@400;700&family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&family=Zen+Kaku+Gothic+Antique:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@300;400;500;700&family=Murecho:wght@300;400;500;700&family=DotGothic16&family=Reggae+One&family=Yuji+Syuku&family=Yuji+Mai&family=Yuji+Boku&family=Rampart+One&family=Stick&family=Train+One&family=Zen+Loop&family=Rock+3D&family=Yomogi&family=Hachi+Maru+Pop&family=New+Tegomin&family=Cormorant+Garamond:wght@400;700&family=EB+Garamond:wght@400;700&family=Cinzel:wght@400;700;900&family=Lora:wght@400;700&family=Merriweather:wght@300;400;700&family=Libre+Baskerville:wght@400;700&family=Crimson+Text:wght@400;700&family=Montserrat:wght@300;400;500;700&family=Raleway:wght@300;400;500;700&family=Josefin+Sans:wght@300;400;600;700&family=Oswald:wght@300;400;500;700&family=Nunito:wght@300;400;600;700&family=Poppins:wght@300;400;500;700&family=Inter:wght@300;400;500;700&family=Outfit:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;700&family=Bebas+Neue&family=Anton&family=Righteous&family=Fredoka+One&family=Pacifico&family=Dancing+Script:wght@400;700&family=Great+Vibes&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css">
   <style>
@@ -724,7 +724,45 @@ body { padding-top: 0 !important; }
 #design-panel { z-index: 9999998 !important; }
 .panel-toggle  { z-index: 9999997 !important; }
 
-  </style>
+  
+/* ===== フォント選択 CSS変数 ===== */
+:root {
+  --t1-font-family: inherit;
+  --t2-font-family: inherit;
+  --t3-font-family: inherit;
+  --body-font-family: inherit;
+}
+
+.ctrl-select {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 8px;
+  cursor: pointer;
+  max-width: 180px;
+}
+.ctrl-select option {
+  background: #1a1a1a;
+  color: #fff;
+
+/* フォント変数をページ要素に適用 */
+[data-t1-font], .t1-text {
+  font-family: var(--t1-font-family, inherit) !important;
+}
+[data-t2-font], .t2-text, h1, h2, h3 {
+  font-family: var(--t2-font-family, inherit) !important;
+}
+[data-t3-font], .t3-text, h4, h5, h6 {
+  font-family: var(--t3-font-family, inherit) !important;
+}
+.page-editable p, p.page-editable, .body-text {
+  font-family: var(--body-font-family, inherit) !important;
+}
+}
+</style>
 
 <script>
 /* ログイン専用スクリプト（独立実行） */
@@ -1051,6 +1089,81 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="ctrl-row"><span class="ctrl-label">角度</span><input type="range" class="ctrl-slider" min="-30" max="30" value="0" oninput="setDeg('--t1-rotate',this,'t1-rot')"><span class="ctrl-value" id="t1-rot">0°</span></div>
         <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="-20" max="60" value="0" oninput="setPx('--t1-margin-top',this,'t1-mt')"><span class="ctrl-value" id="t1-mt">0px</span></div>
         <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="60" value="12" oninput="setPx('--t1-margin-bottom',this,'t1-mb')"><span class="ctrl-value" id="t1-mb">12px</span></div>
+        <div class="ctrl-row"><span class="ctrl-label">フォント</span>
+          <select class="ctrl-select" id="font-t1" onchange="setFont('--t1-font-family',this)">
+            <option value="">── デフォルト ──</option>
+            <option value="" disabled>━━ ── 明朝系 ── ━━</option>
+            <option value="'Noto Serif JP', serif">Noto Serif JP</option>
+            <option value="'Zen Old Mincho', serif">Zen Old Mincho</option>
+            <option value="'Shippori Mincho', serif">Shippori Mincho</option>
+            <option value="'Shippori Antique', serif">Shippori Antique</option>
+            <option value="'Shippori Antique B1', serif">Shippori Antique B1</option>
+            <option value="'Zen Antique', serif">Zen Antique</option>
+            <option value="'Zen Antique Soft', serif">Zen Antique Soft</option>
+            <option value="'Hina Mincho', serif">Hina Mincho</option>
+            <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+            <option value="'Kaisei Opti', serif">Kaisei Opti</option>
+            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin</option>
+            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi</option>
+            <option value="'Klee One', cursive">Klee One</option>
+            <option value="'BIZ UDMincho', serif">BIZ UDMincho</option>
+            <option value="'Yuji Syuku', serif">Yumincho+36p Kana</option>
+            <option value="" disabled>━━ ── ゴシック系 ── ━━</option>
+            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c</option>
+            <option value="'M PLUS 1p', sans-serif">M PLUS 1p</option>
+            <option value="'M PLUS 1', sans-serif">M PLUS 1</option>
+            <option value="'M PLUS 2', sans-serif">M PLUS 2</option>
+            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic</option>
+            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic</option>
+            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New</option>
+            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique</option>
+            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic</option>
+            <option value="'Murecho', sans-serif">Murecho</option>
+            <option value="'DotGothic16', sans-serif">DotGothic16</option>
+            <option value="'Reggae One', cursive">Reggae One</option>
+            <option value="" disabled>━━ ── 筆書き・デザイン系 ── ━━</option>
+            <option value="'Yuji Syuku', serif">Yuji Syuku</option>
+            <option value="'Yuji Mai', serif">Yuji Mai</option>
+            <option value="'Yuji Boku', serif">Yuji Boku</option>
+            <option value="'Rampart One', cursive">Rampart One</option>
+            <option value="'Stick', sans-serif">Stick</option>
+            <option value="'Train One', cursive">Train One</option>
+            <option value="'Zen Loop', cursive">Zen Loop</option>
+            <option value="'Rock 3D', cursive">Rock 3D</option>
+            <option value="'Yomogi', cursive">Yomogi</option>
+            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop</option>
+            <option value="'New Tegomin', serif">New Tegomin</option>
+            <option value="" disabled>━━ ── 英字セリフ系 ── ━━</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+            <option value="'EB Garamond', serif">EB Garamond</option>
+            <option value="'Cinzel', serif">Cinzel</option>
+            <option value="'Lora', serif">Lora</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Libre Baskerville', serif">Libre Baskerville</option>
+            <option value="'Crimson Text', serif">Crimson Text</option>
+            <option value="" disabled>━━ ── 英字サンセリフ系 ── ━━</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Raleway', sans-serif">Raleway</option>
+            <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
+            <option value="'Oswald', sans-serif">Oswald</option>
+            <option value="'Nunito', sans-serif">Nunito</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Outfit', sans-serif">Outfit</option>
+            <option value="'DM Sans', sans-serif">DM Sans</option>
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="" disabled>━━ ── 英字デコレーション系 ── ━━</option>
+            <option value="'Bebas Neue', cursive">Bebas Neue</option>
+            <option value="'Anton', sans-serif">Anton</option>
+            <option value="'Righteous', cursive">Righteous</option>
+            <option value="'Fredoka One', cursive">Fredoka One</option>
+            <option value="'Pacifico', cursive">Pacifico</option>
+            <option value="'Dancing Script', cursive">Dancing Script</option>
+            <option value="'Great Vibes', cursive">Great Vibes</option>
+          </select>
+        </div>
         <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span><input type="color" class="ctrl-color" value="#C6A75C" onchange="setColor('--t1-color',this)"><span class="ctrl-color-hex" id="hex-t1">#C6A75C</span></div>
       </div>
     </div>
@@ -1068,7 +1181,82 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="ctrl-row"><span class="ctrl-label">角度</span><input type="range" class="ctrl-slider" min="-30" max="30" value="0" oninput="setDeg('--t2-rotate',this,'t2-rot')"><span class="ctrl-value" id="t2-rot">0°</span></div>
         <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="-20" max="60" value="0" oninput="setPx('--t2-margin-top',this,'t2-mt')"><span class="ctrl-value" id="t2-mt">0px</span></div>
         <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="80" value="16" oninput="setPx('--t2-margin-bottom',this,'t2-mb')"><span class="ctrl-value" id="t2-mb">16px</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span><input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--t2-color',this)"><span class="ctrl-color-hex" id="hex-t2">#2b2b2b</span></div>
+        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span>        <div class="ctrl-row"><span class="ctrl-label">フォント</span>
+          <select class="ctrl-select" id="font-t2" onchange="setFont('--t2-font-family',this)">
+            <option value="">── デフォルト ──</option>
+            <option value="" disabled>━━ ── 明朝系 ── ━━</option>
+            <option value="'Noto Serif JP', serif">Noto Serif JP</option>
+            <option value="'Zen Old Mincho', serif">Zen Old Mincho</option>
+            <option value="'Shippori Mincho', serif">Shippori Mincho</option>
+            <option value="'Shippori Antique', serif">Shippori Antique</option>
+            <option value="'Shippori Antique B1', serif">Shippori Antique B1</option>
+            <option value="'Zen Antique', serif">Zen Antique</option>
+            <option value="'Zen Antique Soft', serif">Zen Antique Soft</option>
+            <option value="'Hina Mincho', serif">Hina Mincho</option>
+            <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+            <option value="'Kaisei Opti', serif">Kaisei Opti</option>
+            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin</option>
+            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi</option>
+            <option value="'Klee One', cursive">Klee One</option>
+            <option value="'BIZ UDMincho', serif">BIZ UDMincho</option>
+            <option value="'Yuji Syuku', serif">Yumincho+36p Kana</option>
+            <option value="" disabled>━━ ── ゴシック系 ── ━━</option>
+            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c</option>
+            <option value="'M PLUS 1p', sans-serif">M PLUS 1p</option>
+            <option value="'M PLUS 1', sans-serif">M PLUS 1</option>
+            <option value="'M PLUS 2', sans-serif">M PLUS 2</option>
+            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic</option>
+            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic</option>
+            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New</option>
+            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique</option>
+            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic</option>
+            <option value="'Murecho', sans-serif">Murecho</option>
+            <option value="'DotGothic16', sans-serif">DotGothic16</option>
+            <option value="'Reggae One', cursive">Reggae One</option>
+            <option value="" disabled>━━ ── 筆書き・デザイン系 ── ━━</option>
+            <option value="'Yuji Syuku', serif">Yuji Syuku</option>
+            <option value="'Yuji Mai', serif">Yuji Mai</option>
+            <option value="'Yuji Boku', serif">Yuji Boku</option>
+            <option value="'Rampart One', cursive">Rampart One</option>
+            <option value="'Stick', sans-serif">Stick</option>
+            <option value="'Train One', cursive">Train One</option>
+            <option value="'Zen Loop', cursive">Zen Loop</option>
+            <option value="'Rock 3D', cursive">Rock 3D</option>
+            <option value="'Yomogi', cursive">Yomogi</option>
+            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop</option>
+            <option value="'New Tegomin', serif">New Tegomin</option>
+            <option value="" disabled>━━ ── 英字セリフ系 ── ━━</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+            <option value="'EB Garamond', serif">EB Garamond</option>
+            <option value="'Cinzel', serif">Cinzel</option>
+            <option value="'Lora', serif">Lora</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Libre Baskerville', serif">Libre Baskerville</option>
+            <option value="'Crimson Text', serif">Crimson Text</option>
+            <option value="" disabled>━━ ── 英字サンセリフ系 ── ━━</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Raleway', sans-serif">Raleway</option>
+            <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
+            <option value="'Oswald', sans-serif">Oswald</option>
+            <option value="'Nunito', sans-serif">Nunito</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Outfit', sans-serif">Outfit</option>
+            <option value="'DM Sans', sans-serif">DM Sans</option>
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="" disabled>━━ ── 英字デコレーション系 ── ━━</option>
+            <option value="'Bebas Neue', cursive">Bebas Neue</option>
+            <option value="'Anton', sans-serif">Anton</option>
+            <option value="'Righteous', cursive">Righteous</option>
+            <option value="'Fredoka One', cursive">Fredoka One</option>
+            <option value="'Pacifico', cursive">Pacifico</option>
+            <option value="'Dancing Script', cursive">Dancing Script</option>
+            <option value="'Great Vibes', cursive">Great Vibes</option>
+          </select>
+        </div>
+<input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--t2-color',this)"><span class="ctrl-color-hex" id="hex-t2">#2b2b2b</span></div>
       </div>
     </div>
 
@@ -1085,7 +1273,82 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="ctrl-row"><span class="ctrl-label">角度</span><input type="range" class="ctrl-slider" min="-30" max="30" value="0" oninput="setDeg('--t3-rotate',this,'t3-rot')"><span class="ctrl-value" id="t3-rot">0°</span></div>
         <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="-20" max="60" value="0" oninput="setPx('--t3-margin-top',this,'t3-mt')"><span class="ctrl-value" id="t3-mt">0px</span></div>
         <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="60" value="10" oninput="setPx('--t3-margin-bottom',this,'t3-mb')"><span class="ctrl-value" id="t3-mb">10px</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span><input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--t3-color',this)"><span class="ctrl-color-hex" id="hex-t3">#2b2b2b</span></div>
+        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span>        <div class="ctrl-row"><span class="ctrl-label">フォント</span>
+          <select class="ctrl-select" id="font-t3" onchange="setFont('--t3-font-family',this)">
+            <option value="">── デフォルト ──</option>
+            <option value="" disabled>━━ ── 明朝系 ── ━━</option>
+            <option value="'Noto Serif JP', serif">Noto Serif JP</option>
+            <option value="'Zen Old Mincho', serif">Zen Old Mincho</option>
+            <option value="'Shippori Mincho', serif">Shippori Mincho</option>
+            <option value="'Shippori Antique', serif">Shippori Antique</option>
+            <option value="'Shippori Antique B1', serif">Shippori Antique B1</option>
+            <option value="'Zen Antique', serif">Zen Antique</option>
+            <option value="'Zen Antique Soft', serif">Zen Antique Soft</option>
+            <option value="'Hina Mincho', serif">Hina Mincho</option>
+            <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+            <option value="'Kaisei Opti', serif">Kaisei Opti</option>
+            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin</option>
+            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi</option>
+            <option value="'Klee One', cursive">Klee One</option>
+            <option value="'BIZ UDMincho', serif">BIZ UDMincho</option>
+            <option value="'Yuji Syuku', serif">Yumincho+36p Kana</option>
+            <option value="" disabled>━━ ── ゴシック系 ── ━━</option>
+            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c</option>
+            <option value="'M PLUS 1p', sans-serif">M PLUS 1p</option>
+            <option value="'M PLUS 1', sans-serif">M PLUS 1</option>
+            <option value="'M PLUS 2', sans-serif">M PLUS 2</option>
+            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic</option>
+            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic</option>
+            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New</option>
+            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique</option>
+            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic</option>
+            <option value="'Murecho', sans-serif">Murecho</option>
+            <option value="'DotGothic16', sans-serif">DotGothic16</option>
+            <option value="'Reggae One', cursive">Reggae One</option>
+            <option value="" disabled>━━ ── 筆書き・デザイン系 ── ━━</option>
+            <option value="'Yuji Syuku', serif">Yuji Syuku</option>
+            <option value="'Yuji Mai', serif">Yuji Mai</option>
+            <option value="'Yuji Boku', serif">Yuji Boku</option>
+            <option value="'Rampart One', cursive">Rampart One</option>
+            <option value="'Stick', sans-serif">Stick</option>
+            <option value="'Train One', cursive">Train One</option>
+            <option value="'Zen Loop', cursive">Zen Loop</option>
+            <option value="'Rock 3D', cursive">Rock 3D</option>
+            <option value="'Yomogi', cursive">Yomogi</option>
+            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop</option>
+            <option value="'New Tegomin', serif">New Tegomin</option>
+            <option value="" disabled>━━ ── 英字セリフ系 ── ━━</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+            <option value="'EB Garamond', serif">EB Garamond</option>
+            <option value="'Cinzel', serif">Cinzel</option>
+            <option value="'Lora', serif">Lora</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Libre Baskerville', serif">Libre Baskerville</option>
+            <option value="'Crimson Text', serif">Crimson Text</option>
+            <option value="" disabled>━━ ── 英字サンセリフ系 ── ━━</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Raleway', sans-serif">Raleway</option>
+            <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
+            <option value="'Oswald', sans-serif">Oswald</option>
+            <option value="'Nunito', sans-serif">Nunito</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Outfit', sans-serif">Outfit</option>
+            <option value="'DM Sans', sans-serif">DM Sans</option>
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="" disabled>━━ ── 英字デコレーション系 ── ━━</option>
+            <option value="'Bebas Neue', cursive">Bebas Neue</option>
+            <option value="'Anton', sans-serif">Anton</option>
+            <option value="'Righteous', cursive">Righteous</option>
+            <option value="'Fredoka One', cursive">Fredoka One</option>
+            <option value="'Pacifico', cursive">Pacifico</option>
+            <option value="'Dancing Script', cursive">Dancing Script</option>
+            <option value="'Great Vibes', cursive">Great Vibes</option>
+          </select>
+        </div>
+<input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--t3-color',this)"><span class="ctrl-color-hex" id="hex-t3">#2b2b2b</span></div>
       </div>
     </div>
 
@@ -1101,7 +1364,82 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="ctrl-row"><span class="ctrl-label">縦幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--body-scale-y',this,'body-sy')"><span class="ctrl-value" id="body-sy">1.0</span></div>
         <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="0" max="40" value="0" oninput="setPx('--body-margin-top',this,'body-mt')"><span class="ctrl-value" id="body-mt">0px</span></div>
         <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="40" value="0" oninput="setPx('--body-margin-bottom',this,'body-mb')"><span class="ctrl-value" id="body-mb">0px</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span><input type="color" class="ctrl-color" value="#a3a3a2" onchange="setColor('--body-color',this)"><span class="ctrl-color-hex" id="hex-body">#a3a3a2</span></div>
+        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span>        <div class="ctrl-row"><span class="ctrl-label">フォント</span>
+          <select class="ctrl-select" id="font-body" onchange="setFont('--body-font-family',this)">
+            <option value="">── デフォルト ──</option>
+            <option value="" disabled>━━ ── 明朝系 ── ━━</option>
+            <option value="'Noto Serif JP', serif">Noto Serif JP</option>
+            <option value="'Zen Old Mincho', serif">Zen Old Mincho</option>
+            <option value="'Shippori Mincho', serif">Shippori Mincho</option>
+            <option value="'Shippori Antique', serif">Shippori Antique</option>
+            <option value="'Shippori Antique B1', serif">Shippori Antique B1</option>
+            <option value="'Zen Antique', serif">Zen Antique</option>
+            <option value="'Zen Antique Soft', serif">Zen Antique Soft</option>
+            <option value="'Hina Mincho', serif">Hina Mincho</option>
+            <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+            <option value="'Kaisei Opti', serif">Kaisei Opti</option>
+            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin</option>
+            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi</option>
+            <option value="'Klee One', cursive">Klee One</option>
+            <option value="'BIZ UDMincho', serif">BIZ UDMincho</option>
+            <option value="'Yuji Syuku', serif">Yumincho+36p Kana</option>
+            <option value="" disabled>━━ ── ゴシック系 ── ━━</option>
+            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c</option>
+            <option value="'M PLUS 1p', sans-serif">M PLUS 1p</option>
+            <option value="'M PLUS 1', sans-serif">M PLUS 1</option>
+            <option value="'M PLUS 2', sans-serif">M PLUS 2</option>
+            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic</option>
+            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic</option>
+            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New</option>
+            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique</option>
+            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic</option>
+            <option value="'Murecho', sans-serif">Murecho</option>
+            <option value="'DotGothic16', sans-serif">DotGothic16</option>
+            <option value="'Reggae One', cursive">Reggae One</option>
+            <option value="" disabled>━━ ── 筆書き・デザイン系 ── ━━</option>
+            <option value="'Yuji Syuku', serif">Yuji Syuku</option>
+            <option value="'Yuji Mai', serif">Yuji Mai</option>
+            <option value="'Yuji Boku', serif">Yuji Boku</option>
+            <option value="'Rampart One', cursive">Rampart One</option>
+            <option value="'Stick', sans-serif">Stick</option>
+            <option value="'Train One', cursive">Train One</option>
+            <option value="'Zen Loop', cursive">Zen Loop</option>
+            <option value="'Rock 3D', cursive">Rock 3D</option>
+            <option value="'Yomogi', cursive">Yomogi</option>
+            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop</option>
+            <option value="'New Tegomin', serif">New Tegomin</option>
+            <option value="" disabled>━━ ── 英字セリフ系 ── ━━</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+            <option value="'EB Garamond', serif">EB Garamond</option>
+            <option value="'Cinzel', serif">Cinzel</option>
+            <option value="'Lora', serif">Lora</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Libre Baskerville', serif">Libre Baskerville</option>
+            <option value="'Crimson Text', serif">Crimson Text</option>
+            <option value="" disabled>━━ ── 英字サンセリフ系 ── ━━</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Raleway', sans-serif">Raleway</option>
+            <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
+            <option value="'Oswald', sans-serif">Oswald</option>
+            <option value="'Nunito', sans-serif">Nunito</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Outfit', sans-serif">Outfit</option>
+            <option value="'DM Sans', sans-serif">DM Sans</option>
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="" disabled>━━ ── 英字デコレーション系 ── ━━</option>
+            <option value="'Bebas Neue', cursive">Bebas Neue</option>
+            <option value="'Anton', sans-serif">Anton</option>
+            <option value="'Righteous', cursive">Righteous</option>
+            <option value="'Fredoka One', cursive">Fredoka One</option>
+            <option value="'Pacifico', cursive">Pacifico</option>
+            <option value="'Dancing Script', cursive">Dancing Script</option>
+            <option value="'Great Vibes', cursive">Great Vibes</option>
+          </select>
+        </div>
+<input type="color" class="ctrl-color" value="#a3a3a2" onchange="setColor('--body-color',this)"><span class="ctrl-color-hex" id="hex-body">#a3a3a2</span></div>
       </div>
     </div>
 
@@ -1507,6 +1845,8 @@ function closeMobNav() {
 ============================================================ */
 const root = document.documentElement;
 function setPx(v,i,l){ const val=i.value+'px'; root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
+
+function setFont(v,sel){ var val=sel.value; root.style.setProperty(v, val); }
 function setEm(v,i,l,d){ const val=(i.value/d).toFixed(2)+'em'; root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
 function setRaw(v,i,l,d){ const val=(i.value/d).toFixed(1); root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
 function setScale(v,i,l){ const val=(i.value/100).toFixed(2); root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
