@@ -779,6 +779,22 @@ body { padding-top: 0 !important; }
   outline: 2px solid #3a86ff !important;
   background-color: rgba(58,134,255,0.18) !important;
 }
+
+/* smask-char: 1文字分割 */
+.smask-char {
+  display: inline-block !important;
+  transition: outline 0.1s, background-color 0.15s;
+  border-radius: 2px;
+}
+body.click-mode .smask-char:hover,
+.smask-char:hover {
+  outline: 1px dashed rgba(58,134,255,0.8) !important;
+  background-color: rgba(58,134,255,0.1) !important;
+}
+.smask-char.smask-selected {
+  outline: 2px solid #3a86ff !important;
+  background-color: rgba(58,134,255,0.2) !important;
+}
 </style>
 
 <script>
@@ -2198,9 +2214,9 @@ function copyToClipboard(){ navigator.clipboard.writeText(document.getElementByI
 /* ============================================================
    🎯 クリック選択モード
 ============================================================ */
-let clickMode  = false;
-let textMode   = false;
-let selectedEl = null;
+var clickMode  = false; window._smaskClickMode = function(v){ clickMode=v; };
+var textMode   = false;
+var selectedEl = null;  window._smaskSelectedEl = function(v){ selectedEl=v; return selectedEl; };
 const elBadge  = document.getElementById('elBadge');
 
 // クリック選択モード ON/OFF
@@ -2415,6 +2431,20 @@ function updateSelControls(el){
   // transform 読み取り復元
   const tf = parseTransform(el);
   setTransformUI(tf);
+
+
+  // フォントセレクト同期
+  const selFontSel = document.getElementById('sel-font-select');
+  if(selFontSel){
+    const currentFF = el.style.fontFamily || '';
+    let matched = false;
+    for(let i=0;i<selFontSel.options.length;i++){
+      if(selFontSel.options[i].value && currentFF.indexOf(selFontSel.options[i].value.replace(/['"]/g,'').split(',')[0].trim()) !== -1){
+        selFontSel.selectedIndex = i; matched = true; break;
+      }
+    }
+    if(!matched) selFontSel.selectedIndex = 0;
+  }
 
   // margin / padding 読み取り復元
   const spacingKeys = [
@@ -2842,62 +2872,51 @@ initEditableElements();
 </div>
 
 
+
+
+
 <script>
 /* ============================================================
-   SMASK 追加機能 v3 - 確実動作版
+   SMASK Features v4 - 確実動作版
+   selectedEl/clickMode は var で宣言済み（同一グローバルスコープ）
    ============================================================ */
 
-// ── グローバル参照（メインscriptのlet変数を参照するラッパー）──
-function _getSelectedEl() { return typeof selectedEl !== 'undefined' ? selectedEl : null; }
-function _setSelectedEl(el) { if(typeof selectedEl !== 'undefined') selectedEl = el; }
-function _getClickMode()  { return typeof clickMode !== 'undefined' ? clickMode : false; }
-
 // ── フォントプレビュー ──────────────────────────────────────
-var _fpLoaded = {};
-var _fpTimer  = null;
+var _smaskFPLoaded = {};
 
 function smaskFontPreview(fontVal, fontLabel) {
   var box = document.getElementById('smask-fp-box');
   if(!box) return;
-  if(!fontVal) { box.style.display = 'none'; return; }
+  if(!fontVal) { box.style.display='none'; return; }
 
-  // フォント動的ロード
   var name = fontVal.replace(/['"]/g,'').split(',')[0].trim();
-  if(!_fpLoaded[name]) {
-    _fpLoaded[name] = true;
+  if(!_smaskFPLoaded[name]) {
+    _smaskFPLoaded[name] = true;
     var lk = document.createElement('link');
     lk.rel = 'stylesheet';
-    lk.href = 'https://fonts.googleapis.com/css2?family='
-      + name.replace(/\s+/g,'+') + ':wght@400;700&display=swap';
+    lk.href = 'https://fonts.googleapis.com/css2?family=' + name.replace(/ /g,'+') + ':wght@400;700&display=swap';
     document.head.appendChild(lk);
   }
-
-  document.getElementById('smask-fp-name').textContent = fontLabel || name;
-  ['smask-fp-ja','smask-fp-en'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.style.fontFamily = fontVal;
-  });
+  var nameEl = document.getElementById('smask-fp-name');
+  var jaEl   = document.getElementById('smask-fp-ja');
+  var enEl   = document.getElementById('smask-fp-en');
+  if(nameEl) nameEl.textContent = fontLabel || name;
+  if(jaEl)   { jaEl.style.fontFamily = fontVal; }
+  if(enEl)   { enEl.style.fontFamily = fontVal; }
   box.style.display = 'block';
 }
 
-// フォントセレクトにプレビューを接続（setIntervalで確実に）
-var _fpAttachTimer = setInterval(function(){
-  var ids = ['font-t1','font-t2','font-t3','font-body','sel-font-select'];
-  ids.forEach(function(id){
-    var sel = document.getElementById(id);
-    if(!sel || sel._smaskFP) return;
-    sel._smaskFP = true;
-    sel.addEventListener('change', function(){
-      var opt = this.options[this.selectedIndex];
-      smaskFontPreview(opt ? opt.value : '', opt ? opt.text : '');
-    });
-    sel.addEventListener('focus', function(){
-      var opt = this.options[this.selectedIndex];
-      smaskFontPreview(opt ? opt.value : '', opt ? opt.text : '');
-    });
-  });
-}, 500);
-setTimeout(function(){ clearInterval(_fpAttachTimer); }, 15000);
+// フォントセレクト変更 → 即座に選択要素に適用 + プレビュー
+function applySelFont(sel) {
+  // フォントプレビュー更新
+  var opt = sel.options[sel.selectedIndex];
+  smaskFontPreview(sel.value, opt ? opt.text : '');
+
+  // 選択要素にフォント適用
+  if(selectedEl) {
+    selectedEl.style.fontFamily = sel.value || '';
+  }
+}
 
 // filterFont（検索ボックス）
 function filterFont(input, selectId) {
@@ -2907,175 +2926,321 @@ function filterFont(input, selectId) {
   for(var i=0; i<sel.options.length; i++){
     var opt = sel.options[i];
     if(opt.disabled){ opt.style.display = q ? 'none' : ''; continue; }
-    opt.style.display = (!q || opt.text.toLowerCase().indexOf(q)!==-1) ? '' : 'none';
+    opt.style.display = (!q || opt.text.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
   }
 }
 
+// setIntervalでフォントセレクトにプレビュー接続（DOMロード後確実に動かす）
+var _smaskFPTimer = setInterval(function(){
+  var ids = ['font-t1','font-t2','font-t3','font-body','sel-font-select'];
+  var allDone = true;
+  ids.forEach(function(id){
+    var sel = document.getElementById(id);
+    if(!sel) { allDone = false; return; }
+    if(sel._smaskFP) return;
+    sel._smaskFP = true;
+    sel.addEventListener('change', function(){
+      var opt = this.options[this.selectedIndex];
+      smaskFontPreview(this.value, opt ? opt.text : '');
+    });
+  });
+  if(allDone) clearInterval(_smaskFPTimer);
+}, 300);
+setTimeout(function(){ clearInterval(_smaskFPTimer); }, 20000);
+
 // ── 1文字ずつ分割 ────────────────────────────────────────────
 function smaskSplitChars() {
-  var el = _getSelectedEl();
-  if(!el) { alert('先に要素を選択してください（🎯クリック選択モードON → 要素タップ）'); return; }
-
-  var text = el.innerText || el.textContent || '';
-  if(!text.trim()) { alert('テキストが空です'); return; }
-
-  if(el.querySelector('.smask-char')) {
-    if(!confirm('再分割しますか？（スタイルはリセットされます）')) return;
+  // 1. selectedElが未設定の場合 → クリック選択モードをONにして案内
+  if(!selectedEl) {
+    // clickModeがOFFなら自動でON
+    if(typeof toggleClickMode === 'function' && !clickMode) {
+      toggleClickMode();
+    }
+    alert('ページ内の編集したいテキストをタップしてください\n（要素が青枠で選択されます）');
+    return;
   }
 
+  var el = selectedEl;
+  var text = (el.innerText || el.textContent || '').replace(/\n/g,' ').trim();
+  if(!text) { alert('テキストが空です'); return; }
+
+  if(el.querySelector('.smask-char') && !confirm('再分割しますか？')) return;
+
+  // 文字を分割
   var html = '';
   Array.from(text).forEach(function(ch){
-    if(ch==='
-'){ html += '<br>'; return; }
-    var esc = ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    if(ch===' '||ch==='　') esc = '&nbsp;';
-    html += '<span class="smask-char page-editable" style="display:inline-block;cursor:pointer;">' + esc + '</span>';
+    var esc = ch === ' ' ? '&nbsp;'
+            : ch === '　' ? '&nbsp;&nbsp;'
+            : ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html += '<span class="smask-char" data-ch="'+esc+'" style="display:inline-block;cursor:pointer;">'+esc+'</span>';
   });
   el.innerHTML = html;
 
-  // 各文字にクリックイベント
-  el.querySelectorAll('.smask-char').forEach(function(span){
+  // 各文字にクリック/タッチ
+  el.querySelectorAll('.smask-char').forEach(function(span, idx){
     span.addEventListener('click', function(e){
       e.stopPropagation();
-      // 既存選択解除
-      var prev = _getSelectedEl();
-      if(prev) prev.classList.remove('el-selected');
-      _setSelectedEl(this);
-      this.classList.add('el-selected');
-      // カラーパネル表示
-      smaskShowCharPanel(this);
-    });
-    // タッチ対応
-    span.addEventListener('touchend', function(e){
       e.preventDefault();
-      this.click();
+      smaskSelectChar(this);
     });
+    span.addEventListener('touchend', function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      smaskSelectChar(this);
+    }, {passive:false});
   });
 
-  _setSelectedEl(null);
+  // 選択解除
   el.classList.remove('el-selected');
+  selectedEl = null;
 
   // カラーパネル表示
   var cp = document.getElementById('smask-char-panel');
   if(cp) cp.style.display = 'block';
 
-  alert('✅ ' + Array.from(text).length + '文字に分割しました！
-各文字をタップして個別スタイル変更できます');
+  alert('✅ ' + Array.from(text).length + '文字に分割しました！\n各文字をタップ → フォント・色を変更できます');
 }
 
-function smaskShowCharPanel(charEl) {
+function smaskSelectChar(span) {
+  // 前の選択解除
+  document.querySelectorAll('.smask-char.smask-selected').forEach(function(s){
+    s.classList.remove('smask-selected');
+  });
+  if(selectedEl && selectedEl !== span) selectedEl.classList.remove('el-selected');
+
+  // 新しい選択
+  span.classList.add('smask-selected');
+  selectedEl = span;
+
+  // カラーパネル
+  smaskShowCharPanel(span);
+
+  // sel-controlsにも反映（サイズ・太さ等）
+  if(typeof updateSelControls === 'function') {
+    try {
+      // sel-guideを非表示にしてsel-controlsを表示
+      var sg = document.getElementById('sel-guide');
+      var sw = document.getElementById('sel-waiting');
+      var sc = document.getElementById('sel-controls');
+      if(sg) sg.style.display='none';
+      if(sw) sw.style.display='none';
+      if(sc) sc.style.display='block';
+      updateSelControls(span);
+    } catch(e){}
+  }
+
+  // セレクションタブに切り替え
+  if(typeof switchTabById === 'function') {
+    try { switchTabById('tab-select'); } catch(e){}
+  }
+  if(typeof openPanel === 'function') {
+    try { openPanel(); } catch(e){}
+  }
+}
+
+function smaskShowCharPanel(span) {
   var cp = document.getElementById('smask-char-panel');
   if(!cp) return;
   cp.style.display = 'block';
 
-  // 現在の色をピッカーに反映
-  var color = charEl.style.color;
-  var bg    = charEl.style.backgroundColor;
-  var cp_c  = document.getElementById('smask-char-color');
-  var cp_b  = document.getElementById('smask-char-bg');
-  if(cp_c && color) { var hex = smaskRgbToHex(color); if(hex){ cp_c.value=hex; document.getElementById('smask-char-color-hex').textContent=hex; }}
-  if(cp_b && bg && bg!=='transparent') { var hex2 = smaskRgbToHex(bg); if(hex2){ cp_b.value=hex2; document.getElementById('smask-char-bg-hex').textContent=hex2; }}
+  var color = span.style.color || '';
+  var bg    = span.style.backgroundColor || '';
 
-  // sel-controls も表示
-  var sc = document.getElementById('sel-controls');
-  var sw = document.getElementById('sel-waiting');
-  if(sc) sc.style.display = 'block';
-  if(sw) sw.style.display = 'none';
+  var cp_c = document.getElementById('smask-char-color');
+  var cp_b = document.getElementById('smask-char-bg');
+  var hx_c = document.getElementById('smask-char-color-hex');
+  var hx_b = document.getElementById('smask-char-bg-hex');
+
+  if(cp_c && color) {
+    var h = smaskRgbToHex(color);
+    if(h){ cp_c.value=h; if(hx_c) hx_c.textContent=h; }
+  }
+  if(cp_b && bg && bg!=='transparent') {
+    var h2 = smaskRgbToHex(bg);
+    if(h2){ cp_b.value=h2; if(hx_b) hx_b.textContent=h2; }
+  }
 }
 
 function smaskRgbToHex(str) {
-  if(!str||str==='transparent'||str==='') return null;
+  if(!str||str==='transparent'||!str.trim()) return null;
   if(str[0]==='#') return str;
   var m = str.match(/rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\)/);
   if(!m) return null;
-  return '#' + [m[1],m[2],m[3]].map(function(x){ return ('0'+parseInt(x).toString(16)).slice(-2); }).join('');
+  return '#' + [m[1],m[2],m[3]].map(function(x){
+    return ('0'+parseInt(x).toString(16)).slice(-2);
+  }).join('');
 }
 
 function smaskApplyCharColor(picker) {
-  var el = _getSelectedEl();
-  if(!el) return;
-  el.style.color = picker.value;
-  var hex = document.getElementById('smask-char-color-hex');
-  if(hex) hex.textContent = picker.value;
+  if(!selectedEl) return;
+  selectedEl.style.color = picker.value;
+  var h = document.getElementById('smask-char-color-hex');
+  if(h) h.textContent = picker.value;
 }
 
 function smaskApplyCharBg(picker) {
-  var el = _getSelectedEl();
-  if(!el) return;
-  el.style.backgroundColor = picker.value;
-  var hex = document.getElementById('smask-char-bg-hex');
-  if(hex) hex.textContent = picker.value;
+  if(!selectedEl) return;
+  selectedEl.style.backgroundColor = picker.value;
+  var h = document.getElementById('smask-char-bg-hex');
+  if(h) h.textContent = picker.value;
 }
 
 function smaskColorAll() {
-  var el = _getSelectedEl();
-  if(!el) return;
-  var parent = el.parentElement;
-  if(!parent) return;
   var color = document.getElementById('smask-char-color').value;
   var bg    = document.getElementById('smask-char-bg').value;
-  parent.querySelectorAll('.smask-char').forEach(function(span){
-    span.style.color = color;
-    span.style.backgroundColor = bg;
+  var parent = selectedEl ? selectedEl.parentElement : null;
+  if(!parent) return;
+  parent.querySelectorAll('.smask-char').forEach(function(s){
+    s.style.color = color;
+    s.style.backgroundColor = bg;
   });
 }
 
 function smaskColorReset() {
-  var el = _getSelectedEl();
-  if(!el) return;
-  var parent = el.parentElement;
+  var parent = selectedEl ? selectedEl.parentElement : null;
   if(!parent) return;
-  parent.querySelectorAll('.smask-char').forEach(function(span){
-    span.style.color = '';
-    span.style.backgroundColor = '';
+  parent.querySelectorAll('.smask-char').forEach(function(s){
+    s.style.color = '';
+    s.style.backgroundColor = '';
   });
 }
 
-// applySelFont（フォントセレクト → 選択要素に適用）
-function applySelFont(sel) {
-  var el = _getSelectedEl();
-  if(!el) return;
-  el.style.fontFamily = sel.value || '';
-  smaskFontPreview(sel.value, sel.options[sel.selectedIndex].text);
+// ── 公開機能 ────────────────────────────────────────────────
+function smaskPublish() {
+  var modal = document.getElementById('smask-publish-modal');
+  if(!modal) return;
+  modal.style.position   = 'fixed';
+  modal.style.inset      = '0';
+  modal.style.background = 'rgba(0,0,0,0.85)';
+  modal.style.zIndex     = '999999';
+  modal.style.display    = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
 }
 
-// カスタムフォント追加・filterFont
+function smaskCancelPublish() {
+  var modal = document.getElementById('smask-publish-modal');
+  if(modal) modal.style.display = 'none';
+}
+
+function smaskConfirmPublish() {
+  try {
+    var vars = {};
+    var varNames = ['--t1-font-family','--t2-font-family','--t3-font-family','--body-font-family',
+      '--t1-size','--t2-size','--t3-size','--body-size',
+      '--t1-color','--t2-color','--t3-color','--body-color',
+      '--t1-weight','--t2-weight','--t3-weight',
+      '--t1-letter-spacing','--t2-letter-spacing','--t3-letter-spacing',
+      '--t1-line-height','--t2-line-height','--t3-line-height',
+      '--primary-color','--accent-color','--bg-color'];
+    varNames.forEach(function(v){
+      var val = document.documentElement.style.getPropertyValue(v);
+      if(val && val.trim()) vars[v] = val.trim();
+    });
+
+    var edited = [];
+    document.querySelectorAll('[style]').forEach(function(el){
+      if(el.closest && (el.closest('#design-panel') || el.closest('#login-overlay') ||
+         el.closest('#smask-publish-modal') || el.closest('#smask-fp-box') ||
+         el.id === 'panel-toggle')) return;
+      var s = el.getAttribute('style');
+      if(s && s.trim()) {
+        edited.push({ path: smaskGetPath(el), style: s });
+      }
+    });
+
+    localStorage.setItem('smask_published', JSON.stringify({
+      ts: new Date().toISOString(), vars: vars, edited: edited
+    }));
+
+    smaskCancelPublish();
+
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);'
+      + 'background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;'
+      + 'padding:14px 28px;border-radius:12px;font-size:14px;font-weight:700;'
+      + 'z-index:999999;box-shadow:0 6px 24px rgba(39,174,96,0.5);';
+    banner.textContent = '🚀 公開完了！';
+    document.body.appendChild(banner);
+    setTimeout(function(){ if(banner.parentElement) banner.remove(); }, 3000);
+  } catch(e) {
+    alert('エラー: ' + e.message);
+  }
+}
+
+function smaskGetPath(el) {
+  if(!el || el === document.body) return 'body';
+  var path = [];
+  var cur = el;
+  while(cur && cur !== document.body && cur.parentElement) {
+    if(cur.id) { path.unshift(cur.tagName.toLowerCase() + '#' + cur.id); break; }
+    var idx = Array.prototype.indexOf.call(cur.parentElement.children, cur);
+    path.unshift(cur.tagName.toLowerCase() + ':nth-child(' + (idx+1) + ')');
+    cur = cur.parentElement;
+  }
+  return path.join('>');
+}
+
+function smaskExportHTML() {
+  try {
+    var docClone = document.documentElement.cloneNode(true);
+    ['design-panel','panel-toggle','login-overlay','smask-publish-modal',
+     'smask-fp-box','elBadge','sel-mode-switcher'].forEach(function(id){
+      var el = docClone.querySelector('#' + id);
+      if(el) el.remove();
+    });
+    docClone.querySelectorAll('.el-selected,.smask-selected').forEach(function(el){
+      el.classList.remove('el-selected','smask-selected');
+    });
+    docClone.querySelectorAll('.page-editable').forEach(function(el){
+      el.classList.remove('page-editable');
+    });
+    var html = '<!DOCTYPE html>\n' + docClone.outerHTML;
+    var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url;
+    a.download = 'smask_public_' + new Date().toISOString().slice(0,10) + '.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    smaskCancelPublish();
+  } catch(e) {
+    alert('エクスポートエラー: ' + e.message);
+  }
+}
+
+// ── カスタムフォント ──────────────────────────────────────
 function addCustomFont() {
-  var nameInput = document.getElementById('custom-font-input');
-  var labelInput = document.getElementById('custom-font-label');
-  if(!nameInput) return;
-  var fontName  = nameInput.value.trim();
-  var fontLabel = labelInput ? (labelInput.value.trim() || fontName) : fontName;
+  var ni = document.getElementById('custom-font-input');
+  var li = document.getElementById('custom-font-label');
+  if(!ni) return;
+  var fontName  = ni.value.trim();
+  var fontLabel = li ? (li.value.trim() || fontName) : fontName;
   if(!fontName) { alert('フォント名を入力してください'); return; }
 
-  var fontId  = fontName.replace(/\s+/g,'+');
   var lk = document.createElement('link');
   lk.rel = 'stylesheet';
-  lk.href = 'https://fonts.googleapis.com/css2?family=' + fontId + ':wght@400;700&display=swap';
+  lk.href = 'https://fonts.googleapis.com/css2?family=' + fontName.replace(/ /g,'+') + ':wght@400;700&display=swap';
   document.head.appendChild(lk);
 
-  var fontValue = "'" + fontName + "', sans-serif";
+  var fv = "'" + fontName + "', sans-serif";
+  var ft = fontName + '｜' + fontLabel + '（カスタム）';
   var ids = ['font-t1','font-t2','font-t3','font-body','sel-font-select'];
   ids.forEach(function(id){
     var sel = document.getElementById(id);
     if(!sel) return;
-    for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===fontValue) return; }
-    var sep = document.createElement('option');
-    sep.disabled = true; sep.text = '━━ カスタム追加フォント ━━';
+    for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===fv) return; }
+    var sep = new Option('━━ カスタム追加フォント ━━',''); sep.disabled=true;
     sel.appendChild(sep);
-    var opt = document.createElement('option');
-    opt.value = fontValue;
-    opt.text  = fontName + '｜' + fontLabel + '（カスタム）';
-    sel.appendChild(opt);
+    sel.appendChild(new Option(ft, fv));
   });
 
   var saved = JSON.parse(localStorage.getItem('smask_custom_fonts')||'[]');
-  saved.push({name:fontName,label:fontLabel,value:fontValue,text:fontName+'｜'+fontLabel+'（カスタム）'});
+  saved.push({name:fontName, label:fontLabel, value:fv, text:ft});
   localStorage.setItem('smask_custom_fonts', JSON.stringify(saved));
   renderCustomFontList();
-  nameInput.value = '';
-  if(labelInput) labelInput.value = '';
-  alert('「'+fontName+'」を追加しました！');
+  ni.value=''; if(li) li.value='';
+  alert('"'+fontName+'" を追加しました！');
 }
 
 function renderCustomFontList() {
@@ -3083,22 +3248,20 @@ function renderCustomFontList() {
   if(!list) return;
   var saved = JSON.parse(localStorage.getItem('smask_custom_fonts')||'[]');
   if(!saved.length){ list.innerHTML=''; return; }
-  var html = '<div style="font-size:11px;color:#888;margin-bottom:6px;">追加済み:</div>';
-  saved.forEach(function(f,i){
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;background:#222;border-radius:6px;margin-bottom:4px;">'
-      + '<span style="color:#fff;font-size:12px;">'+f.name+'</span>'
-      + '<button onclick="smaskRemoveFont('+i+')" style="background:#c0392b;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">削除</button>'
-      + '</div>';
-  });
-  list.innerHTML = html;
+  list.innerHTML = '<div style="font-size:11px;color:#888;margin-bottom:6px;">追加済み:</div>'
+    + saved.map(function(f,i){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;background:#222;border-radius:6px;margin-bottom:4px;">'
+        + '<span style="color:#fff;font-size:12px;">' + f.name + '</span>'
+        + '<button onclick="smaskRemoveFont('+i+')" style="background:#c0392b;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">削除</button>'
+        + '</div>';
+    }).join('');
 }
 
 function smaskRemoveFont(index) {
   var saved = JSON.parse(localStorage.getItem('smask_custom_fonts')||'[]');
   var removed = saved.splice(index,1)[0];
   localStorage.setItem('smask_custom_fonts', JSON.stringify(saved));
-  var ids = ['font-t1','font-t2','font-t3','font-body','sel-font-select'];
-  ids.forEach(function(id){
+  ['font-t1','font-t2','font-t3','font-body','sel-font-select'].forEach(function(id){
     var sel = document.getElementById(id);
     if(!sel) return;
     for(var i=sel.options.length-1;i>=0;i--){
@@ -3108,138 +3271,33 @@ function smaskRemoveFont(index) {
   renderCustomFontList();
 }
 
-function removeCustomFont(index){ smaskRemoveFont(index); }
+function removeCustomFont(i){ smaskRemoveFont(i); }
 
 function loadCustomFonts() {
   var saved = JSON.parse(localStorage.getItem('smask_custom_fonts')||'[]');
   saved.forEach(function(f){
     var lk = document.createElement('link');
     lk.rel = 'stylesheet';
-    lk.href = 'https://fonts.googleapis.com/css2?family='+f.name.replace(/\s+/g,'+') + ':wght@400;700&display=swap';
+    lk.href = 'https://fonts.googleapis.com/css2?family='+f.name.replace(/ /g,'+') + ':wght@400;700&display=swap';
     document.head.appendChild(lk);
-    var ids = ['font-t1','font-t2','font-t3','font-body','sel-font-select'];
-    ids.forEach(function(id){
+    ['font-t1','font-t2','font-t3','font-body','sel-font-select'].forEach(function(id){
       var sel = document.getElementById(id);
       if(!sel) return;
       for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===f.value) return; }
-      var sep = document.createElement('option'); sep.disabled=true; sep.text='━━ カスタム追加フォント ━━';
+      var sep = new Option('━━ カスタム追加フォント ━━',''); sep.disabled=true;
       sel.appendChild(sep);
-      var opt = document.createElement('option'); opt.value=f.value; opt.text=f.text;
-      sel.appendChild(opt);
+      sel.appendChild(new Option(f.text, f.value));
     });
   });
   renderCustomFontList();
 }
 
-// ── 公開機能 ────────────────────────────────────────────────
-function smaskPublish() {
-  var modal = document.getElementById('smask-publish-modal');
-  if(modal) { modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999999;align-items:center;justify-content:center;'; }
+// 初期化
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', loadCustomFonts);
+} else {
+  loadCustomFonts();
 }
-function smaskCancelPublish() {
-  var modal = document.getElementById('smask-publish-modal');
-  if(modal) modal.style.display = 'none';
-}
-
-function smaskConfirmPublish() {
-  try {
-    // CSSカスタムプロパティ収集
-    var vars = {};
-    var varNames = ['--t1-font-family','--t2-font-family','--t3-font-family','--body-font-family',
-      '--t1-size','--t2-size','--t3-size','--body-size',
-      '--t1-color','--t2-color','--t3-color','--body-color',
-      '--t1-weight','--t2-weight','--t3-weight',
-      '--t1-letter-spacing','--t2-letter-spacing','--t3-letter-spacing',
-      '--t1-line-height','--t2-line-height','--t3-line-height'];
-    varNames.forEach(function(v){
-      var val = document.documentElement.style.getPropertyValue(v);
-      if(val && val.trim()) vars[v] = val.trim();
-    });
-
-    // インラインスタイルを持つ要素を収集
-    var edited = [];
-    document.querySelectorAll('[style]').forEach(function(el){
-      if(el.closest('#design-panel')||el.closest('#login-overlay')||
-         el.closest('#smask-publish-modal')||el.closest('#smask-fp-box')||
-         el.id==='panel-toggle') return;
-      var s = el.getAttribute('style');
-      if(s && s.trim()) edited.push({path: smaskGetPath(el), style: s});
-    });
-
-    // char-unit情報
-    var chars = [];
-    document.querySelectorAll('.smask-char').forEach(function(span,i){
-      var s = span.getAttribute('style');
-      if(s) chars.push({i:i, text:span.textContent, style:s});
-    });
-
-    var data = { ts: new Date().toISOString(), vars: vars, edited: edited, chars: chars };
-    localStorage.setItem('smask_published', JSON.stringify(data));
-    localStorage.setItem('smask_published_ts', new Date().toLocaleString('ja-JP'));
-
-    smaskCancelPublish();
-
-    // 成功バナー
-    var banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;padding:14px 28px;border-radius:12px;font-size:14px;font-weight:700;z-index:999999;box-shadow:0 6px 24px rgba(39,174,96,0.5);';
-    banner.textContent = '🚀 公開完了！';
-    document.body.appendChild(banner);
-    setTimeout(function(){ banner.remove(); }, 3000);
-  } catch(e) {
-    alert('エラー: ' + e.message);
-  }
-}
-
-function smaskGetPath(el) {
-  if(!el||el===document.body) return 'body';
-  var path = [];
-  var cur = el;
-  while(cur && cur!==document.body) {
-    if(cur.id) { path.unshift(cur.tagName.toLowerCase()+'#'+cur.id); break; }
-    var idx = Array.prototype.indexOf.call(cur.parentElement.children, cur);
-    path.unshift(cur.tagName.toLowerCase()+':nth-child('+(idx+1)+')');
-    cur = cur.parentElement;
-  }
-  return path.join('>');
-}
-
-function smaskExportHTML() {
-  try {
-    var docClone = document.documentElement.cloneNode(true);
-    // 管理用要素を削除
-    ['design-panel','panel-toggle','login-overlay','smask-publish-modal',
-     'smask-fp-box','elBadge','sel-mode-switcher'].forEach(function(id){
-      var el = docClone.querySelector('#'+id);
-      if(el) el.remove();
-    });
-    docClone.querySelectorAll('.el-selected').forEach(function(el){ el.classList.remove('el-selected'); });
-    docClone.querySelectorAll('.page-editable').forEach(function(el){ el.classList.remove('page-editable'); });
-
-    var html = '<!DOCTYPE html>
-' + docClone.outerHTML;
-    var blob = new Blob([html], {type:'text/html;charset=utf-8'});
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href = url;
-    a.download = 'smask_public_' + new Date().toISOString().slice(0,10) + '.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    smaskCancelPublish();
-  } catch(e) {
-    alert('エクスポートエラー: ' + e.message);
-  }
-}
-
-// DOM準備後に初期化
-(function initSMASK(){
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', function(){ loadCustomFonts(); });
-  } else {
-    loadCustomFonts();
-  }
-})();
 </script>
 
 </body>
