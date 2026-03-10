@@ -1300,6 +1300,130 @@ body.click-mode .smask-char:hover,
 .smask-swatch-btn:hover{ transform:scale(1.08); box-shadow:0 2px 8px rgba(0,0,0,0.35); }
 .smask-swatch-btn:active{ transform:scale(.96); }
 
+
+/* ========================================================
+   PC縦型サイドパネル復元 + スマホは現状維持
+======================================================== */
+@media (min-width: 769px) {
+  #design-panel {
+    top: 28px !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 360px !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    min-height: 400px !important;
+    border-radius: 16px 0 0 16px !important;
+    border-left: 2px solid var(--color-gold) !important;
+    border-top: none !important;
+    box-shadow: -8px 0 32px rgba(0,0,0,0.28) !important;
+    transform: translateX(100%) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #design-panel.open { transform: translateX(0) !important; }
+
+  .panel-drag-handle {
+    display: none !important;
+  }
+
+  .panel-header {
+    padding: 14px 16px 10px !important;
+    flex-shrink: 0 !important;
+  }
+  .panel-header-row1 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+  .panel-title {
+    font-size: 13px !important;
+  }
+  .panel-actions {
+    display: flex !important;
+    gap: 5px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+  }
+  .panel-btn {
+    min-height: 34px !important;
+    padding: 7px 10px !important;
+    font-size: 11px !important;
+  }
+
+  #clickModeBtn {
+    width: 100% !important;
+    min-height: 44px !important;
+    border-radius: 10px !important;
+    margin-top: 8px !important;
+    font-size: 13px !important;
+  }
+
+  .panel-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 8px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    flex-shrink: 0 !important;
+  }
+  .panel-tab {
+    min-width: 62px !important;
+    padding: 12px 8px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .panel-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 14px 16px 18px !important;
+  }
+
+  .panel-toggle {
+    top: 92px !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 10px 0 0 10px !important;
+    font-size: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .panel-toggle.open {
+    right: 360px !important;
+  }
+
+  #smask-pub-fab {
+    display: none !important;
+  }
+
+  #smask-mini-toolbar {
+    max-width: 520px !important;
+  }
+}
+
+
+@media (min-width: 769px) {
+  #smask-font-cats {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+  .smask-font-cat-btn {
+    width: 100% !important;
+    text-align: center !important;
+    min-height: 38px !important;
+  }
+}
+
 </style>
 
 <script>
@@ -2632,9 +2756,36 @@ function closeMobNav() {
    CSS変数ユーティリティ
 ============================================================ */
 const root = document.documentElement;
+
+// ===== フォント確実読み込みヘルパー =====
+var _smaskEnsuredFonts = window._smaskEnsuredFonts || {};
+window._smaskEnsuredFonts = _smaskEnsuredFonts;
+
+function smaskNormalizeFontName(fontVal){
+  if(!fontVal) return '';
+  return String(fontVal).replace(/["']/g,'').split(',')[0].trim();
+}
+
+function smaskEnsureFontLoaded(fontVal){
+  var family = smaskNormalizeFontName(fontVal);
+  if(!family) return;
+  if(_smaskEnsuredFonts[family]) return;
+  _smaskEnsuredFonts[family] = true;
+
+  // まず重み指定なしで確実に読み込む
+  var href1 = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g,'+') + '&display=swap';
+  if(!document.querySelector('link[data-smask-font="'+family.replace(/"/g,'&quot;')+'"]')) {
+    var lk1 = document.createElement('link');
+    lk1.rel = 'stylesheet';
+    lk1.href = href1;
+    lk1.setAttribute('data-smask-font', family);
+    document.head.appendChild(lk1);
+  }
+}
+
 function setPx(v,i,l){ const val=i.value+'px'; root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
 
-function setFont(v,sel){ var val=sel.value; root.style.setProperty(v, val); }
+function setFont(v,sel){ var val=sel.value; smaskEnsureFontLoaded(val); root.style.setProperty(v, val); }
 function setEm(v,i,l,d){ const val=(i.value/d).toFixed(2)+'em'; root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
 function setRaw(v,i,l,d){ const val=(i.value/d).toFixed(1); root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
 function setScale(v,i,l){ const val=(i.value/100).toFixed(2); root.style.setProperty(v,val); document.getElementById(l).textContent=val; }
@@ -3500,10 +3651,7 @@ function smaskFontPreview(fontVal, fontLabel) {
   var name = fontVal.replace(/['"]/g,'').split(',')[0].trim();
   if(!_smaskFPLoaded[name]) {
     _smaskFPLoaded[name] = true;
-    var lk = document.createElement('link');
-    lk.rel = 'stylesheet';
-    lk.href = 'https://fonts.googleapis.com/css2?family=' + name.replace(/ /g,'+') + ':wght@400;700&display=swap';
-    document.head.appendChild(lk);
+    smaskEnsureFontLoaded(fontVal);
   }
   var nameEl = document.getElementById('smask-fp-name');
   var jaEl   = document.getElementById('smask-fp-ja');
@@ -3519,6 +3667,8 @@ function applySelFont(sel) {
   var opt = sel.options[sel.selectedIndex];
   var fontVal = sel.value;
   var fontName = opt ? opt.text.split('|')[0].trim() : '';
+
+  smaskEnsureFontLoaded(fontVal);
 
   // フォントプレビュー更新（即時）
   smaskFontPreview(fontVal, fontName);
@@ -3574,13 +3724,7 @@ function updateSelFontPreviewBox(fontVal, fontName) {
   if(txt) { txt.style.fontFamily = fontVal; }
   if(nm)  { nm.textContent = fontName || fontVal; }
   // Google Fonts 動的ロード
-  var familyRaw = fontVal.replace(/['"]/g,'').split(',')[0].trim();
-  if(familyRaw && !document.querySelector('link[href*="'+encodeURIComponent(familyRaw)+'"]')) {
-    var lnk = document.createElement('link');
-    lnk.rel = 'stylesheet';
-    lnk.href = 'https://fonts.googleapis.com/css2?family='+encodeURIComponent(familyRaw)+':wght@400;700&display=swap';
-    document.head.appendChild(lnk);
-  }
+  smaskEnsureFontLoaded(fontVal);
 }
 
 // filterFont（検索ボックス）
@@ -3606,6 +3750,7 @@ var _smaskFPTimer = setInterval(function(){
     sel._smaskFP = true;
     sel.addEventListener('change', function(){
       var opt = this.options[this.selectedIndex];
+      smaskEnsureFontLoaded(this.value);
       smaskFontPreview(this.value, opt ? opt.text : '');
     });
   });
@@ -4093,10 +4238,7 @@ function removeCustomFont(i){ smaskRemoveFont(i); }
 function loadCustomFonts() {
   var saved = JSON.parse(localStorage.getItem('smask_custom_fonts')||'[]');
   saved.forEach(function(f){
-    var lk = document.createElement('link');
-    lk.rel = 'stylesheet';
-    lk.href = 'https://fonts.googleapis.com/css2?family='+f.name.replace(/ /g,'+') + ':wght@400;700&display=swap';
-    document.head.appendChild(lk);
+    smaskEnsureFontLoaded(f.value || ("'" + f.name + "', sans-serif"));
     ['font-t1','font-t2','font-t3','font-body','sel-font-select'].forEach(function(id){
       var sel = document.getElementById(id);
       if(!sel) return;
