@@ -721,7 +721,7 @@ nav.fixed { position: fixed !important; }
 /* スペーサー（ナビ分） */
 body { padding-top: 0 !important; }
 /* デザインパネルの z-index を Tailwind より優先 */
-#design-panel { z-index: 9999998 !important; }
+#design-panel { z-index: 9999 !important; }
 .panel-toggle  { z-index: 9999997 !important; }
 
   
@@ -1461,7 +1461,7 @@ function doLogin(){
   }
 }
 </script>
-
+<style id="smk-site-css">
 /* ---- SITE SETTINGS UI ---- */
 .smk-field-label{
   font-size:10px;color:#C6A75C;letter-spacing:.08em;
@@ -1493,7 +1493,7 @@ function doLogin(){
 .smk-img-clear-btn:hover{ color:#e57373; }
 /* maintenance overlay */
 #smk-maint-overlay{
-  position:fixed;inset:0;z-index:9999998;
+  position:fixed;inset:0;z-index:9999;
   background:rgba(0,0,0,.72);
   display:flex;align-items:center;justify-content:center;
   backdrop-filter:blur(2px);
@@ -1516,6 +1516,7 @@ function doLogin(){
   margin-bottom:18px;display:none;
 }
 /* ---- end SITE SETTINGS UI ---- */
+</style>
 </head>
 <body>
 
@@ -4303,7 +4304,7 @@ var _origSplitChars = null;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    z-index: 9999998 !important;
+    z-index: 9999 !important;
   }
   html body #design-panel.open {
     transform: translateX(0) !important;
@@ -5163,7 +5164,7 @@ html body #smask-pub-fab {
     border-top: 2px solid var(--color-gold) !important;
     transform: translateY(calc(100% - 46px)) !important;
     box-sizing: border-box !important;
-    z-index: 9999998 !important;
+    z-index: 9999 !important;
   }
   html body #design-panel.open {
     transform: translateY(0) !important;
@@ -5576,7 +5577,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v13-script">
+<script id="smask-v14-script">
 (function(){
 'use strict';
 
@@ -6548,9 +6549,11 @@ window.addEventListener('load', function(){
   /* ── maintenance toggle ── */
   window.smkSiteToggleMaint = function(){
     SS.maintenance = !SS.maintenance;
-    /* read current message from input */
+    /* read current message text from input */
     var mm = document.getElementById('site-maint-msg');
     if(mm) SS.maintMsg = mm.value || SS.maintMsg;
+    /* immediately persist to localStorage */
+    ssSave();
     syncMaintBtn();
     updateMaintOverlay();
   };
@@ -6564,7 +6567,8 @@ window.addEventListener('load', function(){
     var mm = document.getElementById('site-maint-msg');
     if(mm) SS.maintMsg = mm.value.trim() || 'このサイトはメンテナンス中です。';
 
-    /* save */
+    /* SS.maintenance is already set by smkSiteToggleMaint; no override needed */
+    /* save everything (including current SS.maintenance) */
     ssSave();
 
     /* apply to page */
