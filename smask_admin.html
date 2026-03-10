@@ -5535,3 +5535,286 @@ var _origSplitChars = null;
   setTimeout(boot, 1400);
 })();
 </script>
+
+
+<!-- SMASK MOBILE SIMPLE TABS PATCH -->
+<style id="smask-mobile-simple-tabs-style">
+@media (max-width: 768px) {
+  #design-panel .panel-tabs {
+    display:grid !important;
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    overflow: visible !important;
+    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  }
+  #design-panel .panel-tab {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 10px 6px !important;
+    border-radius: 10px !important;
+    border-bottom: none !important;
+    background: rgba(255,255,255,.05) !important;
+    font-size: 12px !important;
+  }
+  #design-panel .panel-tab.active {
+    background: rgba(198,167,92,.18) !important;
+    box-shadow: inset 0 0 0 1px rgba(198,167,92,.55) !important;
+  }
+  #design-panel .panel-tab[data-smask-mobile-hidden="1"] {
+    display: none !important;
+  }
+  #smask-mobile-subtabs {
+    display:flex !important;
+    gap:6px !important;
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 0 12px 10px !important;
+  }
+  #smask-mobile-subtabs::-webkit-scrollbar { display:none !important; }
+  .smask-mobile-subtab {
+    flex: 0 0 auto !important;
+    min-width: 64px !important;
+    padding: 8px 10px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    background: rgba(255,255,255,.05) !important;
+    color: rgba(255,255,255,.78) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+  .smask-mobile-subtab.active {
+    background: rgba(198,167,92,.16) !important;
+    border-color: rgba(198,167,92,.45) !important;
+    color: #f4e5b5 !important;
+  }
+  #smask-mobile-main-help {
+    display:block !important;
+    margin: 2px 12px 10px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    background: rgba(255,255,255,.05) !important;
+    color: rgba(255,255,255,.82) !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    font-size: 12px !important;
+    line-height: 1.55 !important;
+  }
+}
+@media (min-width: 769px) {
+  #smask-mobile-subtabs, #smask-mobile-main-help { display:none !important; }
+}
+</style>
+<script id="smask-mobile-simple-tabs-script">
+(function(){
+  var CORE = ['tab-colors','tab-select','tab-settings'];
+  var SUBS = [
+    {id:'tab-t1', label:'T①'},
+    {id:'tab-t2', label:'T②'},
+    {id:'tab-t3', label:'T③'},
+    {id:'tab-body', label:'本文'}
+  ];
+
+  function isMobile(){ return window.innerWidth <= 768; }
+
+  function getButtonByTabId(tabId){
+    return Array.prototype.slice.call(document.querySelectorAll('#design-panel .panel-tab')).find(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      return oc.indexOf("'" + tabId + "'") !== -1;
+    }) || null;
+  }
+
+  function build(){
+    if(!isMobile()) return;
+    var tabs = document.querySelector('#design-panel .panel-tabs');
+    if(!tabs) return;
+
+    if(!document.getElementById('smask-mobile-main-help')){
+      var help = document.createElement('div');
+      help.id = 'smask-mobile-main-help';
+      help.innerHTML = '📱 スマホでは <strong>カラー / 🎯選択 / 設定</strong> を上段にまとめました。<strong>T①〜本文</strong> は下の小ボタンから開けます。';
+      tabs.insertAdjacentElement('afterend', help);
+    }
+
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      var matched = oc.match(/'([^']+)'/);
+      var tabId = matched ? matched[1] : '';
+      btn.dataset.tabId = tabId;
+      if(CORE.indexOf(tabId) === -1){
+        btn.dataset.smaskMobileHidden = '1';
+      }
+      if(tabId === 'tab-settings') btn.textContent = '設定';
+    });
+
+    var wrap = document.getElementById('smask-mobile-subtabs');
+    if(!wrap){
+      wrap = document.createElement('div');
+      wrap.id = 'smask-mobile-subtabs';
+      SUBS.forEach(function(item){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'smask-mobile-subtab';
+        b.textContent = item.label;
+        b.dataset.target = item.id;
+        b.addEventListener('click', function(){
+          var real = getButtonByTabId(item.id);
+          if(real) real.click();
+          sync();
+        });
+        wrap.appendChild(b);
+      });
+      var body = document.querySelector('#design-panel .panel-body');
+      if(body) body.parentNode.insertBefore(wrap, body);
+    }
+    sync();
+  }
+
+  function sync(){
+    if(!isMobile()) return;
+    var active = document.querySelector('#design-panel .tab-content.active');
+    var activeId = active ? active.id : '';
+    document.querySelectorAll('.smask-mobile-subtab').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.target === activeId);
+    });
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var tabId = btn.dataset.tabId || '';
+      if(CORE.indexOf(tabId) !== -1) {
+        btn.classList.toggle('active', tabId === activeId);
+      }
+    });
+  }
+
+  function boot(){ build(); sync(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 400);
+  setTimeout(boot, 1400);
+  window.addEventListener('resize', boot);
+})();
+</script>
+
+
+<!-- SMASK THREE TABS ONLY PATCH -->
+<style id="smask-three-tabs-only-style">
+/* T①/T②/T③/本文 を非表示にして、カラー / 選択 / 設定 だけに絞る */
+#smask-font-lab,
+#smask-mobile-subtabs,
+#smask-mobile-main-help,
+#design-panel .panel-tab[data-tab-id="tab-t1"],
+#design-panel .panel-tab[data-tab-id="tab-t2"],
+#design-panel .panel-tab[data-tab-id="tab-t3"],
+#design-panel .panel-tab[data-tab-id="tab-body"],
+#design-panel .panel-tab[onclick*="tab-t1"],
+#design-panel .panel-tab[onclick*="tab-t2"],
+#design-panel .panel-tab[onclick*="tab-t3"],
+#design-panel .panel-tab[onclick*="tab-body"],
+#tab-t1,
+#tab-t2,
+#tab-t3,
+#tab-body {
+  display: none !important;
+}
+
+#design-panel .panel-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 8px 12px 10px !important;
+  overflow: visible !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+#design-panel .panel-tab {
+  min-width: 0 !important;
+  width: 100% !important;
+  flex: none !important;
+  padding: 11px 8px !important;
+  border-radius: 10px !important;
+  border-bottom: none !important;
+  background: rgba(255,255,255,.05) !important;
+  font-size: 12px !important;
+}
+#design-panel .panel-tab.active {
+  background: rgba(198,167,92,.18) !important;
+  color: #f4e5b5 !important;
+  box-shadow: inset 0 0 0 1px rgba(198,167,92,.55) !important;
+}
+#design-panel .panel-body {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+}
+#design-panel .tab-content.active {
+  display: block !important;
+  overflow-y: visible !important;
+}
+#smask-select-main-guide {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(198,167,92,.10);
+  border: 1px solid rgba(198,167,92,.28);
+  color: #f3e4b2;
+  font-size: 12px;
+  line-height: 1.6;
+}
+</style>
+<script id="smask-three-tabs-only-script">
+(function(){
+  function relabelAndTagTabs(){
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      var m = oc.match(/'([^']+)'/);
+      var tabId = m ? m[1] : '';
+      if(tabId) btn.dataset.tabId = tabId;
+      if(tabId === 'tab-colors') btn.textContent = 'カラー';
+      if(tabId === 'tab-select') btn.textContent = '🎯選択';
+      if(tabId === 'tab-settings') btn.textContent = '設定';
+    });
+  }
+
+  function ensureOnlyThreeTabs(){
+    var allowed = { 'tab-colors': 1, 'tab-select': 1, 'tab-settings': 1 };
+    var active = document.querySelector('#design-panel .tab-content.active');
+    if(active && !allowed[active.id] && typeof window.switchTabById === 'function') {
+      try { window.switchTabById('tab-select'); } catch(e) {}
+    }
+  }
+
+  function addSelectGuide(){
+    var target = document.getElementById('tab-select');
+    if(!target || document.getElementById('smask-select-main-guide')) return;
+    var box = document.createElement('div');
+    box.id = 'smask-select-main-guide';
+    box.innerHTML = '👆 <strong>編集はここだけでOK</strong><br>クリック選択モードをON → 文字や見出しをタップ → 下のフォント・サイズ・色で変更してください。';
+    target.insertBefore(box, target.firstChild);
+  }
+
+  function patchOpenPanelDefault(){
+    if(window.__smaskOpenPanelPatched) return;
+    window.__smaskOpenPanelPatched = true;
+    var oldOpenPanel = window.openPanel;
+    window.openPanel = function(){
+      if(typeof oldOpenPanel === 'function') {
+        try { oldOpenPanel(); } catch(e) {}
+      }
+      setTimeout(function(){
+        var active = document.querySelector('#design-panel .tab-content.active');
+        if(active && /tab-t1|tab-t2|tab-t3|tab-body/.test(active.id || '')) {
+          try { window.switchTabById && window.switchTabById('tab-select'); } catch(e) {}
+        }
+      }, 30);
+    };
+  }
+
+  function boot(){
+    relabelAndTagTabs();
+    addSelectGuide();
+    ensureOnlyThreeTabs();
+    patchOpenPanelDefault();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 400);
+  setTimeout(boot, 1400);
+})();
+</script>
