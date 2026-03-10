@@ -6209,6 +6209,251 @@ setTimeout(smkInit, 1500);
 })();
 </script>
 
+
+<script id="smask-v9-select-fix">
+(function(){
+'use strict';
+
+/* ==============================================
+   SELECT MODE 完全修正スクリプト
+   - toggleClickMode を v9 UI 対応に再実装
+   - touchstart / pointerdown でiPhone対応
+   - デバッグ表示
+   ============================================== */
+
+/* --- デバッグバー --- */
+function smkDebugBar(){
+  var bar = document.getElementById('smk-debug-bar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'smk-debug-bar';
+    bar.style.cssText = [
+      'position:fixed','bottom:70px','left:0','right:340px',
+      'background:rgba(0,0,0,0.85)','color:#0f0',
+      'font-size:11px','font-family:monospace',
+      'padding:4px 10px','z-index:999998',
+      'border-top:1px solid #0f0','line-height:1.6',
+      'pointer-events:none'
+    ].join(';');
+    document.body.appendChild(bar);
+  }
+  return bar;
+}
+function smkDebug(msg){
+  var bar = smkDebugBar();
+  if(bar) bar.innerHTML = msg;
+}
+
+/* --- toggleClickMode 完全再実装 --- */
+function smkToggleClickModeV9(){
+  clickMode = !clickMode;
+  document.body.classList.toggle('click-mode', clickMode);
+
+  /* smk-click-btn の見た目 */
+  var btn = document.getElementById('smk-click-btn');
+  if(btn) btn.classList.toggle('active', clickMode);
+
+  /* 旧 UI 要素は安全に処理 */
+  function safeShow(id, show){
+    var el = document.getElementById(id);
+    if(el) el.style.display = show ? 'block' : 'none';
+  }
+  safeShow('sel-guide',        !clickMode);
+  safeShow('sel-waiting',       clickMode);
+  safeShow('sel-mode-switcher', clickMode);
+
+  if(clickMode){
+    /* ON: page-editable 要素を再スキャン・イベント登録 */
+    smkRebindEditable();
+    smkDebug('SELECT MODE: <span style="color:#0f0">ON</span> | 要素をタップしてください');
+  } else {
+    /* OFF: 選択解除 */
+    if(typeof selectedEl !== 'undefined' && selectedEl){
+      selectedEl.classList.remove('el-selected');
+      selectedEl = null;
+    }
+    smkDebug('SELECT MODE: <span style="color:#f66">OFF</span>');
+    /* v9: ガイドに戻す */
+    if(typeof showGuide === 'function') showGuide();
+  }
+}
+
+/* --- page-editable 要素へのイベント登録（iPhone対応） --- */
+var _smkBound = new WeakSet();
+
+function smkRebindEditable(){
+  /* 既存の page-editable + 動的に追加された要素も対象 */
+  var EXCLUDED = '#smask-admin-panel, .dev-banner, .mobile-menu, nav, #smk-debug-bar';
+  var targets = document.querySelectorAll(
+    'h1,h2,h3,h4,h5,h6,p,span,a,em,strong,label,li,' +
+    'div.footer-logo,div.footer-copy,div.hero-label,div.card-tag,div.market-status,' +
+    '[data-editable="true"],.page-editable'
+  );
+
+  targets.forEach(function(el){
+    if(el.closest(EXCLUDED)) return;
+    if(_smkBound.has(el)) return; /* 重複登録防止 */
+    _smkBound.add(el);
+
+    el.classList.add('page-editable');
+    /* ラベル */
+    if(!el.dataset.elLabel){
+      var preview = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,14);
+      el.dataset.elLabel = el.tagName.toLowerCase() + (preview ? ' : '+preview : '');
+    }
+
+    /* ---- touchstart (iOS Safari 最優先) ---- */
+    el.addEventListener('touchstart', function(e){
+      if(!clickMode) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      /* タップ座標から実際の対象を取得 */
+      var touch = e.changedTouches[0];
+      var realTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+      /* パネル内なら無視 */
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(realTarget)) return;
+      e.stopPropagation();
+      /* preventDefault は text selection 防止のため */
+      e.preventDefault();
+      smkDoSelect(el, realTarget);
+    }, {passive: false});
+
+    /* ---- pointerdown (Android Chrome等) ---- */
+    el.addEventListener('pointerdown', function(e){
+      if(!clickMode) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(e.target)) return;
+      e.stopPropagation();
+      smkDoSelect(el, e.target);
+    });
+
+    /* ---- click (PC / fallback) ---- */
+    el.addEventListener('click', function(e){
+      if(!clickMode) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      smkDoSelect(el, e.target);
+    });
+  });
+
+  smkDebug('SELECT MODE: <span style="color:#0f0">ON</span> | 対象要素: '+targets.length+'個 登録済み');
+}
+
+/* --- 選択実行 --- */
+function smkDoSelect(el, rawTarget){
+  /* 前の選択を解除 */
+  document.querySelectorAll('.el-selected').forEach(function(x){ x.classList.remove('el-selected'); });
+
+  selectedEl = el;
+  window.smaskEl = el;
+  if(window._smkPatched){ /* v9スクリプトのパッチ済みなら直接呼ぶ */
+    try{ selectElement(el); }catch(e){}
+  } else {
+    el.classList.add('el-selected');
+    if(typeof updateSelControls === 'function') try{ updateSelControls(el); }catch(e){}
+    if(typeof openPanel === 'function') try{ openPanel(); }catch(e){}
+  }
+
+  /* v9 UI 更新 */
+  if(typeof smkOnSelect === 'function') smkOnSelect(el);
+
+  var tag  = el.tagName.toLowerCase();
+  var txt  = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,12);
+  var rawTag = rawTarget ? rawTarget.tagName.toLowerCase() : '?';
+  smkDebug(
+    'SELECT MODE: <span style="color:#0f0">ON</span> | ' +
+    '選択: <span style="color:#ff0">'+tag+' "'+txt+'"</span> | ' +
+    'tap: '+rawTag
+  );
+}
+
+/* --- smkSetMode との連携 --- */
+var _origSmkSetMode = window.smkSetMode;
+window.smkSetMode = function(mode){
+  if(_origSmkSetMode) _origSmkSetMode(mode);
+  /* mode='char' のとき textMode=true にして setSelMode も呼ぶ */
+  if(typeof setSelMode === 'function'){
+    try{ setSelMode(mode === 'char' ? 'char' : 'element'); }catch(e){}
+  }
+};
+
+/* --- SELECT MODE ボタンを上書き --- */
+function patchSelectModeBtn(){
+  var btn = document.getElementById('smk-click-btn');
+  if(!btn || btn._v9fixed) return;
+  btn._v9fixed = true;
+  btn.removeAttribute('onclick');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    smkToggleClickModeV9();
+  });
+  btn.addEventListener('touchstart', function(e){
+    e.stopPropagation();
+    e.preventDefault();
+    smkToggleClickModeV9();
+  }, {passive: false});
+  console.log('[SMK v9fix] SELECT MODE btn patched');
+}
+
+/* --- 透明オーバーレイ対策 ---
+   click-mode ON 時、page-main の子孫で
+   position:fixed / absolute かつ背景なし要素に pointer-events:none を付与 */
+function smkFixOverlays(){
+  if(!clickMode) return;
+  var pageMain = document.getElementById('page-main');
+  if(!pageMain) return;
+  var panel = document.getElementById('smask-admin-panel');
+  /* page-main内の全fixed/absolute要素を確認 */
+  pageMain.querySelectorAll('*').forEach(function(el){
+    if(panel && panel.contains(el)) return;
+    var cs = getComputedStyle(el);
+    if((cs.position === 'fixed' || cs.position === 'absolute') &&
+       el.id !== 'smk-debug-bar' &&
+       !el.id.startsWith('smask') && !el.id.startsWith('smk') &&
+       !el.classList.contains('page-editable') &&
+       !el.classList.contains('smask-char')){
+      var bg = cs.backgroundColor;
+      var isTransparent = !bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)';
+      if(isTransparent && cs.pointerEvents !== 'none'){
+        el.dataset.smkPeOrig = cs.pointerEvents;
+        el.style.pointerEvents = 'none';
+      }
+    }
+  });
+}
+function smkRestoreOverlays(){
+  document.querySelectorAll('[data-smk-pe-orig]').forEach(function(el){
+    el.style.pointerEvents = el.dataset.smkPeOrig || '';
+    delete el.dataset.smkPeOrig;
+  });
+}
+
+/* --- 初期化 --- */
+function v9FixInit(){
+  patchSelectModeBtn();
+  /* 既存の initEditableElements も呼ばれた後に再バインド */
+  if(typeof initEditableElements === 'function'){
+    try{ initEditableElements(); }catch(e){}
+  }
+  smkDebug('v9fix 起動完了 | SELECT MODEボタンをタップしてください');
+}
+
+/* 起動 */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', v9FixInit);
+} else {
+  v9FixInit();
+}
+setTimeout(v9FixInit, 600);
+setTimeout(patchSelectModeBtn, 1200);
+
+})();
+</script>
+
 </body>
 
 
@@ -6362,6 +6607,7 @@ setTimeout(smkInit, 1500);
 }
 .smask-panel-wrap.smk-closed {
   transform: translateX(100%);
+  pointer-events: none;
 }
 
 /* ▼ ヘッダー */
@@ -6996,6 +7242,30 @@ body.click-mode .page-editable:hover {
 .smask-char.smask-selected {
   outline: 2px solid #3a86ff !important;
   background: rgba(58,134,255,0.15) !important;
+}
+
+
+/* ========== v9fix: 選択モード時のタップ確保 ========== */
+body.click-mode #page-main {
+  position: relative;
+  z-index: 1;
+}
+body.click-mode .page-editable {
+  position: relative;
+  z-index: 2;
+  cursor: crosshair !important;
+}
+body.click-mode .page-editable:hover {
+  outline: 2px dashed rgba(58,134,255,0.8) !important;
+  outline-offset: 2px;
+  background-color: rgba(58,134,255,0.04) !important;
+}
+/* デバッグバーのスペース（モバイル） */
+@media (max-width: 768px) {
+  #smk-debug-bar {
+    right: 0 !important;
+    bottom: 80svh !important;
+  }
 }
 
 </style>
