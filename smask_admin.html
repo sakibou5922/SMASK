@@ -5822,6 +5822,166 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+
+<!-- SMASK HOTFIX 4: select tab workspace focus -->
+<style id="smask-select-workspace-style">
+@media (max-width: 768px) {
+  html body #tab-select {
+    padding-top: 4px !important;
+  }
+
+  html body #tab-select #sel-guide,
+  html body #tab-select #sel-waiting {
+    padding: 0 !important;
+    margin: 0 0 10px 0 !important;
+  }
+
+  html body #tab-select .sel-empty {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    line-height: 1.7 !important;
+    letter-spacing: 0.03em !important;
+    font-size: 12px !important;
+  }
+
+  html body #tab-select .sel-empty .sel-empty-icon {
+    font-size: 18px !important;
+    margin-bottom: 6px !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-group:not(:first-of-type) {
+    display: none !important;
+  }
+
+  html body #tab-select #sel-controls .sel-info-box {
+    margin-bottom: 12px !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-group:first-of-type {
+    padding: 12px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-group:first-of-type .ctrl-group-label {
+    font-size: 13px !important;
+    margin-bottom: 10px !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-row,
+  html body #tab-select #sel-controls .ctrl-color-row {
+    margin-bottom: 12px !important;
+  }
+
+  html body #tab-select #sel-font-search,
+  html body #tab-select #sel-font-select {
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  html body #tab-select #smask-font-cats {
+    margin-bottom: 10px !important;
+  }
+
+  html body #tab-select #sel-controls .sel-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  html body #tab-select #sel-controls .sel-actions > button {
+    width: 100% !important;
+    margin: 0 !important;
+    min-height: 42px !important;
+    border-radius: 12px !important;
+  }
+
+  html body #tab-select #sel-controls .sel-actions button[onclick="splitToChars()"],
+  html body #tab-select #sel-controls .sel-actions button[onclick="copySelectedStyle()"] {
+    display: none !important;
+  }
+}
+</style>
+<script id="smask-select-workspace-script">
+(function(){
+  if(window.__smaskSelectWorkspace) return;
+  window.__smaskSelectWorkspace = true;
+
+  function isMobile(){ return window.innerWidth <= 768; }
+
+  function relabelManagementTab(){
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      if(oc.indexOf("tab-settings") !== -1) btn.textContent = '管理';
+    });
+  }
+
+  function activateSelectTab(){
+    if(!isMobile()) return;
+    var panel = document.getElementById('design-panel');
+    if(!panel || !panel.classList.contains('open')) return;
+    if(typeof window.switchTabById === 'function') {
+      try { window.switchTabById('tab-select'); } catch(e) {}
+    }
+  }
+
+  function patchOpenPanel(){
+    if(window.__smaskSelectWorkspaceOpenPatched) return;
+    window.__smaskSelectWorkspaceOpenPatched = true;
+    var oldOpen = window.openPanel;
+    window.openPanel = function(){
+      if(typeof oldOpen === 'function') {
+        try { oldOpen(); } catch(e) {}
+      }
+      setTimeout(activateSelectTab, 40);
+    };
+    var toggle = document.getElementById('panelToggle');
+    if(toggle && !toggle.__smaskSelectTabBound) {
+      toggle.__smaskSelectTabBound = true;
+      toggle.addEventListener('click', function(){ setTimeout(activateSelectTab, 60); });
+    }
+  }
+
+  function compactGuideText(){
+    var guide = document.querySelector('#tab-select #sel-guide .sel-empty');
+    if(guide) guide.innerHTML = '<span class="sel-empty-icon">🎯</span>ONにして文字をタップ';
+    var waiting = document.querySelector('#tab-select #sel-waiting .sel-empty');
+    if(waiting) waiting.innerHTML = '<span class="sel-empty-icon">👆</span>選びたい文字をタップ';
+  }
+
+  function simplifyActionLabels(){
+    var box = document.querySelector('#tab-select #sel-controls .sel-actions');
+    if(!box) return;
+    box.querySelectorAll('button').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      if(oc.indexOf('smaskSplitChars') !== -1) btn.textContent = '✂️ 1文字分割';
+      if(oc.indexOf('clearSelectedStyle') !== -1) btn.textContent = '🗑 クリア';
+      if(oc.indexOf('unwrapSelected') !== -1) btn.textContent = '↩ 解除';
+    });
+  }
+
+  function boot(){
+    relabelManagementTab();
+    compactGuideText();
+    simplifyActionLabels();
+    patchOpenPanel();
+    setTimeout(activateSelectTab, 80);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
 
@@ -5884,13 +6044,7 @@ html body #smask-pub-fab {
 <script id="smask-mobile-select-first-script">
 (function(){
   function makeHelper(){
-    if(document.getElementById('smask-select-helper')) return;
-    var target = document.querySelector('#tab-select');
-    if(!target) return;
-    var box = document.createElement('div');
-    box.id = 'smask-select-helper';
-    box.innerHTML = '👆 <strong>おすすめ操作</strong><br>スマホでは <strong>🎯選択</strong> を使い、文字や要素をタップ → 下の<strong>フォント</strong>で即変更してください。';
-    target.insertBefore(box, target.firstChild);
+    return;
   }
 
   function improveTabs(){
@@ -6188,12 +6342,7 @@ html body #smask-pub-fab {
   }
 
   function addSelectGuide(){
-    var target = document.getElementById('tab-select');
-    if(!target || document.getElementById('smask-select-main-guide')) return;
-    var box = document.createElement('div');
-    box.id = 'smask-select-main-guide';
-    box.innerHTML = '👆 <strong>編集はここだけでOK</strong><br>クリック選択モードをON → 文字や見出しをタップ → 下のフォント・サイズ・色で変更してください。';
-    target.insertBefore(box, target.firstChild);
+    return;
   }
 
   function patchOpenPanelDefault(){
