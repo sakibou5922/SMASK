@@ -4950,5 +4950,298 @@ var _origSplitChars = null;
 })();
 </script>
 
+
+
+<!-- SMASK FONT LAB UNIFY PATCH -->
+<style id="smask-font-lab-style">
+#smask-font-lab {
+  background: linear-gradient(180deg, rgba(20,20,24,0.96), rgba(12,12,16,0.96));
+  border: 1px solid rgba(198,167,92,0.45);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+}
+#smask-font-lab-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+#smask-font-lab-title { color:#fff; font-size:13px; font-weight:700; letter-spacing:.06em; }
+#smask-font-lab-meta { color:rgba(255,255,255,.6); font-size:10px; }
+#smask-font-lab-targets { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-bottom:10px; }
+.smask-font-lab-target {
+  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:#fff;
+  border-radius:10px; min-height:34px; font-size:12px; font-weight:700; cursor:pointer;
+}
+.smask-font-lab-target.active { background:rgba(198,167,92,.22); border-color:#C6A75C; color:#fff3cc; }
+#smask-font-lab-search {
+  width:100%; box-sizing:border-box; padding:8px 10px; border-radius:10px; border:1px solid #3b3b42;
+  background:#141418; color:#fff; font-size:13px; margin-bottom:8px;
+}
+#smask-font-lab-select {
+  width:100%; box-sizing:border-box; min-height:220px; height:220px; max-height:220px; overflow-y:auto;
+  border-radius:12px; background:#101014; color:#fff; border:1px solid rgba(255,255,255,.12); padding:4px;
+}
+#smask-font-lab-select option { padding:6px 8px; }
+#smask-font-lab-preview {
+  margin-top:9px; padding:10px 12px; border-radius:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+}
+#smask-font-lab-preview-name { font-size:10px; color:rgba(255,255,255,.55); margin-bottom:3px; }
+#smask-font-lab-preview-text { font-size:24px; color:#fff; line-height:1.35; }
+#smask-font-lab-help { margin-top:7px; font-size:11px; color:rgba(255,255,255,.68); line-height:1.5; }
+@media (max-width: 768px) {
+  #smask-font-lab-targets { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  #smask-font-lab-select { min-height:180px; height:180px; max-height:180px; }
+}
+</style>
+
+<script id="smask-font-lab-script">
+(function(){
+  var currentTarget = 'body';
+  var targetNames = { t1:'T①', t2:'T②', t3:'T③', body:'本文', selected:'選択文字' };
+
+  function normalizeFontName(fontVal){
+    if(!fontVal) return '';
+    return String(fontVal).replace(/["']/g,'').split(',')[0].trim();
+  }
+
+  function ensureFontLoaded(fontVal){
+    if(typeof window.smaskEnsureFontLoaded === 'function') {
+      try { window.smaskEnsureFontLoaded(fontVal); } catch(e) {}
+      return;
+    }
+    var family = normalizeFontName(fontVal);
+    if(!family) return;
+    window._smaskEnsuredFonts = window._smaskEnsuredFonts || {};
+    if(window._smaskEnsuredFonts[family]) return;
+    window._smaskEnsuredFonts[family] = true;
+    var link = document.createElement('link');
+    link.rel='stylesheet';
+    link.href='https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replace(/%20/g,'+') + '&display=swap';
+    document.head.appendChild(link);
+  }
+
+  function getEditableLabel(el){
+    return (el.getAttribute('data-label') || '').trim();
+  }
+
+  function classifyEditable(el){
+    var tag = (el.tagName || '').toUpperCase();
+    var label = getEditableLabel(el);
+    var txt = (el.textContent || '').replace(/\s+/g,' ').trim();
+    var fs = 0;
+    try { fs = parseFloat(getComputedStyle(el).fontSize) || 0; } catch(e) {}
+
+    if(tag === 'H1' || tag === 'H2' || tag === 'H3') return 't2';
+    if(tag === 'H4' || tag === 'H5' || tag === 'H6') return 't3';
+    if(/ラベル/.test(label)) return 't1';
+    if(/見出し/.test(label)) return 't3';
+    if(/タイトル/.test(label)) return fs >= 24 ? 't2' : 't3';
+    if(tag === 'P' && /^[A-Z0-9\s.-]{3,40}$/.test(txt)) return 't1';
+    if(tag === 'P' && fs >= 24) return 't2';
+    if(tag === 'P' && fs >= 17) return 't3';
+    return 'body';
+  }
+
+  function groupAllEditable(){
+    document.querySelectorAll('.page-editable').forEach(function(el){
+      el.dataset.smaskFontGroup = classifyEditable(el);
+    });
+  }
+
+  function getTargets(group){
+    groupAllEditable();
+    if(group === 'selected') {
+      return window.selectedEl ? [window.selectedEl] : [];
+    }
+    return Array.prototype.slice.call(document.querySelectorAll('.page-editable')).filter(function(el){
+      return (el.dataset.smaskFontGroup || '') === group;
+    });
+  }
+
+  function applyFontToGroup(group, fontVal){
+    ensureFontLoaded(fontVal);
+    getTargets(group).forEach(function(el){
+      try { el.style.fontFamily = fontVal || ''; } catch(e) {}
+    });
+  }
+
+  function syncOriginalSelect(group, fontVal){
+    var map = { t1:'font-t1', t2:'font-t2', t3:'font-t3', body:'font-body', selected:'sel-font-select' };
+    var sel = document.getElementById(map[group]);
+    if(!sel) return;
+    for(var i=0;i<sel.options.length;i++){
+      if(sel.options[i].value === fontVal){
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+    try { sel.style.fontFamily = fontVal || ''; } catch(e) {}
+  }
+
+  function applyTargetFont(group, fontVal){
+    if(group === 'selected') {
+      ensureFontLoaded(fontVal);
+      if(window.selectedEl) {
+        try { window.selectedEl.style.fontFamily = fontVal || ''; } catch(e) {}
+      }
+      syncOriginalSelect(group, fontVal);
+      return;
+    }
+    applyFontToGroup(group, fontVal);
+    syncOriginalSelect(group, fontVal);
+  }
+
+  var _oldSetFont = window.setFont;
+  window.setFont = function(v, sel){
+    var val = sel && sel.value ? sel.value : '';
+    ensureFontLoaded(val);
+    if(typeof _oldSetFont === 'function') {
+      try { _oldSetFont(v, sel); } catch(e) {}
+    }
+    if(v === '--t1-font-family') applyFontToGroup('t1', val);
+    if(v === '--t2-font-family') applyFontToGroup('t2', val);
+    if(v === '--t3-font-family') applyFontToGroup('t3', val);
+    if(v === '--body-font-family') applyFontToGroup('body', val);
+  };
+
+  var _oldApplySelFont = window.applySelFont;
+  window.applySelFont = function(sel){
+    var val = sel && sel.value ? sel.value : '';
+    ensureFontLoaded(val);
+    if(typeof _oldApplySelFont === 'function') {
+      try { _oldApplySelFont(sel); } catch(e) {}
+    }
+    if(window.selectedEl) {
+      try { window.selectedEl.style.fontFamily = val || ''; } catch(e) {}
+    }
+  };
+
+  function filterLabOptions(q){
+    var sel = document.getElementById('smask-font-lab-select');
+    if(!sel) return;
+    q = (q || '').toLowerCase();
+    Array.prototype.forEach.call(sel.options, function(opt){
+      if(opt.disabled) { opt.style.display = ''; return; }
+      var show = !q || opt.text.toLowerCase().indexOf(q) !== -1;
+      opt.style.display = show ? '' : 'none';
+    });
+  }
+
+  function updateLabPreview(){
+    var sel = document.getElementById('smask-font-lab-select');
+    var targetMeta = document.getElementById('smask-font-lab-meta');
+    var nameEl = document.getElementById('smask-font-lab-preview-name');
+    var txtEl = document.getElementById('smask-font-lab-preview-text');
+    if(!sel || !nameEl || !txtEl) return;
+    var opt = sel.options[sel.selectedIndex];
+    var val = opt ? opt.value : '';
+    var name = opt ? opt.text.split('｜')[0].trim() : 'デフォルト';
+    if(targetMeta) targetMeta.textContent = '対象: ' + (targetNames[currentTarget] || currentTarget);
+    nameEl.textContent = (targetNames[currentTarget] || currentTarget) + ' / ' + name;
+    txtEl.style.fontFamily = val || '';
+  }
+
+  function applyLabCurrent(){
+    var sel = document.getElementById('smask-font-lab-select');
+    if(!sel) return;
+    var val = sel.value || '';
+    applyTargetFont(currentTarget, val);
+    updateLabPreview();
+  }
+
+  function moveLab(delta){
+    var sel = document.getElementById('smask-font-lab-select');
+    if(!sel) return;
+    var next = sel.selectedIndex;
+    for(var i=0;i<sel.options.length;i++){
+      next += delta;
+      if(next < 0 || next >= sel.options.length) return;
+      var opt = sel.options[next];
+      if(opt && !opt.disabled && opt.style.display !== 'none') {
+        sel.selectedIndex = next;
+        applyLabCurrent();
+        return;
+      }
+    }
+  }
+
+  function setCurrentTarget(group){
+    currentTarget = group;
+    document.querySelectorAll('.smask-font-lab-target').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.target === group);
+    });
+    updateLabPreview();
+  }
+
+  function buildFontLab(){
+    if(document.getElementById('smask-font-lab')) return;
+    var panelBody = document.querySelector('#design-panel .panel-body');
+    var source = document.getElementById('font-body');
+    if(!panelBody || !source) return;
+
+    var wrap = document.createElement('div');
+    wrap.id = 'smask-font-lab';
+    wrap.innerHTML = '' +
+      '<div id="smask-font-lab-head">' +
+        '<div id="smask-font-lab-title">🅵 フォント一括変更</div>' +
+        '<div id="smask-font-lab-meta">対象: 本文</div>' +
+      '</div>' +
+      '<div id="smask-font-lab-targets">' +
+        '<button class="smask-font-lab-target" data-target="t1">T①</button>' +
+        '<button class="smask-font-lab-target" data-target="t2">T②</button>' +
+        '<button class="smask-font-lab-target" data-target="t3">T③</button>' +
+        '<button class="smask-font-lab-target active" data-target="body">本文</button>' +
+        '<button class="smask-font-lab-target" data-target="selected">選択</button>' +
+      '</div>' +
+      '<input id="smask-font-lab-search" type="text" placeholder="🔍 フォント検索...">' +
+      '<select id="smask-font-lab-select" size="11"></select>' +
+      '<div id="smask-font-lab-preview">' +
+        '<div id="smask-font-lab-preview-name">本文 / デフォルト</div>' +
+        '<div id="smask-font-lab-preview-text">あいうえお SMASK ABCabc 0123</div>' +
+      '</div>' +
+      '<div id="smask-font-lab-help">🖱️ ここだけで T① / T② / T③ / 本文 / 選択文字 の全フォントを試せます。ホイールでも順送りできます。</div>';
+
+    panelBody.insertBefore(wrap, panelBody.firstChild);
+
+    var labSel = document.getElementById('smask-font-lab-select');
+    Array.prototype.forEach.call(source.options, function(opt){
+      var cloned = opt.cloneNode(true);
+      try { if(cloned.value && !cloned.disabled) cloned.style.fontFamily = cloned.value; } catch(e) {}
+      labSel.appendChild(cloned);
+    });
+
+    document.querySelectorAll('.smask-font-lab-target').forEach(function(btn){
+      btn.addEventListener('click', function(){ setCurrentTarget(btn.dataset.target); });
+    });
+
+    document.getElementById('smask-font-lab-search').addEventListener('input', function(){
+      filterLabOptions(this.value);
+    });
+
+    labSel.addEventListener('change', applyLabCurrent);
+    labSel.addEventListener('input', applyLabCurrent);
+    labSel.addEventListener('click', applyLabCurrent);
+    labSel.addEventListener('wheel', function(e){
+      e.preventDefault();
+      moveLab(e.deltaY > 0 ? 1 : -1);
+    }, {passive:false});
+    labSel.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowDown') { e.preventDefault(); moveLab(1); }
+      if(e.key === 'ArrowUp') { e.preventDefault(); moveLab(-1); }
+    });
+
+    updateLabPreview();
+  }
+
+  function boot(){
+    groupAllEditable();
+    buildFontLab();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
