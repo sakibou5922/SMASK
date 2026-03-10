@@ -6190,6 +6190,113 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+<!-- ===== SMASK FINAL OVERRIDE v1 ===== -->
+<style id="smask-final-override-style">
+/* 全hotfixのゴミを消してシンプルにする */
+
+/* フォント追加/パスワード変更ショートカットを非表示 */
+#smask-settings-shortcuts { display:none !important; }
+
+/* sel-controlsが見えるとき、フォント選択を最上部に */
+#sel-controls .ctrl-group { margin-top: 0 !important; }
+
+/* パネルの作業タブ内をスクロールしやすく */
+#design-panel .panel-body {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* sel-info-boxを小さくする */
+.sel-info-box {
+  padding: 6px 10px !important;
+  font-size: 11px !important;
+  margin-bottom: 6px !important;
+}
+.sel-info-tag {
+  font-size: 9px !important;
+}
+.sel-info-text {
+  font-size: 12px !important;
+}
+
+/* sel-controlsのフォントカテゴリボタンを小さく */
+.smask-font-cat-btn {
+  padding: 3px 7px !important;
+  font-size: 10px !important;
+}
+
+/* フォント検索入力欄 */
+#sel-font-search {
+  font-size: 13px !important;
+}
+
+/* フォント選択ドロップダウン */
+#sel-font-select {
+  font-size: 13px !important;
+  height: 36px !important;
+}
+
+/* サイズ・色コントロール */
+.ctrl-row {
+  padding: 4px 0 !important;
+}
+</style>
+
+<script id="smask-final-override-script">
+(function(){
+  if(window.__smaskFinalOverride) return;
+  window.__smaskFinalOverride = true;
+
+  function isMobile(){ return window.innerWidth <= 768; }
+
+  function fixTabs(){
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      if(oc.indexOf('tab-colors') !== -1) btn.textContent = 'カラー';
+      if(oc.indexOf('tab-select') !== -1) btn.textContent = '✏️作業';
+      if(oc.indexOf('tab-settings') !== -1) btn.textContent = '⚙設定';
+      // T①②③本文タブはスマホでは非表示
+      if(isMobile()){
+        var hide = ['tab-t1','tab-t2','tab-t3','tab-body'];
+        hide.forEach(function(id){
+          if(oc.indexOf(id) !== -1) btn.style.display = 'none';
+        });
+      }
+    });
+  }
+
+  function hideShortcuts(){
+    var sc = document.getElementById('smask-settings-shortcuts');
+    if(sc) sc.style.display = 'none';
+  }
+
+  function ensureSelControls(){
+    // クリック選択モードON後に要素選択したとき、
+    // sel-controlsが表示されるようにする
+    // (本来の動作を邪魔しない)
+    var waiting = document.getElementById('sel-waiting');
+    if(waiting && waiting.style.display !== 'none'){
+      // 待機中 = クリックモードONだが未選択
+    }
+  }
+
+  function boot(){
+    fixTabs();
+    hideShortcuts();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot, 300);
+  setTimeout(boot, 800);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
 
