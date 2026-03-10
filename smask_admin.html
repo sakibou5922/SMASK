@@ -1285,6 +1285,21 @@ body.click-mode .smask-char:hover,
   }
 }
 
+
+/* ===== 1文字カラー簡単編集UI ===== */
+.smask-swatch-btn{
+  width:32px;
+  height:32px;
+  border-radius:999px;
+  cursor:pointer;
+  padding:0;
+  outline:none;
+  box-shadow:0 1px 4px rgba(0,0,0,0.25);
+  transition:transform .08s ease, box-shadow .12s ease;
+}
+.smask-swatch-btn:hover{ transform:scale(1.08); box-shadow:0 2px 8px rgba(0,0,0,0.35); }
+.smask-swatch-btn:active{ transform:scale(.96); }
+
 </style>
 
 <script>
@@ -1747,6 +1762,46 @@ document.addEventListener('DOMContentLoaded', function(){
           <!-- 文字カラーパネル（1文字分割後に表示） -->
           <div id="smask-char-panel" style="display:none;margin-top:10px;padding:12px;background:rgba(58,134,255,0.1);border:1px solid rgba(58,134,255,0.4);border-radius:10px;">
             <div style="color:#3a86ff;font-size:12px;font-weight:700;margin-bottom:10px;">🎨 選択文字のスタイル</div>
+
+            <div id="smask-char-preview-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+              <div id="smask-char-preview" style="min-width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;">あ</div>
+              <div style="flex:1;min-width:0;">
+                <div id="smask-char-meta" style="font-size:11px;color:#9fb7d8;margin-bottom:4px;">選択文字</div>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                  <button onclick="smaskSelectPrevChar()" style="padding:7px 10px;background:#2d3748;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:34px;">← 前</button>
+                  <button onclick="smaskSelectNextChar()" style="padding:7px 10px;background:#2d3748;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:34px;">次 →</button>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#cbd5e0;cursor:pointer;">
+                    <input type="checkbox" id="smask-char-auto-next" checked>
+                    色適用後に次へ
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:10px;color:#9fb7d8;margin:0 0 6px 0;">よく使う文字色</div>
+            <div id="smask-char-color-swatches" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#ffffff')" style="background:#ffffff;border:2px solid #d1d5db;"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#2b2b2b')" style="background:#2b2b2b;border:2px solid #4b5563;"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#d3381c')" style="background:#d3381c;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#C6A75C')" style="background:#C6A75C;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#3a86ff')" style="background:#3a86ff;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#ff4d6d')" style="background:#ff4d6d;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#22c55e')" style="background:#22c55e;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#a855f7')" style="background:#a855f7;border:2px solid rgba(255,255,255,0.15);"></button>
+            </div>
+
+            <div style="font-size:10px;color:#9fb7d8;margin:0 0 6px 0;">よく使う背景色</div>
+            <div id="smask-char-bg-swatches" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('transparent')" style="background:linear-gradient(135deg,#111 25%,#333 25%,#333 50%,#111 50%,#111 75%,#333 75%);background-size:10px 10px;border:2px solid #60a5fa;position:relative;"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#000000')" style="background:#000000;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#ffffff')" style="background:#ffffff;border:2px solid #d1d5db;"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#fff3cd')" style="background:#fff3cd;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#dbeafe')" style="background:#dbeafe;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#fee2e2')" style="background:#fee2e2;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#dcfce7')" style="background:#dcfce7;border:2px solid rgba(255,255,255,0.15);"></button>
+              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#ede9fe')" style="background:#ede9fe;border:2px solid rgba(255,255,255,0.15);"></button>
+            </div>
+
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
               <span style="color:#ccc;font-size:12px;min-width:40px;">文字色</span>
               <input type="color" id="smask-char-color" value="#ffffff" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharColor(this)" onchange="smaskApplyCharColor(this)">
@@ -3680,6 +3735,7 @@ function smaskShowCharPanel(span) {
   } else if(hx_b && (!bg || bg==='transparent')) {
     hx_b.textContent = 'transparent';
   }
+  smaskUpdateCharPreview();
 }
 
 function smaskRgbToHex(str) {
@@ -3692,12 +3748,95 @@ function smaskRgbToHex(str) {
   }).join('');
 }
 
+
+function smaskUpdateCharPreview() {
+  if(!selectedEl) return;
+  var pv = document.getElementById('smask-char-preview');
+  var meta = document.getElementById('smask-char-meta');
+  if(!pv) return;
+  var txt = selectedEl.textContent || selectedEl.innerText || '';
+  pv.textContent = txt || 'あ';
+  pv.style.color = selectedEl.style.color || getComputedStyle(selectedEl).color || '#ffffff';
+  var bg = selectedEl.style.backgroundColor || getComputedStyle(selectedEl).backgroundColor || 'transparent';
+  pv.style.background = (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') ? bg : 'rgba(255,255,255,0.08)';
+
+  var parent = selectedEl.parentElement;
+  var idx = -1, total = 0;
+  if(parent){
+    var chars = Array.from(parent.querySelectorAll('.smask-char'));
+    total = chars.length;
+    idx = chars.indexOf(selectedEl);
+  }
+  if(meta){
+    meta.textContent = (idx >= 0) ? ('選択文字 ' + (idx+1) + ' / ' + total) : '選択文字';
+  }
+}
+
+function smaskGetCharSiblings(){
+  if(!selectedEl || !selectedEl.parentElement) return [];
+  return Array.from(selectedEl.parentElement.querySelectorAll('.smask-char'));
+}
+
+function smaskSelectPrevChar(){
+  var chars = smaskGetCharSiblings();
+  if(!chars.length) return;
+  var idx = chars.indexOf(selectedEl);
+  if(idx > 0) smaskSelectChar(chars[idx-1]);
+}
+
+function smaskSelectNextChar(){
+  var chars = smaskGetCharSiblings();
+  if(!chars.length) return;
+  var idx = chars.indexOf(selectedEl);
+  if(idx >= 0 && idx < chars.length-1) smaskSelectChar(chars[idx+1]);
+}
+
+function smaskMaybeNextChar(){
+  var auto = document.getElementById('smask-char-auto-next');
+  if(auto && auto.checked) {
+    setTimeout(function(){ smaskSelectNextChar(); }, 80);
+  }
+}
+
+function smaskQuickCharColor(color){
+  var picker = document.getElementById('smask-char-color');
+  if(picker) picker.value = color;
+  if(!selectedEl) return;
+  selectedEl.style.color = color;
+  var h = document.getElementById('smask-char-color-hex');
+  if(h) h.textContent = color;
+  smaskUpdateCharPreview();
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+  smaskMaybeNextChar();
+}
+
+function smaskQuickCharBg(color){
+  var picker = document.getElementById('smask-char-bg');
+  if(picker && color !== 'transparent') picker.value = color;
+  if(!selectedEl) return;
+  if(color === 'transparent') {
+    selectedEl.style.backgroundColor = 'transparent';
+    selectedEl.dataset.bgTransparent = '1';
+    var h = document.getElementById('smask-char-bg-hex');
+    if(h) h.textContent = 'transparent';
+  } else {
+    selectedEl.style.backgroundColor = color;
+    selectedEl.dataset.bgTransparent = '0';
+    var h2 = document.getElementById('smask-char-bg-hex');
+    if(h2) h2.textContent = color;
+  }
+  smaskUpdateCharPreview();
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+  smaskMaybeNextChar();
+}
+
 function smaskApplyCharColor(picker) {
   if(!selectedEl) return;
   selectedEl.style.color = picker.value;
   var h = document.getElementById('smask-char-color-hex');
   if(h) h.textContent = picker.value;
   if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+  smaskUpdateCharPreview();
 }
 
 function smaskApplyCharBg(picker) {
@@ -3707,6 +3846,7 @@ function smaskApplyCharBg(picker) {
   var h = document.getElementById('smask-char-bg-hex');
   if(h) h.textContent = picker.value;
   if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+  smaskUpdateCharPreview();
 }
 
 function smaskSetCharBgTransparent() {
@@ -3716,6 +3856,7 @@ function smaskSetCharBgTransparent() {
   var h = document.getElementById('smask-char-bg-hex');
   if(h) h.textContent = 'transparent';
   if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+  smaskUpdateCharPreview();
 }
 
 function smaskColorAll() {
@@ -3751,6 +3892,7 @@ function smaskColorReset() {
   if(h1) h1.textContent = '#ffffff';
   if(h2) h2.textContent = '#000000';
   if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+  smaskUpdateCharPreview();
 }
 
 // ── 公開機能 ────────────────────────────────────────────────
