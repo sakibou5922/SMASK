@@ -5415,6 +5415,190 @@ var _origSplitChars = null;
 })();
 </script>
 
+
+
+<!-- SMASK HOTFIX: publish button + text-selection font apply -->
+<style id="smask-publish-select-hotfix-style">
+@media (max-width: 768px) {
+  html body #smask-pub-fab {
+    display: flex !important;
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+    min-height: 52px !important;
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    z-index: 9999999 !important;
+  }
+  html body #design-panel {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px) !important;
+  }
+}
+@media (min-width: 769px) {
+  html body #smask-pub-fab {
+    display: flex !important;
+    position: fixed !important;
+    right: 24px !important;
+    left: auto !important;
+    bottom: 24px !important;
+    z-index: 9999999 !important;
+  }
+}
+html body #smask-pub-fab span,
+html body #smask-pub-fab {
+  white-space: nowrap !important;
+}
+</style>
+<script id="smask-publish-select-hotfix-script">
+(function(){
+  if(window.__smaskPublishSelectHotfix) return;
+  window.__smaskPublishSelectHotfix = true;
+
+  var cachedRange = null;
+
+  function getPanel(){
+    return document.getElementById('design-panel');
+  }
+
+  function inPanel(node){
+    try {
+      var panel = getPanel();
+      if(!panel || !node) return false;
+      var el = node.nodeType === 3 ? node.parentNode : node;
+      return el === panel || panel.contains(el);
+    } catch(e) {
+      return false;
+    }
+  }
+
+  function cloneCurrentRange(){
+    try {
+      var sel = window.getSelection();
+      if(!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+      var txt = sel.toString();
+      if(!txt || !txt.trim()) return null;
+      var range = sel.getRangeAt(0).cloneRange();
+      if(inPanel(range.commonAncestorContainer)) return null;
+      return range;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function cacheSelectionRange(){
+    var r = cloneCurrentRange();
+    if(r) cachedRange = r;
+  }
+
+  ['selectionchange','mouseup','keyup','touchend'].forEach(function(evt){
+    document.addEventListener(evt, function(){
+      setTimeout(cacheSelectionRange, evt === 'selectionchange' ? 0 : 30);
+    }, true);
+  });
+
+  function attachSpanSelection(span){
+    if(!span || span._smaskHotfixBound) return;
+    span._smaskHotfixBound = true;
+    span.addEventListener('click', function(e){
+      if(typeof clickMode !== 'undefined' && clickMode === false && !span.classList.contains('smask-force-selected')) {
+        // clickMode OFFでも、作成済み選択spanは普通に再選択できるようにする
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      if(typeof selectElement === 'function') selectElement(span);
+    });
+  }
+
+  function materializeSelectionTarget(){
+    if(typeof selectedEl !== 'undefined' && selectedEl) return selectedEl;
+
+    var range = cloneCurrentRange();
+    if(!range && cachedRange) {
+      try { range = cachedRange.cloneRange(); } catch(e) { range = null; }
+    }
+    if(!range) return null;
+
+    var text = '';
+    try { text = range.toString().trim(); } catch(e) {}
+    if(!text) return null;
+
+    var span = document.createElement('span');
+    span.className = 'char-styled page-editable smask-range-selected';
+    span.dataset.elLabel = 'span : ' + text.slice(0, 14);
+
+    var ok = false;
+    try {
+      var frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+      ok = true;
+    } catch(e1) {}
+
+    if(!ok) {
+      try {
+        range.surroundContents(span);
+        ok = true;
+      } catch(e2) {}
+    }
+
+    if(!ok) return null;
+
+    try {
+      var sel = window.getSelection();
+      if(sel) sel.removeAllRanges();
+    } catch(e) {}
+
+    cachedRange = null;
+    attachSpanSelection(span);
+    if(typeof selectElement === 'function') selectElement(span);
+    return span;
+  }
+
+  window.smaskEnsureSelectedTarget = materializeSelectionTarget;
+
+  var origApplySelFont = window.applySelFont;
+  window.applySelFont = function(sel){
+    if((typeof selectedEl === 'undefined' || !selectedEl) && typeof materializeSelectionTarget === 'function') {
+      materializeSelectionTarget();
+    }
+    return origApplySelFont ? origApplySelFont.call(this, sel) : undefined;
+  };
+
+  function improveSelectHint(){
+    var guide = document.getElementById('smask-select-main-guide') || document.getElementById('sel-guide');
+    if(!guide || guide._smaskHotfixNote) return;
+    var note = document.createElement('div');
+    note._smaskHotfixNote = true;
+    note.style.cssText = 'margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(39,174,96,0.12);border:1px solid rgba(46,204,113,0.35);color:#c6ffd6;font-size:12px;line-height:1.6;';
+    note.innerHTML = '💡 テキストをドラッグ選択したあと、そのままフォントを選ぶと選択範囲だけに適用されます。';
+    guide.appendChild(note);
+  }
+
+  function keepPublishFabLabel(){
+    var fab = document.getElementById('smask-pub-fab');
+    if(!fab) return;
+    fab.textContent = '✅ 公開する';
+  }
+
+  function boot(){
+    improveSelectHint();
+    keepPublishFabLabel();
+  }
+
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot, 600);
+})();
+</script>
+
 </body>
 </html>
 
