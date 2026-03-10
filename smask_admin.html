@@ -7,7 +7,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@400;700;900&family=Zen+Old+Mincho:wght@400;700;900&family=Shippori+Mincho:wght@400;500;700;800&family=M+PLUS+Rounded+1c:wght@300;400;500;700&family=Shippori+Antique&family=Shippori+Antique+B1&family=Zen+Antique&family=Zen+Antique+Soft&family=Hina+Mincho&family=Kaisei+Decol:wght@400;700&family=Kaisei+Opti:wght@400;700&family=Kaisei+Tokumin:wght@400;700&family=Kaisei+HarunoUmi:wght@400;700&family=Klee+One:wght@400;600&family=BIZ+UDMincho:wght@400;700&family=M+PLUS+1p:wght@300;400;500;700&family=M+PLUS+1:wght@300;400;500;700&family=M+PLUS+2:wght@300;400;500;700&family=BIZ+UDGothic:wght@400;700&family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&family=Zen+Kaku+Gothic+Antique:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@300;400;500;700&family=Murecho:wght@300;400;500;700&family=DotGothic16&family=Reggae+One&family=Yuji+Syuku&family=Yuji+Mai&family=Yuji+Boku&family=Rampart+One&family=Stick&family=Train+One&family=Zen+Loop&family=Rock+3D&family=Yomogi&family=Hachi+Maru+Pop&family=New+Tegomin&family=Cormorant+Garamond:wght@400;700&family=EB+Garamond:wght@400;700&family=Cinzel:wght@400;700;900&family=Lora:wght@400;700&family=Merriweather:wght@300;400;700&family=Libre+Baskerville:wght@400;700&family=Crimson+Text:wght@400;700&family=Montserrat:wght@300;400;500;700&family=Raleway:wght@300;400;500;700&family=Josefin+Sans:wght@300;400;600;700&family=Oswald:wght@300;400;500;700&family=Nunito:wght@300;400;600;700&family=Poppins:wght@300;400;500;700&family=Inter:wght@300;400;500;700&family=Outfit:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;700&family=Bebas+Neue&family=Anton&family=Righteous&family=Fredoka+One&family=Pacifico&family=Dancing+Script:wght@400;700&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Nunito:wght@300;400;600;700&family=Montserrat:wght@300;400;500;700&family=Poppins:wght@300;400;500;700&family=Raleway:wght@300;400;500;700&family=Work+Sans:wght@300;400;500;700&family=Manrope:wght@300;400;500;700&family=Playfair+Display:wght@400;700;900&family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:wght@300;400;600;700&family=Libre+Baskerville:wght@400;700&family=EB+Garamond:wght@400;700&family=Fredoka:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;500;700&family=Baloo+2:wght@400;500;600;700&family=Varela+Round&family=Bebas+Neue&family=Anton&family=Oswald:wght@300;400;500;700&family=Archivo+Black&family=League+Spartan:wght@400;700;900&family=Pacifico&family=Lobster&family=Dancing+Script:wght@400;700&family=Satisfy&family=Great+Vibes&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css">
   <style>
@@ -1725,8 +1725,14 @@ function doLogin(){
             <div class="smk-field">
               <label class="smk-lbl">Font Family</label>
               <div class="smk-font-picker">
+                <!-- カテゴリタブ -->
+                <div id="smk-font-cats" class="smk-font-cats"></div>
+                <!-- 検索 -->
+                <input type="search" id="smk-font-search" class="smk-font-search"
+                       placeholder="🔍 フォント名で検索…"
+                       oninput="buildFontSelect()">
                 <select id="smk-font-select" class="smk-select">
-                  <option value="">— Select Font —</option>
+                  <option value="">— フォントを選んでください —</option>
                 </select>
                 <div class="smk-font-preview-row" id="smk-font-preview-row" style="display:none;">
                   <span class="smk-font-preview-txt" id="smk-font-preview-txt">Aa Bb Cc</span>
@@ -5397,27 +5403,54 @@ html body #smask-pub-fab {
 
 /* ---------- Font List (English only, 18 fonts) ---------- */
 var SMK_FONTS = [
-  {n:'Playfair Display',  label:'Playfair Display — Serif Elegant'},
-  {n:'Cormorant Garamond',label:'Cormorant Garamond — Fine Serif'},
-  {n:'EB Garamond',       label:'EB Garamond — Classic Serif'},
-  {n:'Cinzel',            label:'Cinzel — Roman Capitals'},
-  {n:'Lora',              label:'Lora — Modern Serif'},
-  {n:'Merriweather',      label:'Merriweather — Readable Serif'},
-  {n:'Libre Baskerville', label:'Libre Baskerville — Traditional'},
-  {n:'Crimson Text',      label:'Crimson Text — Literary Serif'},
-  {n:'Montserrat',        label:'Montserrat — Modern Sans'},
-  {n:'Raleway',           label:'Raleway — Elegant Sans'},
-  {n:'Josefin Sans',      label:'Josefin Sans — Geometric Sans'},
-  {n:'Poppins',           label:'Poppins — Friendly Sans'},
-  {n:'Inter',             label:'Inter — UI Sans'},
-  {n:'DM Sans',           label:'DM Sans — Clean Sans'},
-  {n:'Outfit',            label:'Outfit — Contemporary Sans'},
-  {n:'Oswald',            label:'Oswald — Condensed Sans'},
-  {n:'Bebas Neue',        label:'Bebas Neue — Display Bold'},
-  {n:'Pacifico',          label:'Pacifico — Script'},
-  {n:'Dancing Script',    label:'Dancing Script — Handwritten'},
-  {n:'Great Vibes',       label:'Great Vibes — Calligraphy'},
+  /* ── 読みやすい ── */
+  {n:'Inter',            jp:'インター',                    css:"'Inter', sans-serif",            cat:'readable'},
+  {n:'Roboto',           jp:'ロボト',                      css:"'Roboto', sans-serif",           cat:'readable'},
+  {n:'Open Sans',        jp:'オープン・サンズ',            css:"'Open Sans', sans-serif",        cat:'readable'},
+  {n:'Lato',             jp:'ラト',                        css:"'Lato', sans-serif",             cat:'readable'},
+  {n:'Nunito',           jp:'ヌニート',                    css:"'Nunito', sans-serif",           cat:'readable'},
+  /* ── モダン ── */
+  {n:'Montserrat',       jp:'モンセラット',                css:"'Montserrat', sans-serif",       cat:'modern'},
+  {n:'Poppins',          jp:'ポピンズ',                    css:"'Poppins', sans-serif",          cat:'modern'},
+  {n:'Raleway',          jp:'ラレウェイ',                  css:"'Raleway', sans-serif",          cat:'modern'},
+  {n:'Work Sans',        jp:'ワーク・サンズ',              css:"'Work Sans', sans-serif",        cat:'modern'},
+  {n:'Manrope',          jp:'マンロープ',                  css:"'Manrope', sans-serif",          cat:'modern'},
+  /* ── 高級感 ── */
+  {n:'Playfair Display', jp:'プレイフェア・ディスプレイ',  css:"'Playfair Display', serif",      cat:'luxury'},
+  {n:'Cinzel',           jp:'シンゼル',                    css:"'Cinzel', serif",                cat:'luxury'},
+  {n:'Cormorant Garamond',jp:'コーモラント・ガラモンド',  css:"'Cormorant Garamond', serif",    cat:'luxury'},
+  {n:'Libre Baskerville',jp:'リブレ・バスカービル',        css:"'Libre Baskerville', serif",     cat:'luxury'},
+  {n:'EB Garamond',      jp:'イービー・ガラモンド',        css:"'EB Garamond', serif",           cat:'luxury'},
+  /* ── かわいい ── */
+  {n:'Fredoka',          jp:'フレドカ',                    css:"'Fredoka', sans-serif",          cat:'cute'},
+  {n:'Quicksand',        jp:'クイックサンド',              css:"'Quicksand', sans-serif",        cat:'cute'},
+  {n:'Comfortaa',        jp:'コンフォルタ',                css:"'Comfortaa', sans-serif",        cat:'cute'},
+  {n:'Baloo 2',          jp:'バルー',                      css:"'Baloo 2', sans-serif",          cat:'cute'},
+  {n:'Varela Round',     jp:'バレラ・ラウンド',            css:"'Varela Round', sans-serif",     cat:'cute'},
+  /* ── 目立つ ── */
+  {n:'Bebas Neue',       jp:'ベバス・ノイエ',              css:"'Bebas Neue', sans-serif",       cat:'bold'},
+  {n:'Anton',            jp:'アントン',                    css:"'Anton', sans-serif",            cat:'bold'},
+  {n:'Oswald',           jp:'オズワルド',                  css:"'Oswald', sans-serif",           cat:'bold'},
+  {n:'Archivo Black',    jp:'アルチボ・ブラック',          css:"'Archivo Black', sans-serif",    cat:'bold'},
+  {n:'League Spartan',   jp:'リーグ・スパルタン',          css:"'League Spartan', sans-serif",   cat:'bold'},
+  /* ── 個性 ── */
+  {n:'Pacifico',         jp:'パシフィコ',                  css:"'Pacifico', cursive",            cat:'unique'},
+  {n:'Lobster',          jp:'ロブスター',                  css:"'Lobster', cursive",             cat:'unique'},
+  {n:'Dancing Script',   jp:'ダンシング・スクリプト',      css:"'Dancing Script', cursive",      cat:'unique'},
+  {n:'Satisfy',          jp:'サティスファイ',              css:"'Satisfy', cursive",             cat:'unique'},
+  {n:'Great Vibes',      jp:'グレート・ヴァイブス',        css:"'Great Vibes', cursive",         cat:'unique'},
 ];
+/* カテゴリ定義 */
+var SMK_CATS = {
+  all:     'すべて',
+  readable:'📖 読みやすい',
+  modern:  '✨ モダン',
+  luxury:  '💎 高級感',
+  cute:    '🌸 かわいい',
+  bold:    '💥 目立つ',
+  unique:  '🎨 個性',
+};
+var _smkFontCat = 'all';
 
 /* ---------- Color Swatches ---------- */
 var SMK_TEXT_SW = ['#ffffff','#1a1a1a','#C6A75C','#d3381c','#3a86ff','#06d6a0','#ff6b6b','#ffd166','#a3a3a2','#555555'];
@@ -5435,6 +5468,7 @@ var _transform = {scaleX:1, scaleY:1, rotate:'0deg'};
    INIT
    ============================================================ */
 function smkInit(){
+  buildFontCatBtns();
   buildFontSelect();
   buildCharFontSelect();
   buildSwatches();
@@ -5676,48 +5710,75 @@ function loadGFont(name){
 function buildFontSelect(){
   var sel = document.getElementById('smk-font-select');
   if(!sel) return;
-  sel.innerHTML = '<option value="">— Select Font —</option>';
+  var q = ((document.getElementById('smk-font-search')||{}).value||'').toLowerCase().trim();
+  sel.innerHTML = '<option value="">— フォントを選んでください —</option>';
   SMK_FONTS.forEach(function(f){
+    if(_smkFontCat !== 'all' && f.cat !== _smkFontCat) return;
+    if(q && !f.n.toLowerCase().includes(q) && !f.jp.includes(q)) return;
     var o = document.createElement('option');
-    o.value = f.n;
-    o.textContent = f.label;
-    // Load font for preview in dropdown
+    o.value = f.n;                          /* 選択値 = フォント名 */
+    o.textContent = f.n + '（' + f.jp + '）'; /* 表示ラベル */
     loadGFont(f.n);
     sel.appendChild(o);
   });
-  // Preview on change (not apply)
+  /* 変更時はプレビューのみ（Apply ボタンで確定） */
   sel.onchange = function(){
-    var name = sel.value;
-    if(!name) return;
+    var name = sel.value; if(!name) return;
     loadGFont(name);
+    var f = SMK_FONTS.find(function(x){ return x.n===name; });
+    var css = f ? f.css : '"'+name+'", sans-serif';
     var pt = document.getElementById('smk-font-preview-txt');
     var pn = document.getElementById('smk-font-preview-name');
     var pr = document.getElementById('smk-font-preview-row');
     if(pr) pr.style.display = 'flex';
-    if(pt){ pt.style.fontFamily = '"'+name+'", sans-serif'; pt.textContent = 'Aa Bb — The Quick Brown Fox'; }
-    if(pn) pn.textContent = name;
+    if(pt){ pt.style.fontFamily = css; pt.textContent = 'Aa Bb Cc — The quick brown fox'; }
+    if(pn) pn.textContent = name + '（' + (f?f.jp:'') + '）';
   };
 }
+function buildFontCatBtns(){
+  var box = document.getElementById('smk-font-cats');
+  if(!box || box.dataset.built) return;
+  box.dataset.built = '1';
+  Object.keys(SMK_CATS).forEach(function(k){
+    var b = document.createElement('button');
+    b.className = 'smk-cat-btn' + (k==='all' ? ' active' : '');
+    b.textContent = SMK_CATS[k];
+    b.dataset.cat = k;
+    b.onclick = function(){
+      _smkFontCat = k;
+      box.querySelectorAll('.smk-cat-btn').forEach(function(x){ x.classList.toggle('active', x.dataset.cat===k); });
+      buildFontSelect();
+    };
+    box.appendChild(b);
+  });
+}
+
 
 function buildCharFontSelect(){
   var sel = document.getElementById('smk-char-font-sel');
   if(!sel) return;
-  sel.innerHTML = '<option value="">— Font —</option>';
+  sel.innerHTML = '<option value="">— フォント —</option>';
   SMK_FONTS.forEach(function(f){
     var o = document.createElement('option');
-    o.value = f.n; o.textContent = f.n;
+    o.value = f.n;
+    o.textContent = f.n + '（' + f.jp + '）';
     sel.appendChild(o);
   });
 }
 
+
 window.smkApplyFont = function(name){
-  if(!name){ showToast('Select a font first'); return; }
-  var el = getEl(); if(!el){ showToast('Select an element first'); return; }
+  if(!name){ showToast('フォントを選んでください'); return; }
+  var el = getEl(); if(!el){ showToast('要素を選択してください'); return; }
+  var f   = SMK_FONTS.find(function(x){ return x.n===name; });
+  var css = f ? f.css : '"'+name+'", sans-serif';
   smkSaveHist();
   loadGFont(name);
-  setStyle(el, 'font-family', '"'+name+'", sans-serif');
-  showToast('Font applied: '+name);
+  setStyle(el, 'font-family', css);
+  var lbl = name + (f ? '（'+f.jp+'）' : '');
+  showToast('Font applied: ' + lbl);
 };
+
 
 window.smkApplySize = function(v){
   var el=getEl(); if(!el) return;
@@ -5809,8 +5870,13 @@ window.smkApplyMargin = function(side, v){
 /* Char mode font */
 window.smkApplyCharFont = function(name){
   var el=getEl(); if(!el) return;
-  if(name){ loadGFont(name); setStyle(el, 'font-family', '"'+name+'", sans-serif'); }
+  if(name){
+    var f   = SMK_FONTS.find(function(x){ return x.n===name; });
+    var css = f ? f.css : '"'+name+'", sans-serif';
+    loadGFont(name); setStyle(el, 'font-family', css);
+  }
 };
+
 
 window.smkApplyCharSize = function(v){
   var el=getEl(); if(!el) return;
@@ -6511,6 +6577,36 @@ window.addEventListener('load', function(){
   outline: 2px solid rgba(198,167,92,0.85) !important;
   outline-offset: 2px !important;
 }
+
+/* Font category tabs */
+.smk-font-cats {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;
+}
+.smk-cat-btn {
+  padding: 3px 8px; border-radius: 20px; font-size: 10px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.5);
+  font-family: inherit; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.smk-cat-btn.active {
+  background: rgba(198,167,92,0.22);
+  border-color: rgba(198,167,92,0.55);
+  color: #C6A75C; font-weight: 600;
+}
+/* Font search */
+.smk-font-search {
+  width: 100%; padding: 7px 10px; margin-bottom: 6px;
+  background: #111; border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 6px; color: rgba(255,255,255,0.85);
+  font-size: 12px; font-family: inherit; outline: none;
+  -webkit-appearance: none;
+}
+.smk-font-search:focus { border-color: rgba(198,167,92,0.4); }
+/* Select option style (in dropdown) */
+#smk-font-select option { font-size: 13px; }
 
 /* Mobile */
 @media (max-width: 768px) {
