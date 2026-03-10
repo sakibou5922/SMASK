@@ -1568,6 +1568,10 @@ function doLogin(){
         <span class="smk-tab-icon">✏️</span>
         <span class="smk-tab-lbl">FONT</span>
       </button>
+      <button class="smk-tab-btn" id="smk-btn-site" onclick="smkTab('site')" title="Site Settings">
+        <span class="smk-tab-icon">🌐</span>
+        <span class="smk-tab-lbl">SITE</span>
+      </button>
       <div class="smk-sb-bottom">
         <button class="smk-mode-toggle" id="smk-click-btn" onclick="smkToggleSelectMode()" title="Select Mode">
           <span>SEL</span><span style="font-size:8px;letter-spacing:0;">MODE</span>
@@ -1868,6 +1872,149 @@ function doLogin(){
 
         </div><!-- /font-ctrl -->
       </div><!-- /font pane -->
+      <!-- ===== SITE TAB ===== -->
+      <div id="smk-pane-site" style="display:none;">
+
+        <div class="smk-guide smk-guide-sm" id="smk-site-guide">
+          <div class="smk-guide-icon" style="font-size:20px;">🌐</div>
+          <div class="smk-guide-text">Site-wide settings</div>
+        </div>
+
+        <div class="smk-ctrl-group" style="padding:12px 14px;">
+
+          <!-- Site Title -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">Site Title</label>
+            <input type="text" id="site-title-input" class="smk-input"
+              placeholder="My Site"
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
+              oninput="smkSiteLive('title',this.value)">
+          </div>
+
+          <!-- Favicon URL -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">Favicon URL</label>
+            <input type="text" id="site-favicon-input" class="smk-input"
+              placeholder="https://..."
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
+              oninput="smkSiteLive('favicon',this.value)">
+          </div>
+
+          <!-- OG Title -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">OG Title</label>
+            <input type="text" id="site-og-title-input" class="smk-input"
+              placeholder="Open Graph title"
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
+              oninput="smkSiteLive('ogTitle',this.value)">
+          </div>
+
+          <!-- OG Description -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">OG Desc</label>
+            <input type="text" id="site-og-desc-input" class="smk-input"
+              placeholder="Open Graph description"
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
+              oninput="smkSiteLive('ogDesc',this.value)">
+          </div>
+
+          <!-- OG Image -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">OG Image</label>
+            <input type="text" id="site-og-image-input" class="smk-input"
+              placeholder="https://..."
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
+              oninput="smkSiteLive('ogImage',this.value)">
+          </div>
+
+          <!-- Analytics ID -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">GA4 / GTM ID</label>
+            <input type="text" id="site-analytics-input" class="smk-input"
+              placeholder="G-XXXXXXXX or GTM-XXXX"
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;">
+          </div>
+
+          <!-- Maintenance toggle -->
+          <div class="smk-row" style="margin-bottom:10px;align-items:center;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">Maintenance</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="site-maintenance-chk"
+                onchange="smkSiteLive('maintenance',this.checked)"
+                style="width:14px;height:14px;accent-color:#C6A75C;">
+              <span style="color:#ccc;font-size:10px;">Show maintenance banner</span>
+            </label>
+          </div>
+
+          <!-- Maintenance message -->
+          <div class="smk-row" style="margin-bottom:14px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">Banner Text</label>
+            <input type="text" id="site-maintenance-msg" class="smk-input"
+              placeholder="Under maintenance…"
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
+              oninput="smkSiteLive('maintenanceMsg',this.value)">
+          </div>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid #333;margin:8px 0 12px;"></div>
+
+          <!-- Global Body Font -->
+          <div class="smk-row" style="margin-bottom:10px;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">Body Font</label>
+            <select id="site-body-font" class="smk-input"
+              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:4px 6px;border-radius:4px;font-size:11px;">
+              <option value="">— unchanged —</option>
+              <option value="'Inter', sans-serif">Inter</option>
+              <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+              <option value="'Noto Serif JP', serif">Noto Serif JP</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="'Playfair Display', serif">Playfair Display</option>
+              <option value="'Merriweather', serif">Merriweather</option>
+            </select>
+          </div>
+
+          <!-- Global BG Color -->
+          <div class="smk-row" style="margin-bottom:10px;align-items:center;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">BG Color</label>
+            <input type="color" id="site-bg-color"
+              value="#ffffff"
+              oninput="smkSiteLive('bgColor',this.value)"
+              style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0;">
+            <span id="site-bg-color-val" style="color:#aaa;font-size:10px;margin-left:6px;">#ffffff</span>
+          </div>
+
+          <!-- Primary / Accent Color -->
+          <div class="smk-row" style="margin-bottom:14px;align-items:center;">
+            <label class="smk-lbl" style="width:90px;font-size:10px;">Accent Color</label>
+            <input type="color" id="site-accent-color"
+              value="#C6A75C"
+              oninput="smkSiteLive('accentColor',this.value)"
+              style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0;">
+            <span id="site-accent-color-val" style="color:#aaa;font-size:10px;margin-left:6px;">#C6A75C</span>
+          </div>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid #333;margin:8px 0 12px;"></div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="smkSiteApply()"
+              style="flex:1;background:#C6A75C;color:#000;border:none;padding:8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:0.05em;min-width:80px;">
+              ✅ Apply All
+            </button>
+            <button onclick="smkSiteReset()"
+              style="flex:1;background:#3a3a3a;color:#ccc;border:1px solid #555;padding:8px;border-radius:6px;cursor:pointer;font-size:11px;min-width:80px;">
+              🔄 Reset
+            </button>
+          </div>
+
+          <!-- Status -->
+          <div id="site-status" style="margin-top:8px;font-size:10px;color:#8BC34A;min-height:16px;"></div>
+
+        </div><!-- /ctrl-group -->
+      </div><!-- /site pane -->
 
     </div><!-- /smk-main -->
   </div><!-- /smk-body -->
@@ -5386,7 +5533,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v10-script">
+<script id="smask-v12-script">
 (function(){
 'use strict';
 
@@ -5639,12 +5786,14 @@ function showTabControls(){
    TAB SWITCHING
    ============================================================ */
 window.smkTab = function(tab){
-  ['select','color','font'].forEach(function(t){
+  ['select','color','font','site'].forEach(function(t){
     var p = document.getElementById('smk-pane-'+t);
     var b = document.getElementById('smk-btn-'+t);
     if(p) p.style.display = (t===tab) ? 'block' : 'none';
     if(b) b.classList.toggle('active', t===tab);
   });
+  // populate site inputs when SITE tab is opened
+  if(tab === 'site') smkSitePopulate();
 };
 
 /* ============================================================
@@ -6166,6 +6315,205 @@ window.addEventListener('load', function(){
 });
 
 })();
+
+/* ============================================================
+   SITE SETTINGS  (independent from design-edit logic)
+   ============================================================ */
+(function(){
+  'use strict';
+
+  /* ---- internal state, isolated from design state ---- */
+  var siteSettings = {
+    title: '',
+    favicon: '',
+    ogTitle: '',
+    ogDesc: '',
+    ogImage: '',
+    analytics: '',
+    maintenance: false,
+    maintenanceMsg: 'このサイトはメンテナンス中です。',
+    bodyFont: '',
+    bgColor: '#ffffff',
+    accentColor: '#C6A75C'
+  };
+
+  /* ---- maintenance banner element ---- */
+  var _maintBanner = null;
+  function getMaintBanner(){
+    if(!_maintBanner){
+      _maintBanner = document.getElementById('smk-maint-banner');
+      if(!_maintBanner){
+        _maintBanner = document.createElement('div');
+        _maintBanner.id = 'smk-maint-banner';
+        _maintBanner.style.cssText =
+          'position:fixed;top:0;left:0;right:0;z-index:9999998;'+
+          'background:#e53e3e;color:#fff;text-align:center;'+
+          'padding:8px 16px;font-size:13px;font-weight:600;'+
+          'letter-spacing:0.05em;display:none;';
+        document.body.appendChild(_maintBanner);
+      }
+    }
+    return _maintBanner;
+  }
+
+  /* ---- live preview while typing ---- */
+  window.smkSiteLive = function(key, value){
+    switch(key){
+      case 'title':
+        document.title = value || document.title;
+        break;
+      case 'favicon':
+        if(value){
+          var lnk = document.querySelector("link[rel*='icon']");
+          if(!lnk){ lnk=document.createElement('link'); lnk.rel='icon'; document.head.appendChild(lnk); }
+          lnk.href = value;
+        }
+        break;
+      case 'maintenance':
+        getMaintBanner().style.display = value ? 'block' : 'none';
+        getMaintBanner().textContent = siteSettings.maintenanceMsg || 'Under maintenance';
+        break;
+      case 'maintenanceMsg':
+        if(siteSettings.maintenance) getMaintBanner().textContent = value;
+        break;
+      case 'bgColor':
+        document.body.style.backgroundColor = value;
+        var el = document.getElementById('site-bg-color-val');
+        if(el) el.textContent = value;
+        break;
+      case 'accentColor':
+        document.documentElement.style.setProperty('--color-accent', value);
+        var el2 = document.getElementById('site-accent-color-val');
+        if(el2) el2.textContent = value;
+        break;
+    }
+    siteSettings[key] = value;
+  };
+
+  /* ---- populate inputs when SITE tab opens ---- */
+  window.smkSitePopulate = function(){
+    var fields = [
+      ['site-title-input',       'title'],
+      ['site-favicon-input',     'favicon'],
+      ['site-og-title-input',    'ogTitle'],
+      ['site-og-desc-input',     'ogDesc'],
+      ['site-og-image-input',    'ogImage'],
+      ['site-analytics-input',   'analytics'],
+      ['site-maintenance-msg',   'maintenanceMsg']
+    ];
+    fields.forEach(function(pair){
+      var el = document.getElementById(pair[0]);
+      if(el && siteSettings[pair[1]]) el.value = siteSettings[pair[1]];
+    });
+    var chk = document.getElementById('site-maintenance-chk');
+    if(chk) chk.checked = !!siteSettings.maintenance;
+    var bgEl = document.getElementById('site-bg-color');
+    if(bgEl) bgEl.value = siteSettings.bgColor;
+    var acEl = document.getElementById('site-accent-color');
+    if(acEl) acEl.value = siteSettings.accentColor;
+  };
+
+  /* ---- apply all settings ---- */
+  window.smkSiteApply = function(){
+    /* read all inputs */
+    function v(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+
+    siteSettings.title         = v('site-title-input');
+    siteSettings.favicon       = v('site-favicon-input');
+    siteSettings.ogTitle       = v('site-og-title-input');
+    siteSettings.ogDesc        = v('site-og-desc-input');
+    siteSettings.ogImage       = v('site-og-image-input');
+    siteSettings.analytics     = v('site-analytics-input');
+    siteSettings.maintenanceMsg= v('site-maintenance-msg');
+    siteSettings.maintenance   = document.getElementById('site-maintenance-chk')
+                                  ? document.getElementById('site-maintenance-chk').checked : false;
+    var fontEl = document.getElementById('site-body-font');
+    siteSettings.bodyFont = fontEl ? fontEl.value : '';
+    var bgEl2 = document.getElementById('site-bg-color');
+    siteSettings.bgColor = bgEl2 ? bgEl2.value : '#ffffff';
+    var acEl2 = document.getElementById('site-accent-color');
+    siteSettings.accentColor = acEl2 ? acEl2.value : '#C6A75C';
+
+    /* apply each */
+    if(siteSettings.title) document.title = siteSettings.title;
+
+    if(siteSettings.favicon){
+      var lnk = document.querySelector("link[rel*='icon']");
+      if(!lnk){ lnk=document.createElement('link'); lnk.rel='icon'; document.head.appendChild(lnk); }
+      lnk.href = siteSettings.favicon;
+    }
+
+    /* OG tags (runtime update) */
+    function setMeta(prop, val){
+      if(!val) return;
+      var el = document.querySelector('meta[property="'+prop+'"]');
+      if(!el){ el=document.createElement('meta'); el.setAttribute('property',prop); document.head.appendChild(el); }
+      el.setAttribute('content', val);
+    }
+    setMeta('og:title',       siteSettings.ogTitle);
+    setMeta('og:description', siteSettings.ogDesc);
+    setMeta('og:image',       siteSettings.ogImage);
+
+    /* Analytics: inject GA4 if not yet done */
+    if(siteSettings.analytics && !document.getElementById('smk-analytics-script')){
+      var id = siteSettings.analytics.trim();
+      if(/^G-/.test(id)){
+        var gs = document.createElement('script');
+        gs.async = true;
+        gs.src = 'https://www.googletagmanager.com/gtag/js?id='+id;
+        gs.id = 'smk-analytics-script';
+        document.head.appendChild(gs);
+        var gi = document.createElement('script');
+        gi.textContent = "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','"+id+"');";
+        document.head.appendChild(gi);
+      } else if(/^GTM-/.test(id)){
+        var gts = document.createElement('script');
+        gts.id = 'smk-analytics-script';
+        gts.textContent = "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','"+id+"');";
+        document.head.appendChild(gts);
+      }
+    }
+
+    /* Maintenance banner */
+    var bn = getMaintBanner();
+    bn.textContent = siteSettings.maintenanceMsg || 'Under maintenance';
+    bn.style.display = siteSettings.maintenance ? 'block' : 'none';
+
+    /* Body font */
+    if(siteSettings.bodyFont){
+      document.body.style.fontFamily = siteSettings.bodyFont;
+    }
+
+    /* Colors */
+    document.body.style.backgroundColor = siteSettings.bgColor;
+    document.documentElement.style.setProperty('--color-accent', siteSettings.accentColor);
+
+    /* status */
+    var st = document.getElementById('site-status');
+    if(st){ st.textContent = '✅ Applied'; setTimeout(function(){ if(st) st.textContent=''; }, 2500); }
+  };
+
+  /* ---- reset ---- */
+  window.smkSiteReset = function(){
+    var ids = ['site-title-input','site-favicon-input','site-og-title-input',
+               'site-og-desc-input','site-og-image-input','site-analytics-input','site-maintenance-msg'];
+    ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    var chk = document.getElementById('site-maintenance-chk');
+    if(chk) chk.checked = false;
+    getMaintBanner().style.display = 'none';
+    var fontEl = document.getElementById('site-body-font');
+    if(fontEl) fontEl.value = '';
+    siteSettings = {
+      title:'', favicon:'', ogTitle:'', ogDesc:'', ogImage:'',
+      analytics:'', maintenance:false, maintenanceMsg:'このサイトはメンテナンス中です。',
+      bodyFont:'', bgColor:'#ffffff', accentColor:'#C6A75C'
+    };
+    var st = document.getElementById('site-status');
+    if(st){ st.textContent = '🔄 Reset'; setTimeout(function(){ if(st) st.textContent=''; }, 2000); }
+  };
+
+})();
+/* ---- end SITE SETTINGS ---- */
 </script>
 
 <style id="smask-v10-style">
