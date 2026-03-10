@@ -6298,6 +6298,263 @@ html body #smask-pub-fab {
 </script>
 
 </body>
+
+
+<!-- SMASK SIMPLE EDIT HOTFIX: 作業タブ修正 / 管理タブ整理 -->
+<style id="smask-simple-edit-style">
+/* ===== 1. 変形/余白グループを非表示 ===== */
+#sel-controls .ctrl-group ~ .ctrl-group {
+  display: none !important;
+}
+
+/* ===== 2. ショートカット（フォント追加/PW変更）は非表示 ===== */
+#smask-settings-shortcuts {
+  display: none !important;
+}
+
+/* ===== 3. キーコントロールを確実に表示 ===== */
+#sel-controls[style*="display:block"] .ctrl-row,
+#sel-controls[style*="display: block"] .ctrl-row {
+  display: flex;
+}
+
+/* ===== 4. タブ 3ボタングリッド（スマホ） ===== */
+@media (max-width: 768px) {
+  #design-panel .panel-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 6px !important;
+    padding: 8px 10px 10px !important;
+    overflow: visible !important;
+  }
+  #design-panel .panel-tab {
+    flex: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 4px !important;
+    border-radius: 10px !important;
+    border-bottom: none !important;
+    background: rgba(255,255,255,.06) !important;
+    font-size: 12px !important;
+  }
+  #design-panel .panel-tab.active {
+    background: rgba(198,167,92,.20) !important;
+    color: #f4e5b5 !important;
+    box-shadow: inset 0 0 0 1px rgba(198,167,92,.6) !important;
+    border-bottom: none !important;
+  }
+  /* 4タブ以上は非表示 */
+  #design-panel .panel-tab[onclick*="tab-t1"],
+  #design-panel .panel-tab[onclick*="tab-t2"],
+  #design-panel .panel-tab[onclick*="tab-t3"],
+  #design-panel .panel-tab[onclick*="tab-body"] {
+    display: none !important;
+  }
+}
+
+/* ===== 5. 作業タブのフォント選択を目立たせる ===== */
+#sel-controls .ctrl-group {
+  padding: 0 !important;
+}
+#sel-controls .ctrl-group .ctrl-group-label {
+  font-size: 11px !important;
+  margin-bottom: 10px !important;
+  color: rgba(255,255,255,.5) !important;
+}
+
+/* ===== 6. サイズ+/-ボタン ===== */
+.smask-size-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.smask-size-btn {
+  flex: 1;
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.smask-size-btn:active {
+  background: rgba(198,167,92,.25);
+}
+
+/* ===== 7. 太さクイックボタン ===== */
+.smask-weight-btns {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+.smask-weight-btn {
+  flex: 1;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.8);
+  font-size: 12px;
+  cursor: pointer;
+}
+.smask-weight-btn.active,
+.smask-weight-btn:active {
+  background: rgba(198,167,92,.22);
+  border-color: rgba(198,167,92,.5);
+  color: #f4e5b5;
+}
+
+/* ===== 8. 作業タブガイド ===== */
+#smask-work-guide {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(198,167,92,.09);
+  border: 1px solid rgba(198,167,92,.25);
+  color: #f3e4b2;
+  font-size: 12px;
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+/* ===== 9. 管理タブの見出し ===== */
+#smask-settings-section-title {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: .1em;
+  margin: 16px 0 8px;
+  text-transform: uppercase;
+}
+</style>
+
+<script id="smask-simple-edit-script">
+(function(){
+  if(window.__smaskSimpleEdit) return;
+  window.__smaskSimpleEdit = true;
+
+  /* ---- ユーティリティ ---- */
+  function q(s){ return document.querySelector(s); }
+  function qa(s){ return Array.from(document.querySelectorAll(s)); }
+
+  /* ---- 1. タブ名 ---- */
+  function relabel(){
+    qa('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      if(oc.indexOf('tab-colors') !== -1)   btn.textContent = 'カラー';
+      if(oc.indexOf('tab-select') !== -1)   btn.textContent = '✏️ 作業';
+      if(oc.indexOf('tab-settings') !== -1) btn.textContent = '⚙ 管理';
+    });
+  }
+
+  /* ---- 2. ショートカット削除 ---- */
+  function removeShortcuts(){
+    var sc = document.getElementById('smask-settings-shortcuts');
+    if(sc) { sc.style.cssText = 'display:none!important'; }
+  }
+
+  /* ---- 3. 作業タブにガイドとクイックボタン追加 ---- */
+  function buildWorkUI(){
+    var tab = document.getElementById('tab-select');
+    if(!tab || document.getElementById('smask-work-guide')) return;
+
+    /* ガイド */
+    var guide = document.createElement('div');
+    guide.id = 'smask-work-guide';
+    guide.innerHTML = '① <strong>クリック選択モード ON</strong> を押す<br>'
+      + '② ページの編集したいテキストをタップ<br>'
+      + '③ フォント・サイズ・カラーを変更';
+    tab.insertBefore(guide, tab.firstChild);
+
+    /* サイズ +/- ボタン（サイズスライダー横に追加） */
+    var sizeSlider = document.getElementById('sel-size-slider');
+    if(sizeSlider && !document.getElementById('smask-size-btns')){
+      var sizeBtns = document.createElement('div');
+      sizeBtns.id = 'smask-size-btns';
+      sizeBtns.className = 'smask-size-btns';
+      sizeBtns.innerHTML =
+        '<button class="smask-size-btn" id="smask-sz-minus" type="button">－</button>' +
+        '<button class="smask-size-btn" id="smask-sz-plus"  type="button">＋</button>';
+      sizeSlider.parentNode.insertBefore(sizeBtns, sizeSlider.nextSibling);
+
+      document.getElementById('smask-sz-minus').addEventListener('click', function(){
+        sizeSlider.value = Math.max(8, parseInt(sizeSlider.value,10) - 1);
+        if(typeof applySelSize === 'function') applySelSize(sizeSlider);
+      });
+      document.getElementById('smask-sz-plus').addEventListener('click', function(){
+        sizeSlider.value = Math.min(96, parseInt(sizeSlider.value,10) + 1);
+        if(typeof applySelSize === 'function') applySelSize(sizeSlider);
+      });
+    }
+
+    /* 太さクイックボタン（スライダー横に追加） */
+    var wSlider = document.getElementById('sel-weight-slider');
+    if(wSlider && !document.getElementById('smask-weight-btns')){
+      var wBtns = document.createElement('div');
+      wBtns.id = 'smask-weight-btns';
+      wBtns.className = 'smask-weight-btns';
+      wBtns.innerHTML =
+        '<button class="smask-weight-btn" data-w="3" type="button">細</button>' +
+        '<button class="smask-weight-btn" data-w="4" type="button">標準</button>' +
+        '<button class="smask-weight-btn" data-w="7" type="button">太</button>';
+      wSlider.parentNode.insertBefore(wBtns, wSlider.nextSibling);
+      wBtns.querySelectorAll('button').forEach(function(b){
+        b.addEventListener('click', function(){
+          var v = parseInt(this.dataset.w, 10);
+          wSlider.value = v;
+          if(typeof applySelWeight === 'function') applySelWeight(wSlider);
+          wBtns.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+          this.classList.add('active');
+        });
+      });
+    }
+  }
+
+  /* ---- 4. 管理タブ ---- */
+  function improveSettingsTab(){
+    var tab = document.getElementById('tab-settings');
+    if(!tab || document.getElementById('smask-settings-improved')) return;
+    tab.dataset.smaskSettingsImproved = '1';
+    // フォント追加セクションにIDをセット（switchToSettingsAndFocusで使用）
+    var fontSection = tab.querySelector('[id="custom-font-input"]');
+    if(fontSection){
+      var parent = fontSection.closest('.ctrl-group, div') || fontSection.parentNode;
+      parent.id = parent.id || 'smask-custom-font-section';
+    }
+    // パスワードセクションにIDをセット
+    var pwSection = tab.querySelector('[id="pw-current"]');
+    if(pwSection){
+      var parent2 = pwSection.closest('.ctrl-row, div') || pwSection.parentNode;
+      parent2.id = parent2.id || 'smask-password-section';
+    }
+  }
+
+  /* ---- メイン ---- */
+  function boot(){
+    relabel();
+    removeShortcuts();
+    buildWorkUI();
+    improveSettingsTab();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot, 300);
+  setTimeout(boot, 900);
+  setTimeout(boot, 2000);
+  // ショートカットが後から作られてもすぐ隠す
+  var _obs = new MutationObserver(function(){
+    var sc = document.getElementById('smask-settings-shortcuts');
+    if(sc && sc.style.display !== 'none') {
+      sc.style.cssText = 'display:none!important';
+    }
+  });
+  _obs.observe(document.body || document.documentElement, {childList:true, subtree:true});
+})();
+</script>
 </html>
 
 <!-- SMASK MOBILE SELECT-FIRST PATCH -->
