@@ -6297,6 +6297,182 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+<!-- ========================================================
+     SMASK v6: フォント/サイズ/カラー確実適用パッチ
+     根本原因: selectedEl スコープ問題 + iOS onchange不発
+     修正: window.smaskCurrentEl で確実保存 + 直接リスナー
+     ======================================================== -->
+<style id="smask-v6-style">
+/* 不要な ctrl-group を非表示（変形・余白等） */
+#sel-controls .ctrl-group ~ .ctrl-group { display:none !important; }
+/* 必要な行は確実に表示 */
+#sel-controls .ctrl-row,
+#sel-controls .ctrl-color-row { display:flex !important; }
+/* data-smask-hide='1' の行だけ非表示 */
+#sel-controls .ctrl-row[data-smask-hide='1'],
+#sel-controls .ctrl-color-row[data-smask-hide='1'] { display:none !important; }
+/* shortcuts完全非表示 */
+#smask-settings-shortcuts { display:none !important; }
+/* sel-controls デフォルト非表示 → JS で show */
+#sel-guide    { display:block; }
+#sel-waiting  { display:none; }
+#sel-controls { display:none; }
+</style>
+
+<script id="smask-v6-script">
+(function(){
+  'use strict';
+
+  /* ---- 1. 選択要素を window に確実保存 ---- */
+  function patchSelectElement(){
+    if(window._smaskV6ElPatch) return;
+    if(typeof selectElement !== 'function') return;
+    window._smaskV6ElPatch = true;
+    var _orig = selectElement;
+    window.selectElement = selectElement = function(el){
+      window.smaskCurrentEl = el;
+      _orig(el);
+    };
+  }
+
+  /* ---- 2. フォント適用 (確実版) ---- */
+  function smaskForceApplyFont(fontVal){
+    var el = window.smaskCurrentEl;
+    // fallback: selectedEl (グローバル変数)
+    try{ if(!el && typeof selectedEl !== 'undefined') el = selectedEl; }catch(e){}
+    if(!el || !fontVal) return;
+    el.style.setProperty('font-family', fontVal, '');
+    // フォント読み込み
+    try{ if(typeof smaskEnsureFontLoaded === 'function') smaskEnsureFontLoaded(fontVal); }catch(e){}
+    // プレビュー更新
+    try{ if(typeof updateStylePreview === 'function') updateStylePreview(); }catch(e){}
+    // フォントプレビューボックス更新
+    try{
+      if(typeof updateSelFontPreviewBox === 'function'){
+        var sel = document.getElementById('sel-font-select');
+        var opt = sel && sel.options[sel.selectedIndex];
+        var name = opt ? opt.text.split('|')[0].trim() : '';
+        updateSelFontPreviewBox(fontVal, name);
+      }
+    }catch(e){}
+  }
+
+  /* ---- 3. サイズ適用 (確実版) ---- */
+  function smaskForceApplySize(val){
+    var el = window.smaskCurrentEl;
+    try{ if(!el && typeof selectedEl !== 'undefined') el = selectedEl; }catch(e){}
+    if(!el) return;
+    el.style.fontSize = val + 'px';
+    try{ if(typeof updateStylePreview === 'function') updateStylePreview(); }catch(e){}
+  }
+
+  /* ---- 4. カラー適用 (確実版) ---- */
+  function smaskForceApplyColor(val){
+    var el = window.smaskCurrentEl;
+    try{ if(!el && typeof selectedEl !== 'undefined') el = selectedEl; }catch(e){}
+    if(!el) return;
+    el.style.color = val;
+    try{ if(typeof updateStylePreview === 'function') updateStylePreview(); }catch(e){}
+  }
+
+  /* ---- 5. 太さ適用 (確実版) ---- */
+  function smaskForceApplyWeight(val){
+    var el = window.smaskCurrentEl;
+    try{ if(!el && typeof selectedEl !== 'undefined') el = selectedEl; }catch(e){}
+    if(!el) return;
+    el.style.fontWeight = val * 100;
+    try{ if(typeof updateStylePreview === 'function') updateStylePreview(); }catch(e){}
+  }
+
+  /* ---- 6. 直接イベントリスナーをアタッチ ---- */
+  function attachListeners(){
+    // フォント
+    var fontSel = document.getElementById('sel-font-select');
+    if(fontSel && !fontSel._v6attached){
+      fontSel._v6attached = true;
+      fontSel.addEventListener('change', function(){ smaskForceApplyFont(this.value); });
+      fontSel.addEventListener('input',  function(){ smaskForceApplyFont(this.value); });
+    }
+    // サイズスライダー
+    var sizeSl = document.getElementById('sel-size-slider');
+    if(sizeSl && !sizeSl._v6attached){
+      sizeSl._v6attached = true;
+      sizeSl.addEventListener('input',  function(){ smaskForceApplySize(this.value); });
+      sizeSl.addEventListener('change', function(){ smaskForceApplySize(this.value); });
+    }
+    // カラー
+    var colorIn = document.getElementById('sel-color');
+    if(colorIn && !colorIn._v6attached){
+      colorIn._v6attached = true;
+      colorIn.addEventListener('input',  function(){ smaskForceApplyColor(this.value); });
+      colorIn.addEventListener('change', function(){ smaskForceApplyColor(this.value); });
+    }
+    // 太さスライダー
+    var weightSl = document.getElementById('sel-weight-slider');
+    if(weightSl && !weightSl._v6attached){
+      weightSl._v6attached = true;
+      weightSl.addEventListener('input',  function(){ smaskForceApplyWeight(this.value); });
+      weightSl.addEventListener('change', function(){ smaskForceApplyWeight(this.value); });
+    }
+  }
+
+  /* ---- 7. タブラベル修正 ---- */
+  function fixTabLabels(){
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      var m = oc.match(/'([^']+)'/);
+      var tid = m ? m[1] : '';
+      if(tid === 'tab-colors')   btn.textContent = 'カラー';
+      if(tid === 'tab-select')   btn.textContent = '✏️ 作業';
+      if(tid === 'tab-settings') btn.textContent = '⚙ 管理';
+    });
+  }
+
+  /* ---- 8. simplifySelectRows をシンプル化 ---- */
+  function ensureControlsVisible(){
+    // data-smask-hide='1' のまま必要な行が隠れている場合の保険
+    var keepLabels = ['フォント','文字サイズ','太さ','文字カラー'];
+    var group = document.querySelector('#tab-select #sel-controls .ctrl-group');
+    if(!group) return;
+    group.querySelectorAll('.ctrl-row, .ctrl-color-row').forEach(function(row){
+      var label = row.querySelector('.ctrl-label, .ctrl-color-label');
+      var txt   = label ? (label.textContent||'').replace(/\s+/g,'').trim() : '';
+      if(keepLabels.indexOf(txt) !== -1){
+        row.setAttribute('data-smask-hide','0');
+        row.style.removeProperty('display');
+      }
+    });
+  }
+
+  /* ---- 9. ブート ---- */
+  function boot(){
+    patchSelectElement();
+    attachListeners();
+    fixTabLabels();
+    ensureControlsVisible();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot,  400);
+  setTimeout(boot, 1200);
+  setTimeout(boot, 3000);
+
+  // MutationObserver: 要素が追加されたらリスナー再アタッチ
+  var _obs = new MutationObserver(function(){ attachListeners(); fixTabLabels(); });
+  if(document.body){
+    _obs.observe(document.body, {childList:true, subtree:true});
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){
+      _obs.observe(document.body, {childList:true, subtree:true});
+    });
+  }
+})();
+</script>
 </body>
 
 
