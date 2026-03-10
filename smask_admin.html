@@ -5243,5 +5243,295 @@ var _origSplitChars = null;
 })();
 </script>
 
+
+
+<!-- SMASK PANEL SCROLL + SETTINGS VISIBILITY FIX -->
+<style id="smask-panel-scroll-fix-style">
+#design-panel,
+#design-panel .panel-body,
+#design-panel .tab-content,
+#design-panel select,
+#design-panel #smask-font-lab-select {
+  overscroll-behavior: contain !important;
+}
+
+#smask-settings-shortcuts {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:8px 0 12px;
+}
+#smask-settings-shortcuts .smask-shortcut-btn {
+  flex:1 1 120px;
+  min-height:36px;
+  border-radius:10px;
+  border:1px solid rgba(198,167,92,.35);
+  background:rgba(198,167,92,.12);
+  color:#f6e8b2;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+#smask-settings-shortcuts .smask-shortcut-btn.secondary {
+  border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+}
+
+@media (min-width: 769px) {
+  #design-panel .panel-body {
+    overscroll-behavior-y: contain !important;
+  }
+  #design-panel .tab-content.active {
+    min-height: calc(100% - 10px);
+  }
+}
+</style>
+
+<script id="smask-panel-scroll-fix-script">
+(function(){
+  function findScrollableAncestor(el, container){
+    var node = el;
+    while(node && node !== container && node !== document.body){
+      try {
+        var style = getComputedStyle(node);
+        var oy = style.overflowY;
+        var canScroll = (oy === 'auto' || oy === 'scroll' || node.tagName === 'SELECT') && node.scrollHeight > node.clientHeight + 4;
+        if(canScroll) return node;
+      } catch(e) {}
+      node = node.parentElement;
+    }
+    return container;
+  }
+
+  function handleWheelInsidePanel(e){
+    var panel = document.getElementById('design-panel');
+    if(!panel || !panel.contains(e.target)) return;
+    var scroller = findScrollableAncestor(e.target, panel.querySelector('.panel-body') || panel);
+    if(!scroller) return;
+
+    var delta = e.deltaY || 0;
+    if(!delta) return;
+
+    var maxTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+    var prev = scroller.scrollTop;
+    var next = Math.max(0, Math.min(maxTop, prev + delta));
+
+    if(maxTop > 0){
+      scroller.scrollTop = next;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
+  function preventTouchLeak(panel){
+    var startY = 0;
+    panel.addEventListener('touchstart', function(e){
+      if(!panel.contains(e.target)) return;
+      if(e.touches && e.touches[0]) startY = e.touches[0].clientY;
+    }, {passive:true});
+
+    panel.addEventListener('touchmove', function(e){
+      if(!panel.contains(e.target)) return;
+      var scroller = findScrollableAncestor(e.target, panel.querySelector('.panel-body') || panel);
+      if(!scroller) return;
+      var y = (e.touches && e.touches[0]) ? e.touches[0].clientY : startY;
+      var delta = startY - y;
+      var maxTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      if(maxTop > 0){
+        scroller.scrollTop = Math.max(0, Math.min(maxTop, scroller.scrollTop + delta));
+        startY = y;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, {passive:false});
+  }
+
+  function switchToSettingsAndFocus(sectionId){
+    try {
+      if(typeof window.switchTabById === 'function') window.switchTabById('tab-settings');
+      else {
+        var btn = Array.prototype.find.call(document.querySelectorAll('.panel-tab'), function(b){
+          return (b.textContent || '').indexOf('⚙') !== -1;
+        });
+        if(btn && typeof btn.click === 'function') btn.click();
+      }
+      var panel = document.querySelector('#design-panel .panel-body');
+      var target = document.getElementById(sectionId);
+      if(panel && target){
+        setTimeout(function(){
+          target.scrollIntoView({behavior:'smooth', block:'start'});
+        }, 60);
+      }
+    } catch(e) {}
+  }
+
+  function enhanceSettingsVisibility(){
+    var body = document.querySelector('#design-panel .panel-body');
+    var tabs = document.querySelector('#design-panel .panel-tabs');
+    if(!body || document.getElementById('smask-settings-shortcuts')) return;
+
+    var shortcuts = document.createElement('div');
+    shortcuts.id = 'smask-settings-shortcuts';
+    shortcuts.innerHTML = '' +
+      '<button class="smask-shortcut-btn" type="button">＋ フォント追加</button>' +
+      '<button class="smask-shortcut-btn secondary" type="button">🔐 パスワード変更</button>';
+
+    body.insertBefore(shortcuts, body.firstChild);
+    var btns = shortcuts.querySelectorAll('button');
+    btns[0].addEventListener('click', function(){ switchToSettingsAndFocus('smask-custom-font-section'); });
+    btns[1].addEventListener('click', function(){ switchToSettingsAndFocus('smask-password-section'); });
+
+    var settingsTabBtn = Array.prototype.find.call(document.querySelectorAll('.panel-tab'), function(b){
+      return (b.getAttribute('onclick') || '').indexOf('tab-settings') !== -1;
+    });
+    if(settingsTabBtn) settingsTabBtn.textContent = '⚙設定';
+
+    var settingsTab = document.getElementById('tab-settings');
+    if(settingsTab){
+      var groups = settingsTab.querySelectorAll('.ctrl-group');
+      if(groups[0]) groups[0].id = 'smask-password-section';
+      var fontSection = settingsTab.querySelector('[id="custom-font-input"]');
+      if(fontSection){
+        var box = fontSection.closest('div[style*="margin-top:16px"]');
+        if(box) box.id = 'smask-custom-font-section';
+      }
+    }
+  }
+
+  function boot(){
+    var panel = document.getElementById('design-panel');
+    if(!panel) return;
+    document.removeEventListener('wheel', handleWheelInsidePanel, true);
+    document.addEventListener('wheel', handleWheelInsidePanel, {passive:false, capture:true});
+    preventTouchLeak(panel);
+    enhanceSettingsVisibility();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
+
+<!-- SMASK MOBILE SELECT-FIRST PATCH -->
+<style id="smask-mobile-select-first-style">
+@media (max-width: 768px) {
+  #design-panel .panel-tabs {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding: 0 6px !important;
+    gap: 2px !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+  }
+  #design-panel .panel-tabs::-webkit-scrollbar { display:none !important; }
+  #design-panel .panel-tab {
+    flex: 0 0 auto !important;
+    min-width: 58px !important;
+    padding: 11px 8px !important;
+    white-space: nowrap !important;
+  }
+  #design-panel .panel-body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    padding: 12px 14px 18px !important;
+  }
+  #design-panel .tab-content.active {
+    display: block !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    padding-bottom: 22px !important;
+  }
+  #design-panel #smask-font-lab {
+    margin-top: 6px !important;
+    margin-bottom: 12px !important;
+  }
+  #design-panel .ctrl-group {
+    scroll-margin-top: 8px !important;
+  }
+  #smask-select-helper {
+    display:block !important;
+    margin: 8px 0 12px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    background: rgba(198,167,92,0.10) !important;
+    border: 1px solid rgba(198,167,92,0.30) !important;
+    color: #f3e4b2 !important;
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+  }
+}
+@media (min-width: 769px) {
+  #smask-select-helper { display:none !important; }
+}
+</style>
+<script id="smask-mobile-select-first-script">
+(function(){
+  function makeHelper(){
+    if(document.getElementById('smask-select-helper')) return;
+    var target = document.querySelector('#tab-select');
+    if(!target) return;
+    var box = document.createElement('div');
+    box.id = 'smask-select-helper';
+    box.innerHTML = '👆 <strong>おすすめ操作</strong><br>スマホでは <strong>🎯選択</strong> を使い、文字や要素をタップ → 下の<strong>フォント</strong>で即変更してください。';
+    target.insertBefore(box, target.firstChild);
+  }
+
+  function improveTabs(){
+    var tabs = document.querySelector('#design-panel .panel-tabs');
+    if(!tabs) return;
+    tabs.querySelectorAll('.panel-tab').forEach(function(btn){
+      var txt = (btn.textContent || '').trim();
+      if(txt === '⚙') btn.textContent = '設定';
+    });
+  }
+
+  function keepTabVisible(btn){
+    if(!btn || !btn.scrollIntoView) return;
+    try {
+      btn.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+    } catch(e) {}
+  }
+
+  function bindTabAutoScroll(){
+    var tabs = document.querySelectorAll('#design-panel .panel-tab');
+    tabs.forEach(function(btn){
+      if(btn.dataset.mobileTabBound === '1') return;
+      btn.dataset.mobileTabBound = '1';
+      btn.addEventListener('click', function(){
+        setTimeout(function(){ keepTabVisible(btn); }, 30);
+      });
+    });
+  }
+
+  function mobileDefaultToSelect(){
+    if(window.innerWidth > 768) return;
+    var panel = document.getElementById('design-panel');
+    if(!panel || !panel.classList.contains('open')) return;
+    var active = document.querySelector('#design-panel .panel-tab.active');
+    if(active && /T①|T②|T③|本文/.test(active.textContent || '')) {
+      return;
+    }
+  }
+
+  function boot(){
+    makeHelper();
+    improveTabs();
+    bindTabAutoScroll();
+    mobileDefaultToSelect();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 400);
+  setTimeout(boot, 1400);
+})();
+</script>
