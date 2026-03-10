@@ -5690,6 +5690,138 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+
+<!-- SMASK HOTFIX 3: workspace cleanup for mobile editing -->
+<style id="smask-workspace-cleanup-style">
+@media (max-width: 768px) {
+  html body #smask-pub-fab {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  html body #design-panel {
+    height: min(72svh, 760px) !important;
+    max-height: min(72svh, 760px) !important;
+    border-radius: 22px 22px 0 0 !important;
+    box-shadow: 0 -14px 40px rgba(0,0,0,0.45) !important;
+  }
+
+  html body #design-panel .panel-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 5 !important;
+    padding: 14px 14px 10px !important;
+    background: linear-gradient(180deg, rgba(36,36,36,0.98), rgba(36,36,36,0.94)) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  html body #design-panel .panel-title {
+    font-size: 15px !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  html body #design-panel .panel-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 10px !important;
+  }
+
+  html body #design-panel .panel-btn {
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 10px 8px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    letter-spacing: 0.02em !important;
+    justify-content: center !important;
+  }
+
+  html body #design-panel .panel-tabs {
+    position: sticky !important;
+    top: 86px !important;
+    z-index: 4 !important;
+    background: rgba(36,36,36,0.98) !important;
+    padding: 10px 12px 8px !important;
+    gap: 8px !important;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.18) !important;
+  }
+
+  html body #design-panel .panel-tab {
+    min-height: 42px !important;
+    border-radius: 12px !important;
+    background: rgba(255,255,255,0.04) !important;
+    border-bottom: none !important;
+  }
+
+  html body #design-panel .panel-tab.active {
+    background: rgba(198,167,92,0.18) !important;
+    border: 1px solid rgba(198,167,92,0.38) !important;
+  }
+
+  html body #design-panel .panel-body {
+    padding: 14px 14px 26px !important;
+  }
+
+  html body #design-panel .ctrl-group,
+  html body #design-panel .ctrl-section,
+  html body #design-panel .sel-box {
+    margin-bottom: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  html body #design-panel #clickModeBtn {
+    min-height: 50px !important;
+    border-radius: 14px !important;
+    font-size: 13px !important;
+    justify-content: center !important;
+  }
+
+  html body #design-panel input[type="range"] {
+    height: 24px !important;
+  }
+}
+</style>
+<script id="smask-workspace-cleanup-script">
+(function(){
+  if(window.__smaskWorkspaceCleanup) return;
+  window.__smaskWorkspaceCleanup = true;
+
+  function isMobile(){ return window.innerWidth <= 768; }
+
+  function hideFab(){
+    var fab = document.getElementById('smask-pub-fab');
+    if(fab){
+      fab.style.display = 'none';
+      fab.setAttribute('aria-hidden','true');
+    }
+  }
+
+  function polishButtons(){
+    var buttons = document.querySelectorAll('#design-panel .panel-actions .panel-btn');
+    buttons.forEach(function(btn){
+      var text = (btn.textContent || '').replace(/\s+/g,' ').trim();
+      if(text === 'CSS出力') btn.textContent = 'CSS';
+    });
+  }
+
+  function boot(){
+    if(!isMobile()) return;
+    hideFab();
+    polishButtons();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setInterval(hideFab, 1200);
+})();
+</script>
+
 </body>
 </html>
 
