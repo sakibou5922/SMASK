@@ -1175,6 +1175,116 @@ body.click-mode .smask-char:hover,
   background: rgba(58,134,255,0.18) !important;
 }
 
+
+/* ========================================================
+   Desktop = Mobile unified UI
+======================================================== */
+@media (min-width: 769px) {
+  #design-panel {
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 52vh !important;
+    max-height: 88vh !important;
+    min-height: 180px !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-left: none !important;
+    border-top: 2px solid var(--color-gold) !important;
+    box-shadow: 0 -12px 48px rgba(0,0,0,0.45) !important;
+    transform: translateY(100%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  #design-panel.open { transform: translateY(0) !important; }
+  .panel-drag-handle {
+    width: 52px !important;
+    height: 6px !important;
+    background: rgba(255,255,255,0.25) !important;
+    border-radius: 4px !important;
+    margin: 10px auto 6px !important;
+    display: block !important;
+  }
+  .panel-header { padding: 6px 18px 10px !important; }
+  .panel-header-row1 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+  .panel-title { font-size: 14px !important; }
+  .panel-actions {
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+  .panel-btn {
+    min-height: 38px !important;
+    padding: 8px 12px !important;
+    border-radius: 9px !important;
+  }
+  #clickModeBtn {
+    width: 100% !important;
+    min-height: 48px !important;
+    border-radius: 12px !important;
+    margin-top: 8px !important;
+    font-size: 14px !important;
+  }
+  .panel-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    gap: 0 !important;
+    padding: 0 12px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    flex-shrink: 0 !important;
+  }
+  .panel-tab {
+    min-width: 72px !important;
+    padding: 14px 12px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+  .panel-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 16px 18px 22px !important;
+  }
+  .panel-toggle {
+    top: auto !important;
+    right: 16px !important;
+    left: auto !important;
+    bottom: 16px !important;
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 50% !important;
+    font-size: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+  }
+  .panel-toggle.open { bottom: calc(52vh + 16px) !important; }
+  #smask-pub-fab {
+    display: flex !important;
+    position: fixed !important;
+    left: 16px !important;
+    bottom: 16px !important;
+    z-index: 9998 !important;
+  }
+  #smask-mini-toolbar.visible {
+    display: flex !important;
+  }
+  .ctrl-row { min-height: 44px !important; }
+  input[type=color] {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+  }
+}
+
 </style>
 
 <script>
@@ -1639,17 +1749,18 @@ document.addEventListener('DOMContentLoaded', function(){
             <div style="color:#3a86ff;font-size:12px;font-weight:700;margin-bottom:10px;">🎨 選択文字のスタイル</div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
               <span style="color:#ccc;font-size:12px;min-width:40px;">文字色</span>
-              <input type="color" id="smask-char-color" value="#ffffff" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharColor(this)">
+              <input type="color" id="smask-char-color" value="#ffffff" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharColor(this)" onchange="smaskApplyCharColor(this)">
               <span id="smask-char-color-hex" style="color:#888;font-size:11px;">#ffffff</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
               <span style="color:#ccc;font-size:12px;min-width:40px;">背景色</span>
-              <input type="color" id="smask-char-bg" value="#000000" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharBg(this)">
+              <input type="color" id="smask-char-bg" value="#000000" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharBg(this)" onchange="smaskApplyCharBg(this)">
               <span id="smask-char-bg-hex" style="color:#888;font-size:11px;">#000000</span>
             </div>
-            <div style="display:flex;gap:6px;">
-              <button onclick="smaskColorAll()" style="flex:1;padding:6px;background:#3a86ff;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">全文字に適用</button>
-              <button onclick="smaskColorReset()" style="flex:1;padding:6px;background:#444;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">リセット</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="smaskSetCharBgTransparent()" style="flex:1;padding:8px;background:#2d3748;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:40px;">背景を透明</button>
+              <button onclick="smaskColorAll()" style="flex:1;padding:8px;background:#3a86ff;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:40px;">全文字に適用</button>
+              <button onclick="smaskColorReset()" style="flex:1;padding:8px;background:#444;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:40px;">リセット</button>
             </div>
           </div>
         <div style="margin-top:10px;padding:8px;background:rgba(0,0,0,0.2);border-radius:5px;">
@@ -3566,6 +3677,8 @@ function smaskShowCharPanel(span) {
   if(cp_b && bg && bg!=='transparent') {
     var h2 = smaskRgbToHex(bg);
     if(h2){ cp_b.value=h2; if(hx_b) hx_b.textContent=h2; }
+  } else if(hx_b && (!bg || bg==='transparent')) {
+    hx_b.textContent = 'transparent';
   }
 }
 
@@ -3584,24 +3697,45 @@ function smaskApplyCharColor(picker) {
   selectedEl.style.color = picker.value;
   var h = document.getElementById('smask-char-color-hex');
   if(h) h.textContent = picker.value;
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
 }
 
 function smaskApplyCharBg(picker) {
   if(!selectedEl) return;
   selectedEl.style.backgroundColor = picker.value;
+  selectedEl.dataset.bgTransparent = '0';
   var h = document.getElementById('smask-char-bg-hex');
   if(h) h.textContent = picker.value;
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
+}
+
+function smaskSetCharBgTransparent() {
+  if(!selectedEl) return;
+  selectedEl.style.backgroundColor = 'transparent';
+  selectedEl.dataset.bgTransparent = '1';
+  var h = document.getElementById('smask-char-bg-hex');
+  if(h) h.textContent = 'transparent';
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
 }
 
 function smaskColorAll() {
   var color = document.getElementById('smask-char-color').value;
-  var bg    = document.getElementById('smask-char-bg').value;
+  var bgHex = document.getElementById('smask-char-bg').value;
+  var bgText = document.getElementById('smask-char-bg-hex');
+  var transparentBg = bgText && ((bgText.textContent || '').trim().toLowerCase() === 'transparent');
   var parent = selectedEl ? selectedEl.parentElement : null;
   if(!parent) return;
   parent.querySelectorAll('.smask-char').forEach(function(s){
     s.style.color = color;
-    s.style.backgroundColor = bg;
+    if(transparentBg) {
+      s.style.backgroundColor = 'transparent';
+      s.dataset.bgTransparent = '1';
+    } else {
+      s.style.backgroundColor = bgHex;
+      s.dataset.bgTransparent = '0';
+    }
   });
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
 }
 
 function smaskColorReset() {
@@ -3610,7 +3744,13 @@ function smaskColorReset() {
   parent.querySelectorAll('.smask-char').forEach(function(s){
     s.style.color = '';
     s.style.backgroundColor = '';
+    s.dataset.bgTransparent = '0';
   });
+  var h1 = document.getElementById('smask-char-color-hex');
+  var h2 = document.getElementById('smask-char-bg-hex');
+  if(h1) h1.textContent = '#ffffff';
+  if(h2) h2.textContent = '#000000';
+  if(typeof updateStylePreview === 'function') { try { updateStylePreview(); } catch(e){} }
 }
 
 // ── 公開機能 ────────────────────────────────────────────────
@@ -4082,8 +4222,8 @@ var _origInitEditable = null;
     var orig = selectElement;
     selectElement = function(el) {
       orig(el);
-      // スマホの場合のみミニツールバー表示
-      if(window.innerWidth <= 768 && el) {
+      // PC/スマホ共通でミニツールバー表示
+      if(el) {
         setTimeout(function() {
           var r = el.getBoundingClientRect();
           smaskShowMiniToolbar(el, r.left + r.width/2, r.top + window.scrollY);
@@ -4167,6 +4307,29 @@ var _origSplitChars = null;
     }, {passive: true});
     document.addEventListener('touchend', function() { dragging = false; }, {passive: true});
   });
+})();
+
+
+// PCではダブルクリックで1文字編集モード
+(function(){
+  function setupDesktopCharMode(){
+    document.querySelectorAll('.page-editable').forEach(function(el){
+      if(el._desktopCharSetup) return;
+      el._desktopCharSetup = true;
+      el.addEventListener('dblclick', function(e){
+        if(!clickMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        selectedEl = el;
+        if(typeof smaskEnterCharMode === 'function') smaskEnterCharMode(el);
+      });
+    });
+  }
+  document.addEventListener('DOMContentLoaded', setupDesktopCharMode);
+  var _pcTimer = setInterval(function(){
+    setupDesktopCharMode();
+    if(document.querySelectorAll('.page-editable').length > 5) clearInterval(_pcTimer);
+  }, 800);
 })();
 
 </script>
