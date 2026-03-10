@@ -5599,6 +5599,97 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+
+<!-- SMASK HOTFIX 2: mobile panel visibility -->
+<style id="smask-mobile-panel-visibility-fix-style">
+@media (max-width: 768px) {
+  html body #panelToggle {
+    display: flex !important;
+    right: 12px !important;
+    top: calc(env(safe-area-inset-top, 0px) + 72px) !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 10px 0 0 10px !important;
+    z-index: 10000000 !important;
+  }
+  html body #design-panel {
+    width: 100% !important;
+    right: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    height: min(62svh, 560px) !important;
+    max-height: min(62svh, 560px) !important;
+    min-height: 300px !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-left: none !important;
+    border-top: 2px solid var(--color-gold) !important;
+    transform: translateY(calc(100% - 46px)) !important;
+    box-sizing: border-box !important;
+    z-index: 9999998 !important;
+  }
+  html body #design-panel.open {
+    transform: translateY(0) !important;
+  }
+  html body #design-panel .panel-drag-handle {
+    display: block !important;
+  }
+  html body #design-panel .panel-header,
+  html body #design-panel .panel-tabs,
+  html body #design-panel .panel-body {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+</style>
+<script id="smask-mobile-panel-visibility-fix-script">
+(function(){
+  if(window.__smaskMobilePanelVisibilityFix) return;
+  window.__smaskMobilePanelVisibilityFix = true;
+
+  function isMobile(){ return window.innerWidth <= 768; }
+
+  function ensurePanelVisible(){
+    var panel = document.getElementById('design-panel');
+    var toggle = document.getElementById('panelToggle');
+    if(!panel || !toggle) return;
+    toggle.style.display = 'flex';
+    if(isMobile()) {
+      if(!panel.classList.contains('open')) {
+        panel.classList.add('open');
+        toggle.classList.add('open');
+        toggle.textContent = '✕';
+      }
+    }
+  }
+
+  function wireToggle(){
+    var panel = document.getElementById('design-panel');
+    var toggle = document.getElementById('panelToggle');
+    if(!panel || !toggle || toggle._smaskPanelFixBound) return;
+    toggle._smaskPanelFixBound = true;
+    toggle.addEventListener('click', function(){
+      setTimeout(function(){
+        if(panel.classList.contains('open')) toggle.textContent = '✕';
+        else toggle.textContent = '⚙';
+      }, 10);
+    }, true);
+  }
+
+  function boot(){
+    ensurePanelVisible();
+    wireToggle();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 300);
+  setTimeout(boot, 1200);
+  window.addEventListener('resize', boot);
+})();
+</script>
+
 </body>
 </html>
 
