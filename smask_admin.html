@@ -6076,6 +6076,79 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+
+<!-- SMASK HOTFIX 6: default to element-level editing -->
+<style id="smask-element-default-style">
+@media (max-width: 768px) {
+  html body #sel-mode-switcher .sel-mode-btn {
+    min-height: 42px !important;
+    font-weight: 700 !important;
+  }
+}
+</style>
+<script id="smask-element-default-script">
+(function(){
+  if(window.__smaskElementDefaultHotfix) return;
+  window.__smaskElementDefaultHotfix = true;
+
+  function relabelModeButtons(){
+    var elemBtn = document.getElementById('modeElemBtn');
+    var charBtn = document.getElementById('modeCharBtn');
+    if(elemBtn) elemBtn.textContent = '📦 場所ごと';
+    if(charBtn) charBtn.textContent = '🔡 1文字ずつ';
+  }
+
+  function setElementDefault(){
+    try {
+      if(typeof window.setSelMode === 'function') window.setSelMode('element');
+      if(typeof window.textMode !== 'undefined') window.textMode = false;
+    } catch(e) {}
+  }
+
+  function patchToggleClickMode(){
+    if(window.__smaskElementDefaultTogglePatched) return;
+    if(typeof window.toggleClickMode !== 'function') return;
+    window.__smaskElementDefaultTogglePatched = true;
+    var oldToggle = window.toggleClickMode;
+    window.toggleClickMode = function(){
+      try {
+        if(!window.clickMode) window.textMode = false;
+      } catch(e) {}
+      var result = oldToggle.apply(this, arguments);
+      try {
+        if(window.clickMode) setElementDefault();
+      } catch(e) {}
+      return result;
+    };
+  }
+
+  function patchOpenPanel(){
+    if(window.__smaskElementDefaultOpenPatched) return;
+    if(typeof window.openPanel !== 'function') return;
+    window.__smaskElementDefaultOpenPatched = true;
+    var oldOpen = window.openPanel;
+    window.openPanel = function(){
+      var result = oldOpen.apply(this, arguments);
+      relabelModeButtons();
+      return result;
+    };
+  }
+
+  function boot(){
+    relabelModeButtons();
+    patchToggleClickMode();
+    patchOpenPanel();
+    setElementDefault();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
 
