@@ -795,6 +795,386 @@ body.click-mode .smask-char:hover,
   outline: 2px solid #3a86ff !important;
   background-color: rgba(58,134,255,0.2) !important;
 }
+
+/* ========================================================
+   スマホ最適化 UI v5 (Mobile-First Design)
+======================================================== */
+
+/* --- BottomSheet パネル --- */
+@media (max-width: 768px) {
+  /* パネル本体: 画面下から出るシート */
+  #design-panel {
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 55svh !important;
+    max-height: 90svh !important;
+    min-height: 120px !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-left: none !important;
+    border-top: 2px solid var(--color-gold) !important;
+    box-shadow: 0 -12px 48px rgba(0,0,0,0.45) !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.32s cubic-bezier(0.4,0,0.2,1), height 0.2s ease !important;
+    z-index: 9999 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #design-panel.open {
+    transform: translateY(0) !important;
+  }
+
+  /* ドラッグハンドル */
+  .panel-drag-handle {
+    width: 44px !important;
+    height: 5px !important;
+    background: rgba(255,255,255,0.25) !important;
+    border-radius: 3px !important;
+    margin: 10px auto 6px !important;
+    cursor: grab !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* パネルヘッダー */
+  .panel-header {
+    padding: 4px 16px 10px !important;
+    flex-shrink: 0 !important;
+  }
+  .panel-header-row1 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  .panel-title {
+    font-size: 13px !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
+  }
+  .panel-actions {
+    display: flex !important;
+    gap: 5px !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+  }
+  .panel-btn {
+    padding: 7px 10px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+    min-height: 36px !important;
+    white-space: nowrap !important;
+  }
+
+  /* クリック選択モードボタン */
+  #clickModeBtn {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    margin-top: 8px !important;
+    min-height: 48px !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  /* タブバー */
+  .panel-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 0 !important;
+    padding: 0 10px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    flex-shrink: 0 !important;
+  }
+  .panel-tabs::-webkit-scrollbar { display: none !important; }
+  .panel-tab {
+    min-width: 60px !important;
+    padding: 14px 10px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    border-bottom: 3px solid transparent !important;
+  }
+  .panel-tab.active {
+    border-bottom-color: var(--color-gold) !important;
+  }
+
+  /* パネルボディ */
+  .panel-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 14px 16px 20px !important;
+  }
+
+  /* コントロール項目 */
+  .ctrl-group {
+    margin-bottom: 18px !important;
+  }
+  .ctrl-row {
+    min-height: 44px !important;
+    align-items: center !important;
+  }
+  .ctrl-label {
+    font-size: 13px !important;
+    min-width: 52px !important;
+  }
+
+  /* スライダー */
+  input[type=range] {
+    height: 6px !important;
+    cursor: pointer !important;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* パネルトグルボタン */
+  .panel-toggle {
+    bottom: 0 !important;
+    top: auto !important;
+    right: 16px !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    font-size: 22px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+    z-index: 9998 !important;
+    bottom: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .panel-toggle.open {
+    bottom: calc(55svh + 16px) !important;
+  }
+
+  /* sel-controls スマホ最適化 */
+  #sel-controls {
+    padding: 0 !important;
+  }
+  #sel-mode-switcher {
+    margin: 8px 0 !important;
+  }
+  .sel-mode-btn {
+    min-height: 44px !important;
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+    flex: 1 !important;
+  }
+
+  /* カラーピッカー */
+  input[type=color] {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    -webkit-appearance: none !important;
+    padding: 2px !important;
+  }
+}
+
+/* ========================================================
+   ミニツールバー（タップ時に要素の上に出る）
+======================================================== */
+#smask-mini-toolbar {
+  display: none;
+  position: fixed;
+  z-index: 999990;
+  background: #1e1e1e;
+  border: 1px solid rgba(198,167,92,0.6);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  padding: 6px 8px;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 92vw;
+  transition: opacity 0.15s;
+}
+#smask-mini-toolbar.visible {
+  display: flex;
+}
+.smask-mini-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+}
+.smask-mini-btn:active {
+  background: rgba(198,167,92,0.25);
+}
+.smask-mini-btn.danger {
+  border-color: rgba(231,76,60,0.4);
+}
+.smask-mini-btn.primary {
+  background: rgba(58,134,255,0.2);
+  border-color: rgba(58,134,255,0.5);
+}
+/* カテゴリ区切り */
+.smask-mini-sep {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 2px;
+}
+
+/* ========================================================
+   フォントカテゴリ クイックボタン
+======================================================== */
+#smask-font-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.smask-font-cat-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ccc;
+  border-radius: 20px;
+  padding: 7px 13px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.smask-font-cat-btn.active,
+.smask-font-cat-btn:active {
+  background: rgba(198,167,92,0.25);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+/* ========================================================
+   サイズ/太さ プリセットボタン
+======================================================== */
+.smask-preset-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.smask-preset-btn {
+  flex: 1;
+  min-width: 50px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ccc;
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.smask-preset-btn:active,
+.smask-preset-btn.active {
+  background: rgba(198,167,92,0.2);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+/* ========================================================
+   下部固定 公開ボタン
+======================================================== */
+#smask-pub-fab {
+  display: none;
+}
+@media (max-width: 768px) {
+  #smask-pub-fab {
+    display: flex;
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 9998;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: #fff;
+    border: none;
+    border-radius: 28px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(39,174,96,0.45);
+    align-items: center;
+    gap: 6px;
+    -webkit-tap-highlight-color: transparent;
+    letter-spacing: 0.05em;
+  }
+  #smask-pub-fab:active {
+    transform: scale(0.96);
+  }
+  /* パネルトグルが左と被らないよう右に配置 */
+  .panel-toggle {
+    right: 16px !important;
+    left: auto !important;
+  }
+}
+
+/* ========================================================
+   長押し1文字モード インジケーター
+======================================================== */
+#smask-longpress-hint {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(58,134,255,0.9);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 999995;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(58,134,255,0.4);
+}
+
+/* smask-char スタイル強化 */
+.smask-char {
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: outline 0.1s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.smask-char-mode .smask-char:hover,
+.smask-char-mode .smask-char:active {
+  outline: 2px dashed rgba(58,134,255,0.7);
+  background: rgba(58,134,255,0.12);
+}
+.smask-char.smask-selected {
+  outline: 2px solid #3a86ff !important;
+  background: rgba(58,134,255,0.18) !important;
+}
+
 </style>
 
 <script>
@@ -843,6 +1223,29 @@ document.addEventListener('DOMContentLoaded', function(){
 <body>
 
 <!-- ===== ログイン画面オーバーレイ ===== -->
+
+<!-- ===== スマホ用ミニツールバー ===== -->
+<div id="smask-mini-toolbar">
+  <button class="smask-mini-btn primary" onclick="smaskMiniFont()" title="フォント">
+    <span style="font-size:16px;">𝖠</span> フォント
+  </button>
+  <div class="smask-mini-sep"></div>
+  <button class="smask-mini-btn" onclick="smaskMiniSize(-2)" title="小さく">A<span style="font-size:9px;">▼</span></button>
+  <button class="smask-mini-btn" onclick="smaskMiniSize(2)" title="大きく">A<span style="font-size:12px;">▲</span></button>
+  <div class="smask-mini-sep"></div>
+  <button class="smask-mini-btn" id="smask-mini-bold-btn" onclick="smaskMiniBold()" title="太字">𝐁</button>
+  <button class="smask-mini-btn" onclick="smaskMiniColor()" title="色">🎨</button>
+  <div class="smask-mini-sep"></div>
+  <button class="smask-mini-btn primary" onclick="smaskMiniSplit()" title="1文字分割">✂️ 1文字</button>
+  <button class="smask-mini-btn danger" onclick="smaskMiniClose()" title="閉じる">✕</button>
+</div>
+
+<!-- ===== 長押し検出インジケーター ===== -->
+<div id="smask-longpress-hint">長押しで1文字編集モード...</div>
+
+<!-- ===== 下部固定 公開FABボタン ===== -->
+<button id="smask-pub-fab" onclick="smaskPublish()">🚀 公開</button>
+
 <div id="login-overlay">
   <div class="login-bg-pattern"></div>
   <div class="login-box">
@@ -968,6 +1371,19 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="ctrl-group-label">🔡 文字スタイル</div>
           <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
             <span class="ctrl-label">フォント</span>
+
+            <!-- フォントカテゴリ クイック選択 -->
+            <div id="smask-font-cats">
+              <button class="smask-font-cat-btn active" onclick="smaskFilterFontCat('all',this)">すべて</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('kirei',this)">✨きれい</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('kawaii',this)">🌸かわいい</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('luxury',this)">💎高級感</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('wa',this)">🎋和風</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('bold',this)">💪目立つ</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('readable',this)">📖読みやすい</button>
+              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('en',this)">🔤英字</button>
+            </div>
+
             <div id="sel-font-preview-box" style="display:none;margin-bottom:8px;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(58,134,255,0.4);border-radius:8px;">
               <div style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;margin-bottom:6px;">フォントプレビュー</div>
               <div id="sel-font-preview-text" style="font-size:22px;color:#fff;line-height:1.4;letter-spacing:0.05em;">Aあいうえお 漢字</div>
@@ -1051,12 +1467,33 @@ document.addEventListener('DOMContentLoaded', function(){
           </div>
           <div class="ctrl-row">
             <span class="ctrl-label">文字サイズ</span>
+
+            <!-- サイズ プリセット (スマホ向け) -->
+            <div class="smask-preset-row" id="smask-size-presets">
+              <button class="smask-preset-btn" onclick="smaskSetSize(11)">極小<br><span style="font-size:10px;">11px</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetSize(14)">小<br><span style="font-size:10px;">14px</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetSize(18)">中<br><span style="font-size:10px;">18px</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetSize(24)">大<br><span style="font-size:10px;">24px</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetSize(32)">特大<br><span style="font-size:10px;">32px</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetSize(48)">最大<br><span style="font-size:10px;">48px</span></button>
+            </div>
+
             <input type="range" class="ctrl-slider" id="sel-size-slider" min="8" max="96" value="16"
               oninput="applySelSize(this)">
             <span class="ctrl-value" id="sel-size-val">16px</span>
           </div>
           <div class="ctrl-row">
             <span class="ctrl-label">太さ</span>
+
+            <!-- 太さ プリセット (スマホ向け) -->
+            <div class="smask-preset-row" id="smask-weight-presets">
+              <button class="smask-preset-btn" onclick="smaskSetWeight(300)">細<br><span style="font-size:10px;font-weight:300;">Aa</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetWeight(400)">普通<br><span style="font-size:10px;font-weight:400;">Aa</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetWeight(600)">中太<br><span style="font-size:10px;font-weight:600;">Aa</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetWeight(700)">太<br><span style="font-size:10px;font-weight:700;">Aa</span></button>
+              <button class="smask-preset-btn" onclick="smaskSetWeight(900)">極太<br><span style="font-size:10px;font-weight:900;">Aa</span></button>
+            </div>
+
             <input type="range" class="ctrl-slider" id="sel-weight-slider" min="1" max="9" step="1" value="4"
               oninput="applySelWeight(this)">
             <span class="ctrl-value" id="sel-weight-val">400</span>
@@ -3396,6 +3833,342 @@ if(document.readyState==='loading'){
 } else {
   loadCustomFonts();
 }
+
+
+/* ========================================================
+   スマホ最適化 JavaScript (Mobile UI v5)
+======================================================== */
+
+// ---- ミニツールバー ----
+var _miniToolbar = null;
+var _miniTarget  = null;
+
+function smaskShowMiniToolbar(el, x, y) {
+  _miniToolbar = document.getElementById('smask-mini-toolbar');
+  if(!_miniToolbar) return;
+  _miniTarget = el;
+
+  // 位置計算
+  var tw = Math.min(window.innerWidth * 0.92, 360);
+  var tx = Math.max(8, Math.min(x - tw/2, window.innerWidth - tw - 8));
+  var ty = Math.max(8, y - 60);
+
+  _miniToolbar.style.left  = tx + 'px';
+  _miniToolbar.style.top   = ty + 'px';
+  _miniToolbar.style.width = tw + 'px';
+  _miniToolbar.classList.add('visible');
+
+  // 太字ボタン状態反映
+  var boldBtn = document.getElementById('smask-mini-bold-btn');
+  if(boldBtn && el) {
+    var fw = parseInt(getComputedStyle(el).fontWeight) || 400;
+    boldBtn.style.background = fw >= 600 ? 'rgba(198,167,92,0.3)' : '';
+  }
+}
+
+function smaskHideMiniToolbar() {
+  var tb = document.getElementById('smask-mini-toolbar');
+  if(tb) tb.classList.remove('visible');
+  _miniTarget = null;
+}
+
+function smaskMiniFont() {
+  // デザインパネルを開いてフォントタブへ
+  if(typeof openPanel === 'function') openPanel();
+  if(typeof switchTabById === 'function') switchTabById('tab-select');
+  // フォント欄にスクロール
+  var fsearch = document.getElementById('sel-font-search');
+  if(fsearch) setTimeout(function(){ fsearch.focus(); fsearch.scrollIntoView({behavior:'smooth', block:'center'}); }, 300);
+  smaskHideMiniToolbar();
+}
+
+function smaskMiniSize(delta) {
+  if(!selectedEl) return;
+  var cur = parseFloat(getComputedStyle(selectedEl).fontSize) || 16;
+  var nxt = Math.max(8, Math.min(96, cur + delta));
+  selectedEl.style.fontSize = nxt + 'px';
+  // スライダー同期
+  var sl = document.getElementById('sel-size-slider');
+  var vl = document.getElementById('sel-size-val');
+  if(sl) sl.value = Math.round(nxt);
+  if(vl) vl.textContent = Math.round(nxt) + 'px';
+}
+
+function smaskMiniBold() {
+  if(!selectedEl) return;
+  var fw = parseInt(getComputedStyle(selectedEl).fontWeight) || 400;
+  var nxt = fw >= 600 ? 400 : 700;
+  selectedEl.style.fontWeight = nxt;
+  var sl = document.getElementById('sel-weight-slider');
+  var vl = document.getElementById('sel-weight-val');
+  if(sl) sl.value = Math.round(nxt/100);
+  if(vl) vl.textContent = nxt;
+  // ボタン見た目更新
+  var boldBtn = document.getElementById('smask-mini-bold-btn');
+  if(boldBtn) boldBtn.style.background = nxt >= 600 ? 'rgba(198,167,92,0.3)' : '';
+}
+
+function smaskMiniColor() {
+  // カラーピッカーを直接開く
+  var cp = document.getElementById('sel-color');
+  if(cp) { cp.click(); }
+  else {
+    if(typeof openPanel === 'function') openPanel();
+    if(typeof switchTabById === 'function') switchTabById('tab-select');
+  }
+  smaskHideMiniToolbar();
+}
+
+function smaskMiniSplit() {
+  smaskHideMiniToolbar();
+  if(typeof smaskSplitChars === 'function') smaskSplitChars();
+}
+
+function smaskMiniClose() {
+  smaskHideMiniToolbar();
+  if(selectedEl) {
+    selectedEl.classList.remove('el-selected');
+    selectedEl = null;
+  }
+}
+
+// ---- 長押し1文字編集モード ----
+var _lpTimer = null;
+var _lpEl    = null;
+var _charMode = false;
+
+function smaskSetupLongPress(el) {
+  el.addEventListener('touchstart', function(e) {
+    if(!clickMode) return;
+    _lpEl = el;
+    _lpTimer = setTimeout(function() {
+      // 長押し検出: 1文字編集モードに入る
+      smaskEnterCharMode(el);
+    }, 600);
+  }, {passive: true});
+
+  el.addEventListener('touchend', function(e) {
+    clearTimeout(_lpTimer);
+    _lpTimer = null;
+  }, {passive: true});
+
+  el.addEventListener('touchmove', function(e) {
+    clearTimeout(_lpTimer);
+    _lpTimer = null;
+  }, {passive: true});
+}
+
+function smaskEnterCharMode(el) {
+  _charMode = true;
+  // 1文字分割を実行
+  selectedEl = el;
+  if(typeof smaskSplitChars === 'function') {
+    smaskSplitChars();
+  }
+  // ヒント表示
+  var hint = document.getElementById('smask-longpress-hint');
+  if(hint) {
+    hint.textContent = '✂️ 1文字モード: 文字をタップして選択';
+    hint.style.display = 'block';
+    setTimeout(function(){ hint.style.display = 'none'; }, 2500);
+  }
+}
+
+// ---- フォントカテゴリフィルタ ----
+var FONT_CATEGORIES = {
+  all:      null, // 全表示
+  kirei:    ['Noto Serif JP','Shippori Mincho','Klee One','Cormorant Garamond','Cinzel','Lora','Merriweather','Playfair Display'],
+  kawaii:   ['Klee One','Hachi Maru Pop','Yomogi','M PLUS Rounded 1c','Zen Maru Gothic','Pacifico','Fredoka One','Dancing Script'],
+  luxury:   ['Playfair Display','Cormorant Garamond','Cinzel','EB Garamond','Great Vibes','Noto Serif JP','Zen Old Mincho','Yuji Syuku'],
+  wa:       ['Noto Serif JP','Zen Old Mincho','Shippori Mincho','Shippori Antique','Zen Antique','Hina Mincho','Kaisei Decol','Kaisei Opti','Kaisei Tokumin','New Tegomin','Klee One'],
+  bold:     ['Bebas Neue','Anton','Oswald','Rampart One','Rock 3D','Train One','Reggae One','Stick','DotGothic16'],
+  readable: ['Noto Sans JP','BIZ UDGothic','M PLUS 1p','Inter','Poppins','Nunito','Outfit','DM Sans'],
+  en:       ['Playfair Display','Cormorant Garamond','Cinzel','Montserrat','Raleway','Josefin Sans','Bebas Neue','Pacifico','Dancing Script','Great Vibes'],
+};
+
+function smaskFilterFontCat(cat, btn) {
+  // ボタン見た目
+  document.querySelectorAll('.smask-font-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+
+  var selects = ['sel-font-select','font-t1','font-t2','font-t3','font-body'];
+  selects.forEach(function(sid) {
+    var sel = document.getElementById(sid);
+    if(!sel) return;
+    var families = FONT_CATEGORIES[cat];
+    for(var i = 0; i < sel.options.length; i++) {
+      var opt = sel.options[i];
+      if(opt.disabled) { opt.style.display = (cat === 'all') ? '' : 'none'; continue; }
+      if(!families) {
+        opt.style.display = '';
+      } else {
+        var show = families.some(function(f){ return opt.value.indexOf(f) >= 0; });
+        opt.style.display = show ? '' : 'none';
+      }
+    }
+  });
+}
+
+// ---- サイズ・太さ プリセット ----
+function smaskSetSize(px) {
+  if(!selectedEl) return;
+  selectedEl.style.fontSize = px + 'px';
+  var sl = document.getElementById('sel-size-slider');
+  var vl = document.getElementById('sel-size-val');
+  if(sl) sl.value = px;
+  if(vl) vl.textContent = px + 'px';
+  // プリセットボタン active 状態更新
+  document.querySelectorAll('#smask-size-presets .smask-preset-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent.indexOf(px+'px') >= 0);
+  });
+}
+
+function smaskSetWeight(w) {
+  if(!selectedEl) return;
+  selectedEl.style.fontWeight = w;
+  var sl = document.getElementById('sel-weight-slider');
+  var vl = document.getElementById('sel-weight-val');
+  if(sl) sl.value = Math.round(w/100);
+  if(vl) vl.textContent = w;
+  // プリセットボタン active 状態更新
+  document.querySelectorAll('#smask-weight-presets .smask-preset-btn').forEach(function(b){
+    b.classList.toggle('active', b.onclick && b.onclick.toString().indexOf('('+w+')') >= 0);
+  });
+}
+
+// ---- initEditableElements に長押し＆ミニツールバーを接続 ----
+var _origInitEditable = null;
+(function() {
+  var _setupMobileHandlers = function() {
+    var editables = document.querySelectorAll('.page-editable');
+    if(!editables.length) return;
+    editables.forEach(function(el) {
+      if(el._mobileSetup) return;
+      el._mobileSetup = true;
+      // 長押しセットアップ
+      smaskSetupLongPress(el);
+      // タップ時のミニツールバー表示 (clickMode ON 時)
+      el.addEventListener('touchend', function(e) {
+        if(!clickMode) return;
+        if(_charMode) return;
+        // selectElement が呼ばれた後にミニツールバーを表示
+        setTimeout(function() {
+          if(selectedEl === el) {
+            var r = el.getBoundingClientRect();
+            smaskShowMiniToolbar(el,
+              r.left + r.width/2,
+              r.top + window.scrollY
+            );
+          }
+        }, 50);
+      }, {passive: true});
+    });
+  };
+
+  // DOMReady + setInterval で接続
+  var _timer = setInterval(function() {
+    _setupMobileHandlers();
+    // 長押しが設定済みの要素が一定数あれば終了
+    var done = document.querySelectorAll('.page-editable[data-ms]').length;
+    if(done > 5) clearInterval(_timer);
+  }, 500);
+  document.addEventListener('DOMContentLoaded', _setupMobileHandlers);
+
+  // 既存 selectElement を wrap してミニツールバーを連動
+  var _wrapSelectElement = function() {
+    if(typeof selectElement !== 'function') return;
+    if(window._selectElementWrapped) return;
+    window._selectElementWrapped = true;
+    var orig = selectElement;
+    selectElement = function(el) {
+      orig(el);
+      // スマホの場合のみミニツールバー表示
+      if(window.innerWidth <= 768 && el) {
+        setTimeout(function() {
+          var r = el.getBoundingClientRect();
+          smaskShowMiniToolbar(el, r.left + r.width/2, r.top + window.scrollY);
+        }, 80);
+      }
+    };
+  };
+  setTimeout(_wrapSelectElement, 800);
+  document.addEventListener('DOMContentLoaded', function() { setTimeout(_wrapSelectElement, 400); });
+})();
+
+// ページタップでミニツールバーを閉じる（選択外をタップ）
+document.addEventListener('touchstart', function(e) {
+  var tb = document.getElementById('smask-mini-toolbar');
+  if(!tb || !tb.classList.contains('visible')) return;
+  if(!tb.contains(e.target)) {
+    smaskHideMiniToolbar();
+  }
+}, {passive: true});
+
+// ---- smask-char を touchstart で確実に選択（iOS対応強化）----
+// smaskSplitChars の後処理として、全 smask-char に touchstart を追加
+var _origSplitChars = null;
+(function() {
+  var _wrapSplit = function() {
+    if(typeof smaskSplitChars !== 'function') return;
+    if(window._splitCharsWrapped) return;
+    window._splitCharsWrapped = true;
+    var origSplit = smaskSplitChars;
+    smaskSplitChars = function() {
+      origSplit.apply(this, arguments);
+      // 分割直後に各 smask-char に touchstart を追加
+      setTimeout(function() {
+        document.querySelectorAll('.smask-char:not([data-ts])').forEach(function(span) {
+          span.setAttribute('data-ts','1');
+          span.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if(typeof smaskSelectChar === 'function') smaskSelectChar(this);
+          }, {passive: false});
+        });
+        // 1文字モードになったことを通知
+        var hint = document.getElementById('smask-longpress-hint');
+        if(hint) {
+          hint.style.display = 'block';
+          hint.textContent = '✅ 分割完了！文字をタップして選択';
+          setTimeout(function(){ hint.style.display='none'; }, 2000);
+        }
+      }, 100);
+    };
+  };
+  var _wt = setInterval(function() {
+    if(typeof smaskSplitChars === 'function') { _wrapSplit(); clearInterval(_wt); }
+  }, 200);
+  document.addEventListener('DOMContentLoaded', _wrapSplit);
+})();
+
+// ---- パネル高さ変更: ドラッグで伸縮 ----
+(function() {
+  var panel = null, startY = 0, startH = 0, dragging = false;
+  document.addEventListener('DOMContentLoaded', function() {
+    panel = document.getElementById('design-panel');
+    var handle = document.getElementById('panelDragHandle');
+    if(!panel || !handle) return;
+    handle.addEventListener('touchstart', function(e) {
+      dragging = true;
+      startY = e.touches[0].clientY;
+      startH = panel.offsetHeight;
+    }, {passive: true});
+    document.addEventListener('touchmove', function(e) {
+      if(!dragging || !panel) return;
+      var dy = startY - e.touches[0].clientY;
+      var newH = Math.max(120, Math.min(window.innerHeight * 0.9, startH + dy));
+      panel.style.height = newH + 'px';
+      panel.style.maxHeight = newH + 'px';
+      // panel-toggle 位置更新
+      var toggle = document.querySelector('.panel-toggle');
+      if(toggle && panel.classList.contains('open')) {
+        toggle.style.bottom = (newH + 16) + 'px';
+      }
+    }, {passive: true});
+    document.addEventListener('touchend', function() { dragging = false; }, {passive: true});
+  });
+})();
+
 </script>
 
 </body>
