@@ -968,10 +968,15 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="ctrl-group-label">🔡 文字スタイル</div>
           <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
             <span class="ctrl-label">フォント</span>
+            <div id="sel-font-preview-box" style="display:none;margin-bottom:8px;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(58,134,255,0.4);border-radius:8px;">
+              <div style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;margin-bottom:6px;">フォントプレビュー</div>
+              <div id="sel-font-preview-text" style="font-size:22px;color:#fff;line-height:1.4;letter-spacing:0.05em;">Aあいうえお 漢字</div>
+              <div id="sel-font-preview-name" style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;"></div>
+            </div>
             <input type="text" id="sel-font-search" placeholder="🔍 フォント検索..." 
               oninput="filterFont(this, 'sel-font-select')"
               style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;box-sizing:border-box;">
-            <select class="ctrl-select" id="sel-font-select" onchange="applySelFont(this)" style="width:100%;">
+            <select class="ctrl-select" id="sel-font-select" onchange="applySelFont(this)" oninput="applySelFont(this)" style="width:100%;">
               <option value="">── デフォルト ──</option>
               <option value="" disabled>━━ 明朝体・セリフ系（日本語）━━</option>
               <option value="'Noto Serif JP', serif">Noto Serif JP｜ノトセリフ（標準明朝）</option>
@@ -2908,13 +2913,70 @@ function smaskFontPreview(fontVal, fontLabel) {
 
 // フォントセレクト変更 → 即座に選択要素に適用 + プレビュー
 function applySelFont(sel) {
-  // フォントプレビュー更新
   var opt = sel.options[sel.selectedIndex];
-  smaskFontPreview(sel.value, opt ? opt.text : '');
+  var fontVal = sel.value;
+  var fontName = opt ? opt.text.split('|')[0].trim() : '';
 
-  // 選択要素にフォント適用
+  // フォントプレビュー更新（即時）
+  smaskFontPreview(fontVal, fontName);
+  updateSelFontPreviewBox(fontVal, fontName);
+
+  // 選択要素にフォント即時適用
   if(selectedEl) {
-    selectedEl.style.fontFamily = sel.value || '';
+    selectedEl.style.fontFamily = fontVal || '';
+    // スタイルプレビュー更新
+    if(typeof updateStylePreview === 'function') {
+      try { updateStylePreview(); } catch(e) {}
+    }
+  }
+}
+
+// フォントセレクタ: キーボード操作でも即時反映 (↑↓キー)
+(function() {
+  var _attachFontKeyNav = function() {
+    var sfSel = document.getElementById('sel-font-select');
+    if(!sfSel || sfSel._keyNavAttached) return;
+    sfSel._keyNavAttached = true;
+    sfSel.addEventListener('keyup', function() {
+      applySelFont(this);
+    });
+    // iOS: touchend で option 変更を確認
+    sfSel.addEventListener('change', function() {
+      applySelFont(this);
+    });
+  };
+  // DOMReady + setInterval で確実に接続
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _attachFontKeyNav);
+  } else {
+    _attachFontKeyNav();
+  }
+  var _navTimer = setInterval(function() {
+    _attachFontKeyNav();
+    if(document.getElementById('sel-font-select') && document.getElementById('sel-font-select')._keyNavAttached) {
+      clearInterval(_navTimer);
+    }
+  }, 500);
+})();
+
+
+// sel-font-preview-box を更新する関数
+function updateSelFontPreviewBox(fontVal, fontName) {
+  var box = document.getElementById('sel-font-preview-box');
+  var txt = document.getElementById('sel-font-preview-text');
+  var nm  = document.getElementById('sel-font-preview-name');
+  if(!box) return;
+  if(!fontVal) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  if(txt) { txt.style.fontFamily = fontVal; }
+  if(nm)  { nm.textContent = fontName || fontVal; }
+  // Google Fonts 動的ロード
+  var familyRaw = fontVal.replace(/['"]/g,'').split(',')[0].trim();
+  if(familyRaw && !document.querySelector('link[href*="'+encodeURIComponent(familyRaw)+'"]')) {
+    var lnk = document.createElement('link');
+    lnk.rel = 'stylesheet';
+    lnk.href = 'https://fonts.googleapis.com/css2?family='+encodeURIComponent(familyRaw)+':wght@400;700&display=swap';
+    document.head.appendChild(lnk);
   }
 }
 
@@ -2976,18 +3038,20 @@ function smaskSplitChars() {
   });
   el.innerHTML = html;
 
-  // 各文字にクリック/タッチ
+  // 各文字にクリック/タッチ (iOS Safari 対応: touchstart ベース)
   el.querySelectorAll('.smask-char').forEach(function(span, idx){
+    // touchstart で即座に選択 (300ms delay なし)
+    span.addEventListener('touchstart', function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      smaskSelectChar(this);
+    }, {passive:false});
+    // PC 用クリック
     span.addEventListener('click', function(e){
       e.stopPropagation();
       e.preventDefault();
       smaskSelectChar(this);
     });
-    span.addEventListener('touchend', function(e){
-      e.stopPropagation();
-      e.preventDefault();
-      smaskSelectChar(this);
-    }, {passive:false});
   });
 
   // 選択解除
@@ -3029,10 +3093,17 @@ function smaskSelectChar(span) {
     } catch(e){}
   }
 
-  // セレクションタブに切り替え
+  // セレクションタブに切り替え + パネルを確実に開く
   if(typeof switchTabById === 'function') {
     try { switchTabById('tab-select'); } catch(e){}
   }
+  // パネルを強制的に開く（clickModeに関わらず）
+  if(typeof openPanel === 'function') {
+    try { openPanel(); } catch(e){}
+  }
+  // design-panel を確実に表示
+  var dp = document.getElementById('design-panel');
+  if(dp) { dp.style.display = 'flex'; dp.classList.add('open'); }
   if(typeof openPanel === 'function') {
     try { openPanel(); } catch(e){}
   }
@@ -3122,6 +3193,33 @@ function smaskCancelPublish() {
   var modal = document.getElementById('smask-publish-modal');
   if(modal) modal.style.display = 'none';
 }
+function confirmPublish() {
+  try {
+    // ページのHTMLをlocalStorageに保存
+    var content = document.getElementById('smask-public-content');
+    if(content) {
+      localStorage.setItem('smask_published', content.innerHTML);
+    } else {
+      // fallback: body全体のeditable部分を保存
+      localStorage.setItem('smask_published', document.body.innerHTML);
+    }
+    // モーダルを閉じる
+    var modal = document.getElementById('smask-publish-modal');
+    if(modal) modal.style.display = 'none';
+    // 成功バナー
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);'
+      + 'background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;'
+      + 'padding:12px 24px;border-radius:30px;font-size:13px;font-weight:700;'
+      + 'z-index:999999;box-shadow:0 6px 24px rgba(39,174,96,0.5);';
+    banner.textContent = '🚀 公開完了！';
+    document.body.appendChild(banner);
+    setTimeout(function(){ if(banner.parentElement) banner.remove(); }, 3000);
+  } catch(e) {
+    alert('エラー: ' + e.message);
+  }
+}
+
 
 function smaskConfirmPublish() {
   try {
