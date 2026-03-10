@@ -747,6 +747,7 @@ body { padding-top: 0 !important; }
 .ctrl-select option {
   background: #1a1a1a;
   color: #fff;
+}
 
 /* フォント変数をページ要素に適用 */
 [data-t1-font], .t1-text {
@@ -4616,6 +4617,213 @@ var _origSplitChars = null;
   }, 800);
 })();
 
+</script>
+
+
+
+<!-- SMASK FINAL FIX: PC縦パネル + 全フォント確実適用 -->
+<style id="smask-final-pc-font-fix">
+@media (min-width: 769px) {
+  html body #design-panel {
+    position: fixed !important;
+    top: 24px !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: 24px !important;
+    width: min(380px, calc(100vw - 20px)) !important;
+    height: calc(100vh - 48px) !important;
+    min-height: calc(100vh - 48px) !important;
+    max-height: calc(100vh - 48px) !important;
+    border-radius: 18px 0 0 18px !important;
+    border-left: 2px solid var(--color-gold) !important;
+    border-top: none !important;
+    box-shadow: -10px 0 34px rgba(0,0,0,0.30) !important;
+    transform: translateX(104%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    z-index: 9999998 !important;
+  }
+  html body #design-panel.open {
+    transform: translateX(0) !important;
+  }
+  html body .panel-drag-handle {
+    display: none !important;
+  }
+  html body .panel-header {
+    padding: 14px 16px 10px !important;
+    flex-shrink: 0 !important;
+  }
+  html body .panel-tabs {
+    padding: 0 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-shrink: 0 !important;
+  }
+  html body .panel-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 14px 16px 18px !important;
+  }
+  html body .panel-toggle {
+    position: fixed !important;
+    top: 96px !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px 0 0 12px !important;
+    z-index: 9999999 !important;
+  }
+  html body .panel-toggle.open {
+    right: min(380px, calc(100vw - 20px)) !important;
+  }
+  html body #smask-pub-fab {
+    display: none !important;
+  }
+}
+
+/* フォント候補も見た目で分かるようにする */
+#font-t1 option,
+#font-t2 option,
+#font-t3 option,
+#font-body option,
+#sel-font-select option {
+  font-size: 14px;
+}
+</style>
+
+<script id="smask-final-pc-font-fix-script">
+(function(){
+  function normalizeFontName(fontVal){
+    if(!fontVal) return '';
+    return String(fontVal).replace(/["']/g,'').split(',')[0].trim();
+  }
+
+  function googleFontHref(family){
+    return 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replace(/%20/g,'+') + '&display=swap';
+  }
+
+  function ensureFontLoaded(fontVal){
+    var family = normalizeFontName(fontVal);
+    if(!family) return;
+    window._smaskEnsuredFonts = window._smaskEnsuredFonts || {};
+    if(window._smaskEnsuredFonts[family]) return;
+    window._smaskEnsuredFonts[family] = true;
+
+    if(!document.querySelector('link[data-smask-font-family="' + family.replace(/"/g,'&quot;') + '"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = googleFontHref(family);
+      link.setAttribute('data-smask-font-family', family);
+      document.head.appendChild(link);
+    }
+  }
+
+  var FONT_TARGETS = {
+    '--t1-font-family': '[data-t1-font], .t1-text',
+    '--t2-font-family': '[data-t2-font], .t2-text, h1, h2, h3',
+    '--t3-font-family': '[data-t3-font], .t3-text, h4, h5, h6',
+    '--body-font-family': '.page-editable p, p.page-editable, .body-text, .page-editable li, .page-editable .body-text'
+  };
+
+  function forceApplyFontTargets(cssVar, fontVal){
+    try {
+      document.documentElement.style.setProperty(cssVar, fontVal || 'inherit');
+    } catch(e) {}
+    var selector = FONT_TARGETS[cssVar];
+    if(!selector) return;
+    document.querySelectorAll(selector).forEach(function(el){
+      try { el.style.fontFamily = fontVal || ''; } catch(e) {}
+    });
+  }
+
+  function beautifyFontOptions(selectId){
+    var sel = document.getElementById(selectId);
+    if(!sel) return;
+    Array.prototype.forEach.call(sel.options, function(opt){
+      if(!opt || !opt.value || opt.disabled) return;
+      try { opt.style.fontFamily = opt.value; } catch(e) {}
+    });
+  }
+
+  function loadFontsFromAllSelectors(){
+    ['font-t1','font-t2','font-t3','font-body','sel-font-select'].forEach(function(id){
+      var sel = document.getElementById(id);
+      if(!sel) return;
+      Array.prototype.forEach.call(sel.options, function(opt){
+        if(!opt || !opt.value || opt.disabled) return;
+        ensureFontLoaded(opt.value);
+      });
+      beautifyFontOptions(id);
+    });
+  }
+
+  var _oldSetFont = window.setFont;
+  window.setFont = function(v, sel){
+    var val = sel && sel.value ? sel.value : '';
+    ensureFontLoaded(val);
+    if(typeof _oldSetFont === 'function') {
+      try { _oldSetFont(v, sel); } catch(e) {}
+    } else {
+      try { document.documentElement.style.setProperty(v, val || 'inherit'); } catch(e) {}
+    }
+    forceApplyFontTargets(v, val);
+
+    // 視認性のため、いま選んだ select 自体もそのフォントで表示
+    try { if(sel) sel.style.fontFamily = val || ''; } catch(e) {}
+  };
+
+  var _oldApplySelFont = window.applySelFont;
+  window.applySelFont = function(sel){
+    var val = sel && sel.value ? sel.value : '';
+    ensureFontLoaded(val);
+    if(typeof _oldApplySelFont === 'function') {
+      try { _oldApplySelFont(sel); } catch(e) {}
+    }
+    if(window.selectedEl) {
+      try { window.selectedEl.style.fontFamily = val || ''; } catch(e) {}
+    }
+    try { if(sel) sel.style.fontFamily = val || ''; } catch(e) {}
+  };
+
+  function syncSelectorsToCurrentValues(){
+    ['font-t1','font-t2','font-t3','font-body','sel-font-select'].forEach(function(id){
+      var sel = document.getElementById(id);
+      if(!sel) return;
+      if(sel.value) {
+        ensureFontLoaded(sel.value);
+        try { sel.style.fontFamily = sel.value; } catch(e) {}
+      }
+    });
+  }
+
+  function bootFinalFix(){
+    loadFontsFromAllSelectors();
+    syncSelectorsToCurrentValues();
+
+    // 既定値が入っている場合も実体要素に即反映
+    var pairs = [
+      ['--t1-font-family', document.getElementById('font-t1')],
+      ['--t2-font-family', document.getElementById('font-t2')],
+      ['--t3-font-family', document.getElementById('font-t3')],
+      ['--body-font-family', document.getElementById('font-body')]
+    ];
+    pairs.forEach(function(pair){
+      var cssVar = pair[0], sel = pair[1];
+      if(sel && sel.value) forceApplyFontTargets(cssVar, sel.value);
+    });
+  }
+
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootFinalFix);
+  } else {
+    bootFinalFix();
+  }
+  setTimeout(bootFinalFix, 600);
+  setTimeout(bootFinalFix, 1600);
+})();
 </script>
 
 </body>
