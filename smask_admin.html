@@ -1428,9 +1428,12 @@ body.click-mode .smask-char:hover,
 </style>
 
 <script>
-/* ログイン専用スクリプト（独立実行） */
-var SMASK_PW = '1234';
+/* ========== ログイン設定（統一） ========== */
+var SMASK_PW  = '1234';
 var SMASK_KEY = 'smask_admin_auth';
+var DEFAULT_PW  = '1234';
+var LOGIN_KEY   = 'smask_admin_auth';
+
 function doLogin(){
   var inp = document.getElementById('login-pw');
   var err = document.getElementById('login-error');
@@ -1440,34 +1443,23 @@ function doLogin(){
     if(err) err.textContent = 'パスワードを入力してください';
     return;
   }
-  if(pw === SMASK_PW){
+  if(pw === DEFAULT_PW){
+    try{ sessionStorage.setItem(LOGIN_KEY,'1'); }catch(e){}
     try{ sessionStorage.setItem(SMASK_KEY,'1'); }catch(e){}
     var ov = document.getElementById('login-overlay');
     if(ov) ov.style.cssText = 'display:none!important;';
     var pm = document.getElementById('page-main');
     if(pm) pm.style.cssText = 'display:block!important;';
-    var pt = document.getElementById('panelToggle');
-    if(pt) pt.style.cssText = 'display:block!important;';
     try{ window.scrollTo(0,0); }catch(e){}
+    if(err) err.textContent = '';
   } else {
     if(err) err.textContent = 'パスワードが違います';
     inp.value = '';
     inp.focus();
+    var box = document.querySelector('.login-box');
+    if(box){ box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); }
   }
 }
-/* ページ読み込み時: ログイン済みならオーバーレイを非表示 */
-document.addEventListener('DOMContentLoaded', function(){
-  var loggedIn = false;
-  try{ loggedIn = (sessionStorage.getItem(SMASK_KEY) === '1'); }catch(e){}
-  if(loggedIn){
-    var ov = document.getElementById('login-overlay');
-    if(ov) ov.style.cssText = 'display:none!important;';
-    var pm = document.getElementById('page-main');
-    if(pm) pm.style.cssText = 'display:block!important;';
-    var pt = document.getElementById('panelToggle');
-    if(pt) pt.style.cssText = 'display:block!important;';
-  }
-});
 </script>
 </head>
 <body>
@@ -3160,34 +3152,6 @@ function _hideLoginOverlay(){
 }
 
 /* ログイン処理 */
-function doLogin(){
-  var inp = document.getElementById('login-pw');
-  var err = document.getElementById('login-error');
-  var pw  = inp ? inp.value.trim() : '';
-
-  if(!pw){
-    if(err) err.textContent = 'パスワードを入力してください';
-    return;
-  }
-
-  if(pw === DEFAULT_PW){
-    /* 成功 */
-    try{ sessionStorage.setItem(LOGIN_KEY, '1'); }catch(e){}
-    if(err) err.textContent = '';
-    _hideLoginOverlay();
-    _showPage();
-    try{ window.scrollTo(0,0); }catch(e){}
-  } else {
-    /* 失敗 */
-    if(err) err.textContent = 'パスワードが違います';
-    if(inp){ inp.value = ''; inp.focus(); }
-    var box = document.querySelector('.login-box');
-    if(box){
-      box.classList.add('shake');
-      setTimeout(function(){ box.classList.remove('shake'); }, 500);
-    }
-  }
-}
 
 /* ログアウト */
 function doLogout(){
