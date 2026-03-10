@@ -1519,492 +1519,359 @@ function doLogin(){
 </div>
 
 
-<!-- ========== SMASK v9 管理パネル ========== -->
-<div id="smask-admin-panel" class="smask-panel-wrap">
+<!-- ========== SMASK v10 ADMIN PANEL ========== -->
+<div id="smask-admin-panel" class="smk-wrap">
 
-  <!-- ▼ 上部固定ヘッダー -->
-  <div class="smk-header">
-    <div class="smk-header-left">
+  <!-- ▼ Fixed Header -->
+  <div class="smk-header" id="smk-header">
+    <div class="smk-hd-left">
       <span class="smk-logo">SMASK</span>
-      <span class="smk-logo-sub">DESIGN PANEL</span>
+      <span class="smk-logo-sub">DESIGN</span>
     </div>
-    <div class="smk-header-center">
-      <div class="smk-sel-indicator" id="smk-sel-indicator">
+    <div class="smk-hd-center">
+      <div class="smk-sel-badge" id="smk-sel-badge">
         <span class="smk-sel-dot" id="smk-sel-dot"></span>
-        <span id="smk-sel-label">未選択</span>
+        <span id="smk-sel-label">No selection</span>
       </div>
     </div>
-    <div class="smk-header-right">
-      <button class="smk-hbtn smk-hbtn-undo" onclick="smkUndo()" title="元に戻す">↩</button>
-      <button class="smk-hbtn smk-hbtn-redo" onclick="smkRedo()" title="やり直し">↪</button>
-      <button class="smk-hbtn" onclick="smkResetMenu()" title="リセット">⊘</button>
-      <button class="smk-hbtn smk-hbtn-css" onclick="copyCSS()" title="CSS出力">CSS</button>
-      <button class="smk-hbtn smk-hbtn-pub" onclick="smaskPublish()" title="公開">公開</button>
-      <button class="smk-hbtn smk-hbtn-logout" onclick="doLogout()" title="ログアウト">出</button>
+    <div class="smk-hd-right">
+      <button class="smk-hbtn" onclick="smkUndo()" title="Undo">↩</button>
+      <button class="smk-hbtn" onclick="smkRedo()" title="Redo">↪</button>
+      <button class="smk-hbtn smk-hbtn-reset" onclick="smkResetMenu()" title="Reset">⊘</button>
+      <button class="smk-hbtn smk-hbtn-css" onclick="smkCopyCSS()" title="CSS Output">CSS</button>
+      <button class="smk-hbtn smk-hbtn-pub" onclick="smaskPublish()" title="Publish">PUB</button>
+      <button class="smk-hbtn smk-hbtn-out" onclick="doLogout()" title="Logout">OUT</button>
     </div>
   </div>
 
-  <!-- ▼ リセットメニュー（ドロップダウン） -->
+  <!-- ▼ Reset Dropdown -->
   <div class="smk-reset-menu" id="smk-reset-menu" style="display:none;">
-    <button onclick="smkResetEl('all')">🔄 この要素をリセット</button>
-    <button onclick="smkResetEl('font')">🔤 文字設定だけリセット</button>
-    <button onclick="smkResetEl('color')">🎨 色だけリセット</button>
+    <button onclick="smkResetEl('all')">↺ Reset All</button>
+    <button onclick="smkResetEl('font')">↺ Reset Font</button>
+    <button onclick="smkResetEl('color')">↺ Reset Color</button>
   </div>
 
-  <!-- ▼ メインボディ（サイドバー + コンテンツ） -->
+  <!-- ▼ Body: Sidebar + Main -->
   <div class="smk-body">
 
-    <!-- ▼ 左サイドバー -->
+    <!-- Left Sidebar -->
     <div class="smk-sidebar">
-      <button class="smk-tab-btn active" id="smk-btn-select" onclick="smkTab('select')">
+      <button class="smk-tab-btn active" id="smk-btn-select" onclick="smkTab('select')" title="Select">
         <span class="smk-tab-icon">🎯</span>
-        <span class="smk-tab-label">SELECT</span>
+        <span class="smk-tab-lbl">SELECT</span>
       </button>
-      <button class="smk-tab-btn" id="smk-btn-color" onclick="smkTab('color')">
+      <button class="smk-tab-btn" id="smk-btn-color" onclick="smkTab('color')" title="Color">
         <span class="smk-tab-icon">🎨</span>
-        <span class="smk-tab-label">COLOR</span>
+        <span class="smk-tab-lbl">COLOR</span>
       </button>
-      <button class="smk-tab-btn" id="smk-btn-font" onclick="smkTab('font')">
+      <button class="smk-tab-btn" id="smk-btn-font" onclick="smkTab('font')" title="Font">
         <span class="smk-tab-icon">✏️</span>
-        <span class="smk-tab-label">FONT</span>
+        <span class="smk-tab-lbl">FONT</span>
       </button>
-
-      <!-- サイドバー下部 -->
-      <div class="smk-sidebar-bottom">
-        <button class="smk-sidebar-btn" onclick="toggleClickMode()" id="smk-click-btn" title="選択モード">
-          <span>SELECT</span><span style="font-size:9px;">MODE</span>
+      <div class="smk-sb-bottom">
+        <button class="smk-mode-toggle" id="smk-click-btn" onclick="smkToggleSelectMode()" title="Select Mode">
+          <span>SEL</span><span style="font-size:8px;letter-spacing:0;">MODE</span>
         </button>
       </div>
     </div>
 
-    <!-- ▼ 右メインエリア -->
-    <div class="smk-main" id="smk-main">
+    <!-- Main Area -->
+    <div class="smk-main">
 
-      <!-- ===== SELECTタブ ===== -->
+      <!-- ===== SELECT TAB ===== -->
       <div class="smk-pane" id="smk-pane-select">
 
-        <!-- 編集モード切り替え -->
         <div class="smk-section">
-          <div class="smk-section-title">EDIT MODE</div>
+          <div class="smk-sec-title">EDIT MODE</div>
           <div class="smk-mode-btns">
             <button class="smk-mode-btn active" id="smk-mode-normal" onclick="smkSetMode('normal')">
-              <span class="smk-mode-icon">⬜</span>
-              <span>通常編集</span>
-              <small>全体変更</small>
+              <span class="smk-mode-ico">⬜</span>
+              <span class="smk-mode-name">Normal Edit</span>
+              <span class="smk-mode-desc">Whole element</span>
             </button>
             <button class="smk-mode-btn" id="smk-mode-char" onclick="smkSetMode('char')">
-              <span class="smk-mode-icon">✂️</span>
-              <span>1文字編集</span>
-              <small>文字単位</small>
+              <span class="smk-mode-ico">✂️</span>
+              <span class="smk-mode-name">Char Edit</span>
+              <span class="smk-mode-desc">Per character</span>
             </button>
           </div>
         </div>
 
-        <!-- 選択ガイド（未選択時） -->
+        <!-- Guide (no selection) -->
         <div class="smk-guide" id="smk-guide">
           <div class="smk-guide-icon">👆</div>
-          <div class="smk-guide-title">テキストを選択してください</div>
-          <div class="smk-guide-desc">ページ上の文字をクリックして<br>編集対象を選んでください</div>
-          <div style="margin-top:12px;font-size:10px;color:rgba(255,255,255,0.3);">選択モードONが必要です</div>
+          <div class="smk-guide-ttl">Enable Select Mode</div>
+          <div class="smk-guide-desc">Press SELECT MODE button<br>then tap any text element</div>
         </div>
 
-        <!-- 選択中情報（選択後に表示） -->
+        <!-- Selected Info -->
         <div class="smk-sel-info" id="smk-sel-info" style="display:none;">
           <div class="smk-info-card">
-            <div class="smk-info-tag" id="smk-info-tag">-</div>
-            <div class="smk-info-text" id="smk-info-text">-</div>
+            <div class="smk-info-tag" id="smk-info-tag">—</div>
+            <div class="smk-info-txt" id="smk-info-txt">—</div>
           </div>
 
-          <!-- 通常編集モード時 -->
-          <div id="smk-normal-controls">
-            <div class="smk-section" style="margin-top:12px;">
-              <div class="smk-section-title">QUICK ACTIONS</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="smk-action-btn" onclick="smkTab('font')">✏️ フォント編集</button>
-                <button class="smk-action-btn" onclick="smkTab('color')">🎨 カラー編集</button>
-                <button class="smk-action-btn smk-action-danger" onclick="smkResetEl('all')">⊘ リセット</button>
+          <!-- Normal mode controls -->
+          <div id="smk-normal-ctrl">
+            <div class="smk-section">
+              <div class="smk-sec-title">QUICK ACTIONS</div>
+              <div class="smk-action-row">
+                <button class="smk-action-btn" onclick="smkTab('font')">✏️ Edit Font</button>
+                <button class="smk-action-btn" onclick="smkTab('color')">🎨 Edit Color</button>
+                <button class="smk-action-btn smk-action-danger" onclick="smkResetEl('all')">⊘ Reset</button>
               </div>
             </div>
             <div class="smk-section">
-              <div class="smk-section-title">1文字分割</div>
-              <button class="smk-split-btn" onclick="smaskSplitChars()">
-                ✂️ 1文字ずつ分割する
-              </button>
+              <div class="smk-sec-title">SPLIT TO CHARACTERS</div>
+              <button class="smk-split-btn" onclick="smaskSplitChars()">✂️ Split into Characters</button>
               <div id="smk-unwrap-wrap" style="display:none;margin-top:6px;">
-                <button class="smk-split-btn smk-split-unwrap" onclick="unwrapSelected()">解除する</button>
+                <button class="smk-split-btn smk-split-undo" onclick="unwrapSelected()">↩ Undo Split</button>
               </div>
             </div>
           </div>
 
-          <!-- 1文字編集モード時 -->
-          <div id="smk-char-controls" style="display:none;">
-            <div class="smk-section" style="margin-top:12px;">
-              <div class="smk-section-title">1文字スタイル</div>
-              <div id="smask-char-panel" style="display:none;">
-                <div class="smk-char-preview-wrap">
-                  <div class="smk-char-preview" id="smask-char-preview">あ</div>
-                  <div class="smk-char-meta" id="smask-char-meta">-</div>
-                </div>
-                <div class="smk-ctrl-row">
-                  <label class="smk-ctrl-label">文字色</label>
-                  <input type="color" id="smask-char-color" oninput="smaskApplyCharColor(this.value)">
-                  <span class="smk-hex" id="smask-char-color-hex">#ffffff</span>
-                </div>
-                <div class="smk-ctrl-row">
-                  <label class="smk-ctrl-label">背景色</label>
-                  <input type="color" id="smask-char-bg" oninput="smaskApplyCharBg(this.value)">
-                  <span class="smk-hex" id="smask-char-bg-hex">-</span>
-                  <button onclick="smaskClearCharBg()" class="smk-small-btn">透明</button>
-                </div>
-                <div class="smk-ctrl-row">
-                  <label class="smk-ctrl-label">フォント</label>
-                  <select id="smask-char-font-sel" onchange="smaskApplyCharFont(this.value)" class="smk-select-sm">
-                    <option value="">-- 選択 --</option>
-                  </select>
-                </div>
-                <div class="smk-ctrl-row">
-                  <label class="smk-ctrl-label">サイズ</label>
-                  <input type="range" id="smask-char-size" min="8" max="80" value="16"
-                    oninput="smaskApplyCharSize(this.value)" class="smk-range-sm">
-                  <span id="smask-char-size-val" style="font-size:11px;color:#C6A75C;min-width:28px;">16px</span>
-                </div>
-                <div class="smk-ctrl-row">
-                  <label class="smk-ctrl-label">太さ</label>
-                  <select id="smask-char-weight" onchange="smaskApplyCharWeight(this.value)" class="smk-select-sm">
-                    <option value="300">細 300</option>
-                    <option value="400" selected>標準 400</option>
-                    <option value="600">やや太 600</option>
-                    <option value="700">太 700</option>
-                    <option value="900">極太 900</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+          <!-- Char mode controls -->
+          <div id="smk-char-ctrl" style="display:none;">
             <div class="smk-section">
-              <div class="smk-section-title">操作</div>
-              <button class="smk-split-btn" onclick="smaskSplitChars()">✂️ 再分割</button>
+              <div class="smk-sec-title">CHARACTER STYLE</div>
+              <div class="smk-row smk-row-label">
+                <label class="smk-lbl">Color</label>
+                <input type="color" id="smk-char-color" onchange="smkApplyColor('text',this.value)" value="#ffffff">
+              </div>
+              <div class="smk-row smk-row-label">
+                <label class="smk-lbl">BG</label>
+                <input type="color" id="smk-char-bg" onchange="smkApplyColor('bg',this.value)" value="#000000">
+                <button class="smk-mini-btn" onclick="smkClearBg()">✕ clear</button>
+              </div>
+              <div class="smk-row smk-row-label">
+                <label class="smk-lbl">Font</label>
+                <select id="smk-char-font-sel" onchange="smkApplyCharFont(this.value)" class="smk-select smk-select-sm"></select>
+              </div>
+              <div class="smk-row smk-row-label">
+                <label class="smk-lbl">Size</label>
+                <input type="range" min="8" max="120" value="16" id="smk-char-size-range" oninput="smkApplyCharSize(this.value)" class="smk-range">
+                <span id="smk-char-size-val" class="smk-val">16px</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- カスタムフォント設定（SELECTタブ下部） -->
-        <div class="smk-section smk-section-collapse" style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
-          <div class="smk-section-title">
-            <span>CUSTOM FONT</span>
-            <button class="smk-collapse-btn" onclick="smkToggleCollapse('smk-custom-font-body')">▼</button>
-          </div>
-          <div id="smk-custom-font-body" style="display:none;">
-            <input type="text" id="custom-font-input" placeholder="例: Zen Kurenaido" class="smk-input">
-            <input type="text" id="custom-font-label" placeholder="表示名（例：ゼン紅藤）" class="smk-input" style="margin-top:6px;">
-            <button onclick="addCustomFont()" class="smk-primary-btn" style="margin-top:6px;">追加する</button>
-            <div id="custom-font-list" style="margin-top:8px;font-size:11px;color:#888;"></div>
-          </div>
-          <!-- パスワード変更 -->
-          <div class="smk-section-title" style="margin-top:10px;">
-            <span>PASSWORD</span>
-            <button class="smk-collapse-btn" onclick="smkToggleCollapse('smk-pw-body')">▼</button>
-          </div>
-          <div id="smk-pw-body" style="display:none;">
-            <input type="password" id="pw-current" placeholder="現在のパスワード" class="smk-input">
-            <input type="password" id="pw-new" placeholder="新しいパスワード" class="smk-input" style="margin-top:6px;">
-            <input type="password" id="pw-confirm" placeholder="確認" class="smk-input" style="margin-top:6px;">
-            <button onclick="changePassword()" class="smk-primary-btn" style="margin-top:6px;">変更</button>
-            <div id="pw-msg" style="margin-top:6px;font-size:11px;text-align:center;min-height:16px;color:#C6A75C;"></div>
-          </div>
-        </div>
-      </div>
+      </div><!-- /select pane -->
 
-      <!-- ===== COLORタブ ===== -->
+      <!-- ===== COLOR TAB ===== -->
       <div class="smk-pane" id="smk-pane-color" style="display:none;">
 
-        <!-- 選択ガイド -->
-        <div class="smk-guide smk-guide-color" id="smk-color-guide">
-          <div class="smk-guide-icon">🎨</div>
-          <div class="smk-guide-title">要素を選択してください</div>
-          <div class="smk-guide-desc">SELECTタブで要素を選んでから<br>色を変更できます</div>
-        </div>
-        <div id="smk-color-controls" style="display:none;">
-          <div class="smk-sel-info-mini" id="smk-color-el-info">選択中: -</div>
+        <div class="smk-guide smk-guide-sm" id="smk-color-guide">
+          <div class="smk-guide-icon" style="font-size:20px;">🎨</div>
+          <div class="smk-guide-ttl" style="font-size:11px;">Select an element first</div>
         </div>
 
-        <!-- ブランドカラー -->
-        <div class="smk-section">
-          <div class="smk-section-title">BRAND COLOR</div>
-          <div class="smk-brand-colors">
-            <div class="smk-brand-swatch" style="background:#fef4f4;" title="背景 #fef4f4"
-              onclick="smkApplyBrandColor('#fef4f4')">
-              <span>#fef4f4</span><small>背景</small>
+        <div id="smk-color-ctrl" style="display:none;">
+          <div class="smk-color-el-info" id="smk-color-el-info"></div>
+
+          <!-- Text Color -->
+          <div class="smk-section">
+            <div class="smk-sec-title">TEXT COLOR</div>
+            <div class="smk-color-row">
+              <input type="color" id="smk-text-color" value="#ffffff" class="smk-color-picker" oninput="smkApplyColor('text',this.value)">
+              <input type="text" id="smk-text-hex" class="smk-hex-input" value="#ffffff" maxlength="7"
+                     oninput="smkApplyColorHex('text',this.value)" placeholder="#000000">
             </div>
-            <div class="smk-brand-swatch" style="background:#2b2b2b;color:#fff;" title="メイン文字 #2b2b2b"
-              onclick="smkApplyBrandColor('#2b2b2b')">
-              <span>#2b2b2b</span><small>メイン文字</small>
+            <div class="smk-swatches" id="smk-text-swatches"></div>
+          </div>
+
+          <!-- Background Color -->
+          <div class="smk-section">
+            <div class="smk-sec-title">BACKGROUND COLOR</div>
+            <div class="smk-color-row">
+              <input type="color" id="smk-bg-color" value="#ffffff" class="smk-color-picker" oninput="smkApplyColor('bg',this.value)">
+              <input type="text" id="smk-bg-hex" class="smk-hex-input" value="#ffffff" maxlength="7"
+                     oninput="smkApplyColorHex('bg',this.value)" placeholder="#ffffff">
+              <button class="smk-mini-btn" onclick="smkClearBg()">✕ Clear</button>
             </div>
-            <div class="smk-brand-swatch" style="background:#a3a3a2;color:#fff;" title="補助文字 #a3a3a2"
-              onclick="smkApplyBrandColor('#a3a3a2')">
-              <span>#a3a3a2</span><small>補助文字</small>
-            </div>
-            <div class="smk-brand-swatch" style="background:#d3381c;color:#fff;" title="アクセント赤 #d3381c"
-              onclick="smkApplyBrandColor('#d3381c')">
-              <span>#d3381c</span><small>アクセント</small>
-            </div>
-            <div class="smk-brand-swatch" style="background:#C6A75C;color:#000;" title="ゴールド #C6A75C"
-              onclick="smkApplyBrandColor('#C6A75C')">
-              <span>#C6A75C</span><small>ゴールド</small>
+            <div class="smk-swatches" id="smk-bg-swatches"></div>
+          </div>
+
+          <!-- Border Color -->
+          <div class="smk-section">
+            <div class="smk-sec-title">BORDER COLOR</div>
+            <div class="smk-color-row">
+              <input type="color" id="smk-border-color" value="#cccccc" class="smk-color-picker" oninput="smkApplyColor('border',this.value)">
+              <input type="text" id="smk-border-hex" class="smk-hex-input" value="#cccccc" maxlength="7"
+                     oninput="smkApplyColorHex('border',this.value)" placeholder="#cccccc">
+              <button class="smk-mini-btn" onclick="smkClearBorder()">✕ Clear</button>
             </div>
           </div>
-        </div>
 
-        <!-- 文字色 -->
-        <div class="smk-section">
-          <div class="smk-section-title">文字色</div>
-          <div class="smk-color-picker-row">
-            <input type="color" id="smk-text-color" value="#ffffff"
-              oninput="smkApplyColor('text', this.value)">
-            <input type="text" id="smk-text-color-hex" value="#ffffff" placeholder="#ffffff"
-              oninput="smkApplyColorHex('text', this.value)" class="smk-hex-input">
-          </div>
-          <div class="smk-swatches" id="smk-text-swatches"></div>
         </div>
+      </div><!-- /color pane -->
 
-        <!-- 背景色 -->
-        <div class="smk-section">
-          <div class="smk-section-title">背景色</div>
-          <div class="smk-color-picker-row">
-            <input type="color" id="smk-bg-color" value="#000000"
-              oninput="smkApplyColor('bg', this.value)">
-            <input type="text" id="smk-bg-color-hex" value="#000000" placeholder="#000000"
-              oninput="smkApplyColorHex('bg', this.value)" class="smk-hex-input">
-            <button onclick="smkClearBg()" class="smk-small-btn">透明</button>
-          </div>
-          <div class="smk-swatches" id="smk-bg-swatches"></div>
-        </div>
-
-        <!-- 枠線色 -->
-        <div class="smk-section">
-          <div class="smk-section-title">枠線色</div>
-          <div class="smk-color-picker-row">
-            <input type="color" id="smk-border-color" value="#333333"
-              oninput="smkApplyColor('border', this.value)">
-            <input type="text" id="smk-border-color-hex" value="#333333" placeholder="#333333"
-              oninput="smkApplyColorHex('border', this.value)" class="smk-hex-input">
-            <button onclick="smkClearBorder()" class="smk-small-btn">なし</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== FONTタブ ===== -->
+      <!-- ===== FONT TAB ===== -->
       <div class="smk-pane" id="smk-pane-font" style="display:none;">
 
-        <!-- 選択ガイド -->
-        <div class="smk-guide smk-guide-font" id="smk-font-guide">
-          <div class="smk-guide-icon">✏️</div>
-          <div class="smk-guide-title">要素を選択してください</div>
-          <div class="smk-guide-desc">SELECTタブで要素を選んでから<br>フォントを変更できます</div>
+        <div class="smk-guide smk-guide-sm" id="smk-font-guide">
+          <div class="smk-guide-icon" style="font-size:20px;">✏️</div>
+          <div class="smk-guide-ttl" style="font-size:11px;">Select an element first</div>
         </div>
-        <div id="smk-font-controls" style="display:none;">
-          <div class="smk-sel-info-mini" id="smk-font-el-info">選択中: -</div>
 
-          <!-- ===== 基本設定 ===== -->
+        <div id="smk-font-ctrl" style="display:none;">
+          <div class="smk-font-el-info" id="smk-font-el-info"></div>
+
+          <!-- BASIC section -->
           <div class="smk-section">
-            <div class="smk-section-title">BASIC</div>
+            <div class="smk-sec-title">BASIC</div>
 
-            <!-- フォント種類 -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">フォント種類</div>
-              <div class="smk-font-cats" id="smk-font-cats"></div>
-              <input type="text" id="smk-font-search" placeholder="🔍 検索..." oninput="smkFilterFont(this.value)" class="smk-input" style="margin-top:6px;">
-              <select id="smk-font-select" onchange="smkApplyFont(this.value)" class="smk-select" style="margin-top:6px;"></select>
-              <div id="smk-font-preview" style="display:none;margin-top:8px;padding:10px;background:rgba(0,0,0,0.4);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
-                <div style="font-size:9px;color:#666;margin-bottom:4px;letter-spacing:0.1em;">PREVIEW</div>
-                <div id="smk-font-preview-text" style="font-size:22px;color:#fff;line-height:1.4;letter-spacing:0.05em;">Aa あいうえお 漢字 123</div>
-                <div id="smk-font-preview-name" style="font-size:10px;color:#666;margin-top:4px;"></div>
+            <!-- Font Family -->
+            <div class="smk-field">
+              <label class="smk-lbl">Font Family</label>
+              <div class="smk-font-picker">
+                <select id="smk-font-select" class="smk-select">
+                  <option value="">— Select Font —</option>
+                </select>
+                <div class="smk-font-preview-row" id="smk-font-preview-row" style="display:none;">
+                  <span class="smk-font-preview-txt" id="smk-font-preview-txt">Aa Bb Cc</span>
+                  <span class="smk-font-preview-name" id="smk-font-preview-name"></span>
+                </div>
+                <button class="smk-apply-btn" onclick="smkApplyFont(document.getElementById('smk-font-select').value)">Apply Font</button>
               </div>
             </div>
 
-            <!-- 文字サイズ -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">
-                <span>文字サイズ</span>
-                <span class="smk-val-badge" id="smk-size-val">16px</span>
-              </div>
-              <div class="smk-range-row">
-                <input type="range" id="smk-size-range" min="8" max="120" value="16" step="1"
-                  oninput="smkApplySize(this.value)" class="smk-range">
-                <input type="number" id="smk-size-input" min="8" max="300" value="16"
-                  oninput="smkApplySize(this.value)" class="smk-num-input">
-                <span style="color:#666;font-size:11px;">px</span>
-              </div>
-              <div class="smk-btn-row">
-                <button onclick="smkSizeStep(-1)" class="smk-step-btn">A▼</button>
-                <button onclick="smkSizeStep(-2)" class="smk-step-btn">A▼▼</button>
-                <button onclick="smkSizeStep(1)" class="smk-step-btn">A▲</button>
-                <button onclick="smkSizeStep(2)" class="smk-step-btn">A▲▲</button>
+            <!-- Font Size -->
+            <div class="smk-field">
+              <label class="smk-lbl">Size <span id="smk-size-val" class="smk-val-badge">16px</span></label>
+              <div class="smk-slider-row">
+                <input type="range" min="8" max="120" value="16" id="smk-size-range" oninput="smkApplySize(this.value)" class="smk-range">
+                <input type="number" id="smk-size-input" class="smk-num-input" value="16" min="8" max="300" oninput="smkApplySize(this.value)">
               </div>
             </div>
 
-            <!-- 太さ -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">
-                <span>太さ</span>
-                <span class="smk-val-badge" id="smk-weight-val">400</span>
-              </div>
-              <input type="range" id="smk-weight-range" min="100" max="900" value="400" step="100"
-                oninput="smkApplyWeight(this.value)" class="smk-range">
-              <div class="smk-btn-row">
-                <button onclick="smkSetWeight(300)" class="smk-step-btn">細</button>
-                <button onclick="smkSetWeight(400)" class="smk-step-btn">標準</button>
-                <button onclick="smkSetWeight(600)" class="smk-step-btn">やや太</button>
-                <button onclick="smkSetWeight(700)" class="smk-step-btn">太</button>
-                <button onclick="smkSetWeight(900)" class="smk-step-btn">極太</button>
+            <!-- Font Weight -->
+            <div class="smk-field">
+              <label class="smk-lbl">Weight <span id="smk-weight-val" class="smk-val-badge">400</span></label>
+              <input type="range" min="100" max="900" step="100" value="400" id="smk-weight-range" oninput="smkApplyWeight(this.value)" class="smk-range">
+              <div class="smk-weight-btns">
+                <button class="smk-wbtn" onclick="smkApplyWeight(300)">Light</button>
+                <button class="smk-wbtn" onclick="smkApplyWeight(400)">Regular</button>
+                <button class="smk-wbtn" onclick="smkApplyWeight(600)">Semi</button>
+                <button class="smk-wbtn" onclick="smkApplyWeight(700)">Bold</button>
+                <button class="smk-wbtn" onclick="smkApplyWeight(900)">Black</button>
               </div>
             </div>
 
-            <!-- 字間 -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">
-                <span>字間</span>
-                <span class="smk-val-badge" id="smk-ls-val">0em</span>
-              </div>
-              <input type="range" id="smk-ls-range" min="-10" max="100" value="0" step="1"
-                oninput="smkApplyLS(this.value)" class="smk-range">
+            <!-- Letter Spacing -->
+            <div class="smk-field">
+              <label class="smk-lbl">Letter Spacing <span id="smk-ls-val" class="smk-val-badge">0em</span></label>
+              <input type="range" min="-20" max="100" value="0" id="smk-ls-range" oninput="smkApplyLS(this.value)" class="smk-range">
             </div>
 
-            <!-- 行間 -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">
-                <span>行間</span>
-                <span class="smk-val-badge" id="smk-lh-val">1.5</span>
-              </div>
-              <input type="range" id="smk-lh-range" min="80" max="400" value="150" step="5"
-                oninput="smkApplyLH(this.value)" class="smk-range">
+            <!-- Line Height -->
+            <div class="smk-field">
+              <label class="smk-lbl">Line Height <span id="smk-lh-val" class="smk-val-badge">1.50</span></label>
+              <input type="range" min="80" max="300" value="150" id="smk-lh-range" oninput="smkApplyLH(this.value)" class="smk-range">
             </div>
 
-            <!-- 文字色（FONTタブ内） -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">文字色</div>
-              <div class="smk-color-picker-row">
-                <input type="color" id="smk-font-textcolor" value="#ffffff"
-                  oninput="smkApplyColor('text', this.value)">
-                <input type="text" id="smk-font-textcolor-hex" value="#ffffff" placeholder="#ffffff"
-                  oninput="smkApplyColorHex('text', this.value)" class="smk-hex-input">
+            <!-- Text Color (also in Color tab) -->
+            <div class="smk-field">
+              <label class="smk-lbl">Text Color</label>
+              <div class="smk-color-row">
+                <input type="color" id="smk-font-textcolor" value="#ffffff" class="smk-color-picker" oninput="smkApplyColor('text',this.value)">
+                <input type="text" id="smk-font-texthex" class="smk-hex-input" value="#ffffff" maxlength="7"
+                       oninput="smkApplyColorHex('text',this.value)">
               </div>
             </div>
 
-            <!-- 文字揃え -->
-            <div class="smk-ctrl-block">
-              <div class="smk-ctrl-label-row">文字揃え</div>
-              <div class="smk-btn-row">
-                <button onclick="smkApplyAlign('left')" class="smk-step-btn">左</button>
-                <button onclick="smkApplyAlign('center')" class="smk-step-btn">中央</button>
-                <button onclick="smkApplyAlign('right')" class="smk-step-btn">右</button>
-                <button onclick="smkApplyAlign('justify')" class="smk-step-btn">均等</button>
+            <!-- Text Align -->
+            <div class="smk-field">
+              <label class="smk-lbl">Alignment</label>
+              <div class="smk-align-btns">
+                <button class="smk-align-btn" onclick="smkApplyAlign('left')" title="Left">⬛⬜⬜</button>
+                <button class="smk-align-btn" onclick="smkApplyAlign('center')" title="Center">⬜⬛⬜</button>
+                <button class="smk-align-btn" onclick="smkApplyAlign('right')" title="Right">⬜⬜⬛</button>
+                <button class="smk-align-btn" onclick="smkApplyAlign('justify')" title="Justify">≡</button>
               </div>
             </div>
-          </div>
 
-          <!-- ===== 詳細設定 ===== -->
+          </div><!-- /basic section -->
+
+          <!-- ADVANCED section (collapsible) -->
           <div class="smk-section">
-            <div class="smk-section-title">
-              <span>DETAIL</span>
-              <button class="smk-collapse-btn" onclick="smkToggleCollapse('smk-detail-body')" id="smk-detail-toggle">▼</button>
+            <div class="smk-sec-title smk-sec-collapsible" onclick="smkToggleAdv()">
+              ADVANCED <span id="smk-adv-arrow">▶</span>
             </div>
-            <div id="smk-detail-body" style="display:none;">
+            <div id="smk-adv-body" style="display:none;">
 
-              <!-- 横幅比 -->
-              <div class="smk-ctrl-block">
-                <div class="smk-ctrl-label-row">
-                  <span>横幅比</span>
-                  <span class="smk-val-badge" id="smk-scx-val">1.0</span>
-                </div>
-                <input type="range" id="smk-scx-range" min="50" max="200" value="100" step="5"
-                  oninput="smkApplyTransformPart('scaleX', this.value/100)" class="smk-range">
-              </div>
-
-              <!-- 縦幅比 -->
-              <div class="smk-ctrl-block">
-                <div class="smk-ctrl-label-row">
-                  <span>縦幅比</span>
-                  <span class="smk-val-badge" id="smk-scy-val">1.0</span>
-                </div>
-                <input type="range" id="smk-scy-range" min="50" max="200" value="100" step="5"
-                  oninput="smkApplyTransformPart('scaleY', this.value/100)" class="smk-range">
-              </div>
-
-              <!-- 回転 -->
-              <div class="smk-ctrl-block">
-                <div class="smk-ctrl-label-row">
-                  <span>回転</span>
-                  <span class="smk-val-badge" id="smk-rot-val">0°</span>
-                </div>
-                <input type="range" id="smk-rot-range" min="-180" max="180" value="0" step="1"
-                  oninput="smkApplyTransformPart('rotate', this.value+'deg')" class="smk-range">
-                <button onclick="smkResetTransform()" class="smk-small-btn" style="margin-top:6px;">変形リセット</button>
-              </div>
-
-              <!-- 余白 -->
-              <div class="smk-ctrl-block">
-                <div class="smk-ctrl-label-row">余白 (px)</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <div>
-                    <div style="font-size:9px;color:#666;margin-bottom:3px;">上</div>
-                    <input type="number" id="smk-mt" value="0" oninput="smkApplyMargin('top', this.value)"
-                      class="smk-num-input" style="width:100%;">
-                  </div>
-                  <div>
-                    <div style="font-size:9px;color:#666;margin-bottom:3px;">下</div>
-                    <input type="number" id="smk-mb" value="0" oninput="smkApplyMargin('bottom', this.value)"
-                      class="smk-num-input" style="width:100%;">
-                  </div>
-                  <div>
-                    <div style="font-size:9px;color:#666;margin-bottom:3px;">左</div>
-                    <input type="number" id="smk-ml" value="0" oninput="smkApplyMargin('left', this.value)"
-                      class="smk-num-input" style="width:100%;">
-                  </div>
-                  <div>
-                    <div style="font-size:9px;color:#666;margin-bottom:3px;">右</div>
-                    <input type="number" id="smk-mr" value="0" oninput="smkApplyMargin('right', this.value)"
-                      class="smk-num-input" style="width:100%;">
-                  </div>
+              <!-- Italic / Underline / Shadow -->
+              <div class="smk-field">
+                <label class="smk-lbl">Style</label>
+                <div class="smk-style-btns">
+                  <button class="smk-style-btn" id="smk-italic-btn" onclick="smkToggleItalic()" title="Italic">I</button>
+                  <button class="smk-style-btn" onclick="smkDecorate('underline')" title="Underline">U̲</button>
+                  <button class="smk-style-btn" onclick="smkDecorate('line-through')" title="Strikethrough">S̶</button>
+                  <button class="smk-style-btn" onclick="smkDecorate('none')" title="None">✕</button>
                 </div>
               </div>
 
-              <!-- 装飾 -->
-              <div class="smk-ctrl-block">
-                <div class="smk-ctrl-label-row">装飾</div>
-                <div class="smk-btn-row">
-                  <button onclick="smkToggleItalic()" class="smk-step-btn" id="smk-italic-btn"><i>斜体</i></button>
-                  <button onclick="smkDecorate('underline')" class="smk-step-btn">下線</button>
-                  <button onclick="smkDecorate('line-through')" class="smk-step-btn">取消線</button>
-                  <button onclick="smkDecorate('none')" class="smk-step-btn" style="color:#d33;">なし</button>
+              <!-- Text Shadow -->
+              <div class="smk-field">
+                <label class="smk-lbl">Shadow</label>
+                <div class="smk-shadow-btns">
+                  <button class="smk-wbtn" onclick="smkApplyShadow('none')">None</button>
+                  <button class="smk-wbtn" onclick="smkApplyShadow('1px 1px 2px rgba(0,0,0,0.5)')">Soft</button>
+                  <button class="smk-wbtn" onclick="smkApplyShadow('2px 2px 4px rgba(0,0,0,0.8)')">Hard</button>
+                  <button class="smk-wbtn" onclick="smkApplyShadow('0 0 8px rgba(255,255,255,0.8)')">Glow</button>
                 </div>
               </div>
 
-              <!-- 影 -->
-              <div class="smk-ctrl-block">
-                <div class="smk-ctrl-label-row">テキスト影</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <button onclick="smkApplyShadow('1px 1px 2px rgba(0,0,0,0.5)')" class="smk-step-btn">弱</button>
-                  <button onclick="smkApplyShadow('2px 2px 6px rgba(0,0,0,0.7)')" class="smk-step-btn">中</button>
-                  <button onclick="smkApplyShadow('3px 3px 12px rgba(0,0,0,0.9)')" class="smk-step-btn">強</button>
-                  <button onclick="smkApplyShadow('0 0 10px #C6A75C')" class="smk-step-btn" style="color:#C6A75C;">金彩</button>
-                  <button onclick="smkApplyShadow('none')" class="smk-step-btn" style="color:#d33;">なし</button>
+              <!-- Scale X -->
+              <div class="smk-field">
+                <label class="smk-lbl">Scale X <span id="smk-scx-val" class="smk-val-badge">1.0</span></label>
+                <input type="range" min="10" max="300" value="100" id="smk-scx-range" oninput="smkApplyTransformPart('scaleX',this.value/100)" class="smk-range">
+              </div>
+
+              <!-- Scale Y -->
+              <div class="smk-field">
+                <label class="smk-lbl">Scale Y <span id="smk-scy-val" class="smk-val-badge">1.0</span></label>
+                <input type="range" min="10" max="300" value="100" id="smk-scy-range" oninput="smkApplyTransformPart('scaleY',this.value/100)" class="smk-range">
+              </div>
+
+              <!-- Rotate -->
+              <div class="smk-field">
+                <label class="smk-lbl">Rotate <span id="smk-rot-val" class="smk-val-badge">0°</span></label>
+                <input type="range" min="-180" max="180" value="0" id="smk-rot-range" oninput="smkApplyTransformPart('rotate',this.value+'deg')" class="smk-range">
+                <button class="smk-mini-btn" onclick="smkResetTransform()">Reset</button>
+              </div>
+
+              <!-- Margins -->
+              <div class="smk-field">
+                <label class="smk-lbl">Margin (px)</label>
+                <div class="smk-margin-grid">
+                  <span></span>
+                  <input type="number" id="smk-mt" class="smk-num-input smk-num-sm" value="0" oninput="smkApplyMargin('top',this.value)" placeholder="T">
+                  <span></span>
+                  <input type="number" id="smk-ml" class="smk-num-input smk-num-sm" value="0" oninput="smkApplyMargin('left',this.value)" placeholder="L">
+                  <span class="smk-margin-c">M</span>
+                  <input type="number" id="smk-mr" class="smk-num-input smk-num-sm" value="0" oninput="smkApplyMargin('right',this.value)" placeholder="R">
+                  <span></span>
+                  <input type="number" id="smk-mb" class="smk-num-input smk-num-sm" value="0" oninput="smkApplyMargin('bottom',this.value)" placeholder="B">
+                  <span></span>
                 </div>
               </div>
 
-            </div><!-- /detail-body -->
-          </div>
+            </div><!-- /adv-body -->
+          </div><!-- /advanced section -->
 
-        </div><!-- /font-controls -->
+        </div><!-- /font-ctrl -->
       </div><!-- /font pane -->
 
     </div><!-- /smk-main -->
   </div><!-- /smk-body -->
-</div>
-<!-- /smask-admin-panel -->
+</div><!-- /smask-admin-panel -->
 
-<!-- 旧パネルトグルボタン (非表示にして代替) -->
-<button id="smk-panel-toggle-btn" onclick="smkTogglePanel()" title="パネル開閉"
-  style="position:fixed;bottom:20px;right:20px;z-index:999999;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#C6A75C,#8B6914);color:#000;font-size:18px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.5);font-weight:700;-webkit-tap-highlight-color:transparent;">⚙</button>
+<!-- Panel Toggle Button -->
+<button id="smk-panel-toggle-btn" onclick="smkTogglePanel()" title="Open/Close Panel"
+  style="position:fixed;bottom:20px;right:20px;z-index:999999;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#C6A75C,#8B6914);color:#000;font-size:20px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.5);font-weight:700;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;">⚙</button>
+
+
 
 </div>
 
@@ -5513,581 +5380,246 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v9-script">
+<script id="smask-v10-script">
 (function(){
 'use strict';
 
-/* ========== フォントリスト ========== */
+/* ============================================================
+   SMASK v10 — Admin Panel Core
+   - English UI
+   - English fonts only (15-20 fonts)
+   - Apply button for font (not auto-apply)
+   - All changes applied with !important to override CSS
+   - Color/Font/Style all apply to real DOM
+   - Undo/Redo, CSS output, Select Mode
+   - 1-char split preserved
+   ============================================================ */
+
+/* ---------- Font List (English only, 18 fonts) ---------- */
 var SMK_FONTS = [
-  {n:'Noto Sans JP',      l:'ノートSans',     cat:'readable'},
-  {n:'Noto Serif JP',     l:'ノートSerif',    cat:'readable'},
-  {n:'M PLUS Rounded 1c', l:'Mプラスラウンド', cat:'kawaii'},
-  {n:'Zen Maru Gothic',   l:'禅丸ゴシック',   cat:'kawaii'},
-  {n:'Yomogi',            l:'よもぎ',         cat:'kawaii'},
-  {n:'Kosugi Maru',       l:'コスギ丸',       cat:'kawaii'},
-  {n:'Klee One',          l:'クレーワン',     cat:'kirei'},
-  {n:'Sawarabi Gothic',   l:'さわらびゴシック',cat:'readable'},
-  {n:'Sawarabi Mincho',   l:'さわらび明朝',   cat:'kirei'},
-  {n:'Shippori Mincho',   l:'しっぽり明朝',   cat:'kirei'},
-  {n:'Hina Mincho',       l:'雛明朝',         cat:'kirei'},
-  {n:'Yuji Syuku',        l:'游字塾',         cat:'wa'},
-  {n:'Yuji Mai',          l:'游字舞',         cat:'wa'},
-  {n:'Zen Kurenaido',     l:'禅紅藤',         cat:'wa'},
-  {n:'Zen Old Mincho',    l:'禅古明朝',       cat:'wa'},
-  {n:'Zen Antique Soft',  l:'禅アンティーク', cat:'luxury'},
-  {n:'Kaisei Decol',      l:'解星デコール',   cat:'luxury'},
-  {n:'Kaisei Tokumin',    l:'解星得民',       cat:'luxury'},
-  {n:'DotGothic16',       l:'ドットゴシック', cat:'bold'},
-  {n:'Dela Gothic One',   l:'デラゴシック',   cat:'bold'},
-  {n:'Train One',         l:'トレインワン',   cat:'bold'},
-  {n:'Stick',             l:'スティック',     cat:'bold'},
-  {n:'RocknRoll One',     l:'ロックンロール', cat:'bold'},
-  {n:'Reggae One',        l:'レゲエワン',     cat:'bold'},
-  {n:'BIZ UDPGothic',     l:'BIZゴシック',    cat:'readable'},
-  {n:'BIZ UDPMincho',     l:'BIZ明朝',        cat:'readable'},
-  {n:'Kosugi',            l:'コスギ',         cat:'readable'},
-  {n:'Murecho',           l:'ムレーコ',       cat:'readable'},
-  {n:'Pacifico',          l:'Pacifico',       cat:'en'},
-  {n:'Playfair Display',  l:'Playfair',       cat:'en'},
-  {n:'Cormorant Garamond',l:'Cormorant',      cat:'en'},
-  {n:'Cinzel',            l:'Cinzel',         cat:'en'},
-  {n:'Josefin Sans',      l:'Josefin',        cat:'en'},
-  {n:'Raleway',           l:'Raleway',        cat:'en'},
-  {n:'Montserrat',        l:'Montserrat',     cat:'en'},
+  {n:'Playfair Display',  label:'Playfair Display — Serif Elegant'},
+  {n:'Cormorant Garamond',label:'Cormorant Garamond — Fine Serif'},
+  {n:'EB Garamond',       label:'EB Garamond — Classic Serif'},
+  {n:'Cinzel',            label:'Cinzel — Roman Capitals'},
+  {n:'Lora',              label:'Lora — Modern Serif'},
+  {n:'Merriweather',      label:'Merriweather — Readable Serif'},
+  {n:'Libre Baskerville', label:'Libre Baskerville — Traditional'},
+  {n:'Crimson Text',      label:'Crimson Text — Literary Serif'},
+  {n:'Montserrat',        label:'Montserrat — Modern Sans'},
+  {n:'Raleway',           label:'Raleway — Elegant Sans'},
+  {n:'Josefin Sans',      label:'Josefin Sans — Geometric Sans'},
+  {n:'Poppins',           label:'Poppins — Friendly Sans'},
+  {n:'Inter',             label:'Inter — UI Sans'},
+  {n:'DM Sans',           label:'DM Sans — Clean Sans'},
+  {n:'Outfit',            label:'Outfit — Contemporary Sans'},
+  {n:'Oswald',            label:'Oswald — Condensed Sans'},
+  {n:'Bebas Neue',        label:'Bebas Neue — Display Bold'},
+  {n:'Pacifico',          label:'Pacifico — Script'},
+  {n:'Dancing Script',    label:'Dancing Script — Handwritten'},
+  {n:'Great Vibes',       label:'Great Vibes — Calligraphy'},
 ];
-var SMK_CATS = {all:'すべて',kirei:'✨きれい',kawaii:'🌸かわいい',luxury:'💎高級感',wa:'🎋和風',bold:'💪目立つ',readable:'📖読みやすい',en:'🔤英字'};
-var SMK_TEXT_SWATCHES = ['#ffffff','#2b2b2b','#d3381c','#C6A75C','#a3a3a2','#3a86ff','#06d6a0','#ff6b6b','#ffd166','#4ecdc4','#e8c4e8','#f7a8a8'];
-var SMK_BG_SWATCHES   = ['transparent','#ffffff','#2b2b2b','#fef4f4','#fff8f0','#f0f4ff','#1a1a1a','#C6A75C','#d3381c','#3a86ff'];
 
-var _smkEl = null;     // 選択中要素
-var _smkCat = 'all';   // フォントカテゴリ
-var _smkMode = 'normal'; // 編集モード
-var _smkHistory = [];   // Undo履歴
-var _smkHistIdx = -1;   // 履歴インデックス
-var _smkPanelOpen = true;
+/* ---------- Color Swatches ---------- */
+var SMK_TEXT_SW = ['#ffffff','#1a1a1a','#C6A75C','#d3381c','#3a86ff','#06d6a0','#ff6b6b','#ffd166','#a3a3a2','#555555'];
+var SMK_BG_SW   = ['transparent','#ffffff','#1a1a1a','#C6A75C','#fef4f4','#fff8f0','#f0f4ff','#d3381c','#3a86ff','#000000'];
 
-/* ========== 初期化 ========== */
+/* ---------- State ---------- */
+var _el       = null;   // selected element
+var _mode     = 'normal';
+var _hist     = [];
+var _histIdx  = -1;
+var _adv      = false;
+var _transform = {scaleX:1, scaleY:1, rotate:'0deg'};
+
+/* ============================================================
+   INIT
+   ============================================================ */
 function smkInit(){
   buildFontSelect();
-  buildFontCats();
-  buildSwatches();
   buildCharFontSelect();
-  patchSelectElement();
+  buildSwatches();
+  patchSelectEl();
   patchSwitchTabById();
-  syncClickModeBtn();
-  setInterval(syncClickModeBtn, 800);
-  // パネル外クリックで閉じる（モバイル）
-  document.addEventListener('click', function(e){
-    var panel = document.getElementById('smask-admin-panel');
-    var toggleBtn = document.getElementById('smk-panel-toggle-btn');
-    if(!panel || !toggleBtn) return;
-    if(panel.classList.contains('smk-closed')) return;
-    if(panel.contains(e.target) || toggleBtn.contains(e.target)) return;
-    // モバイルのみ自動クローズ（clickMode中は閉じない）
-    if(window.innerWidth <= 768 && !clickMode) {
-      // panel.classList.add('smk-closed'); // コメントアウト: 必要に応じて有効化
-    }
-  });
+  syncSelModeBtn();
+  setInterval(syncSelModeBtn, 1000);
 }
 
-/* ========== selectElement パッチ ========== */
-function patchSelectElement(){
-  if(window._smkPatched) return;
-  if(typeof window.selectElement !== 'function') return;
-  window._smkPatched = true;
+/* ============================================================
+   SELECT ELEMENT PATCH
+   (works with existing selectElement / clickMode)
+   ============================================================ */
+function patchSelectEl(){
+  if(window._smk10Patched) return;
+  if(typeof window.selectElement !== 'function'){ setTimeout(patchSelectEl, 200); return; }
+  window._smk10Patched = true;
   var orig = window.selectElement;
   window.selectElement = function(el){
-    _smkEl = el;
+    orig.call(this, el);
+    _el = el;
     window.smaskEl = el;
-    orig(el);
     smkOnSelect(el);
   };
-  console.log('[SMK v9] selectElement patched');
+
+  // Also patch initEditableElements to add touch support
+  patchEditable();
 }
 
-/* ========== switchTabById パッチ（1文字分割との互換） ========== */
+function patchEditable(){
+  // Add touch/pointer support to all editable elements
+  var EXCLUDE = '#smask-admin-panel,.dev-banner,nav,#smk-panel-toggle-btn';
+  function bindEl(el){
+    if(el._smk10bound) return;
+    el._smk10bound = true;
+    // touchstart for iPhone Safari
+    el.addEventListener('touchstart', function(e){
+      if(!(typeof clickMode !== 'undefined' && clickMode)) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      smkDoSelect(el);
+    }, {passive: false});
+    // pointerdown for Android/PC
+    el.addEventListener('pointerdown', function(e){
+      if(!(typeof clickMode !== 'undefined' && clickMode)) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(e.target)) return;
+      smkDoSelect(el);
+    });
+  }
+
+  function scanEditable(){
+    var els = document.querySelectorAll('.page-editable, [data-editable="true"]');
+    els.forEach(function(el){
+      if(el.closest(EXCLUDE)) return;
+      bindEl(el);
+    });
+  }
+  scanEditable();
+  setInterval(scanEditable, 2000);
+}
+
+function smkDoSelect(el){
+  document.querySelectorAll('.el-selected').forEach(function(x){ x.classList.remove('el-selected'); });
+  _el = el;
+  window.smaskEl = el;
+  if(typeof selectedEl !== 'undefined') selectedEl = el;
+  if(typeof selectElement === 'function') try{ selectElement(el); }catch(e){}
+  smkOnSelect(el);
+}
+
 function patchSwitchTabById(){
-  if(window._smkTabPatched) return;
-  if(typeof window.switchTabById !== 'function') return;
-  window._smkTabPatched = true;
-  var origSwitch = window.switchTabById;
+  if(window._smk10TabPatched) return;
+  if(typeof window.switchTabById !== 'function'){ setTimeout(patchSwitchTabById, 300); return; }
+  window._smk10TabPatched = true;
+  var orig = window.switchTabById;
   window.switchTabById = function(tabId){
-    // 旧タブIDをv9タブにマッピング
-    if(tabId === 'tab-select'){
-      smkTab('select');
-    } else {
-      try{ origSwitch(tabId); }catch(e){}
-    }
+    if(tabId === 'tab-select') smkTab('select');
+    else { try{ orig(tabId); }catch(e){} }
   };
 }
 
-/* ========== クリックモードボタン同期 ========== */
-function syncClickModeBtn(){
-  patchSelectElement();
-  patchSwitchTabById();
+/* ============================================================
+   SELECTION MODE SYNC
+   ============================================================ */
+function syncSelModeBtn(){
+  patchSelectEl();
   var btn = document.getElementById('smk-click-btn');
   if(!btn) return;
-  var isOn = (typeof clickMode !== 'undefined') && clickMode;
-  btn.classList.toggle('active', isOn);
-  // ガイド表示
-  if(isOn && _smkEl){
-    showSelInfo(_smkEl);
-  } else if(isOn && !_smkEl){
-    showGuide();
-  } else {
-    showGuide();
-  }
+  var on = (typeof clickMode !== 'undefined') && clickMode;
+  btn.classList.toggle('active', on);
 }
 
-/* ========== 要素選択時 ========== */
+window.smkToggleSelectMode = function(){
+  if(typeof toggleClickMode === 'function') toggleClickMode();
+  setTimeout(syncSelModeBtn, 100);
+};
+
+/* ============================================================
+   ELEMENT SELECTED CALLBACK
+   ============================================================ */
 function smkOnSelect(el){
-  _smkEl = el;
+  _el = el;
+  updateHeaderLabel(el);
   showSelInfo(el);
   updateColorUI(el);
   updateFontUI(el);
-  smkSaveHistory();
+  smkSaveHist();
+  // Show controls in color/font tab
+  showTabControls();
+}
+
+function updateHeaderLabel(el){
+  var lbl = document.getElementById('smk-sel-label');
+  var dot = document.getElementById('smk-sel-dot');
+  if(!el){ if(lbl) lbl.textContent='No selection'; if(dot) dot.className='smk-sel-dot'; return; }
+  var tag = el.tagName.toLowerCase();
+  var txt = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,10);
+  if(lbl) lbl.textContent = tag + (txt ? ' / '+txt : '');
+  if(dot) dot.className = 'smk-sel-dot active';
 }
 
 function showGuide(){
-  var guide = document.getElementById('smk-guide');
-  var info  = document.getElementById('smk-sel-info');
-  if(guide) guide.style.display = 'block';
-  if(info)  info.style.display  = 'none';
-  // ヘッダー
-  var lbl = document.getElementById('smk-sel-label');
-  var dot = document.getElementById('smk-sel-dot');
-  if(lbl) lbl.textContent = '未選択';
-  if(dot) dot.classList.remove('active');
+  var g = document.getElementById('smk-guide');
+  var i = document.getElementById('smk-sel-info');
+  if(g) g.style.display='block';
+  if(i) i.style.display='none';
+  updateHeaderLabel(null);
 }
 
 function showSelInfo(el){
-  var guide = document.getElementById('smk-guide');
-  var info  = document.getElementById('smk-sel-info');
-  if(guide) guide.style.display = 'none';
-  if(info)  info.style.display  = 'block';
-
+  var g = document.getElementById('smk-guide');
+  var i = document.getElementById('smk-sel-info');
+  if(g) g.style.display='none';
+  if(i) i.style.display='block';
   var tag = el.tagName.toLowerCase();
-  var txt = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,20);
-  var tagEl  = document.getElementById('smk-info-tag');
-  var txtEl  = document.getElementById('smk-info-text');
+  var txt = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,24);
+  var tagEl = document.getElementById('smk-info-tag');
+  var txtEl = document.getElementById('smk-info-txt');
   if(tagEl) tagEl.textContent = tag.toUpperCase() + (el.dataset.elLabel ? ' / '+el.dataset.elLabel : '');
-  if(txtEl) txtEl.textContent = '"'+txt+(txt.length>=20?'…':'') + '"';
-
-  // ヘッダー
-  var lbl = document.getElementById('smk-sel-label');
-  var dot = document.getElementById('smk-sel-dot');
-  if(lbl) lbl.textContent = tag+(txt?' / '+txt.slice(0,8):'');
-  if(dot) dot.classList.add('active');
-
-  // unwrapボタン
+  if(txtEl) txtEl.textContent = '"'+txt+(txt.length>=24?'…':'')+'"';
+  // unwrap button
   var uw = document.getElementById('smk-unwrap-wrap');
   if(uw) uw.style.display = el.classList.contains('char-styled') ? 'block' : 'none';
+}
 
-  // COLOR / FONT ガイド非表示
+function showTabControls(){
+  var el = _el;
+  if(!el) return;
+  var tag = el.tagName.toLowerCase();
+  var txt = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,16);
+  var info = tag + ' "' + txt + '"';
   ['color','font'].forEach(function(t){
     var g = document.getElementById('smk-'+t+'-guide');
-    var c = document.getElementById('smk-'+t+'-controls');
+    var c = document.getElementById('smk-'+t+'-ctrl');
     var m = document.getElementById('smk-'+t+'-el-info');
-    if(g) g.style.display = 'none';
-    if(c) c.style.display = 'block';
-    if(m) m.textContent = '選択中: '+tag+' "'+txt.slice(0,12)+'"';
+    if(g) g.style.display='none';
+    if(c) c.style.display='block';
+    if(m) m.textContent = 'Editing: '+info;
   });
 }
 
-/* ========== タブ切り替え ========== */
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
 window.smkTab = function(tab){
   ['select','color','font'].forEach(function(t){
-    var pane = document.getElementById('smk-pane-'+t);
-    var btn  = document.getElementById('smk-btn-'+t);
-    if(pane) pane.style.display = (t===tab) ? 'block' : 'none';
-    if(btn)  btn.classList.toggle('active', t===tab);
+    var p = document.getElementById('smk-pane-'+t);
+    var b = document.getElementById('smk-btn-'+t);
+    if(p) p.style.display = (t===tab) ? 'block' : 'none';
+    if(b) b.classList.toggle('active', t===tab);
   });
 };
 
-/* ========== パネル開閉 ========== */
+/* ============================================================
+   PANEL TOGGLE
+   ============================================================ */
 window.smkTogglePanel = function(){
   var p = document.getElementById('smask-admin-panel');
   if(p) p.classList.toggle('smk-closed');
 };
-
-/* ========== 編集モード ========== */
-window.smkSetMode = function(mode){
-  _smkMode = mode;
-  var nb = document.getElementById('smk-mode-normal');
-  var cb = document.getElementById('smk-mode-char');
-  var nc = document.getElementById('smk-normal-controls');
-  var cc = document.getElementById('smk-char-controls');
-  if(nb) nb.classList.toggle('active', mode==='normal');
-  if(cb) cb.classList.toggle('active', mode==='char');
-  if(nc) nc.style.display = (mode==='normal') ? 'block' : 'none';
-  if(cc) cc.style.display = (mode==='char')   ? 'block' : 'none';
-  // textModeとの同期
-  if(typeof setSelMode === 'function'){
-    try{ setSelMode(mode==='char' ? 'char' : 'element'); }catch(e){}
-  }
-};
-
-/* ========== toggleClickMode同期 ========== */
-window.toggleClickMode = (function(){
-  var orig = window.toggleClickMode;
-  return function(){
-    if(orig) orig.apply(this, arguments);
-    setTimeout(syncClickModeBtn, 100);
-  };
-})();
-
-/* ========== Undo / Redo ========== */
-function smkSaveHistory(){
-  if(!_smkEl) return;
-  var snap = {el: _smkEl, style: _smkEl.getAttribute('style') || ''};
-  // 現在位置より後を削除
-  _smkHistory = _smkHistory.slice(0, _smkHistIdx+1);
-  _smkHistory.push(snap);
-  if(_smkHistory.length > 50) _smkHistory.shift();
-  _smkHistIdx = _smkHistory.length - 1;
-}
-window.smkUndo = function(){
-  if(_smkHistIdx <= 0){ showToast('これ以上戻れません'); return; }
-  _smkHistIdx--;
-  var snap = _smkHistory[_smkHistIdx];
-  if(snap && snap.el){ snap.el.setAttribute('style', snap.style); updateFontUI(snap.el); updateColorUI(snap.el); }
-  showToast('↩ 元に戻しました');
-};
-window.smkRedo = function(){
-  if(_smkHistIdx >= _smkHistory.length-1){ showToast('これ以上進めません'); return; }
-  _smkHistIdx++;
-  var snap = _smkHistory[_smkHistIdx];
-  if(snap && snap.el){ snap.el.setAttribute('style', snap.style); updateFontUI(snap.el); updateColorUI(snap.el); }
-  showToast('↪ やり直しました');
-};
-
-/* ========== リセット ========== */
-window.smkResetMenu = function(){
-  var m = document.getElementById('smk-reset-menu');
-  if(m) m.style.display = m.style.display==='none' ? 'block' : 'none';
-  document.addEventListener('click', function handler(e){
-    var m2 = document.getElementById('smk-reset-menu');
-    if(m2 && !m2.contains(e.target)){ m2.style.display='none'; }
-    document.removeEventListener('click', handler);
-  }, {once:true});
-};
-window.smkResetEl = function(type){
-  var m = document.getElementById('smk-reset-menu');
-  if(m) m.style.display='none';
-  var el = getEl(); if(!el) return;
-  smkSaveHistory();
-  if(type==='all'){ el.removeAttribute('style'); }
-  else if(type==='font'){
-    ['fontFamily','fontSize','fontWeight','letterSpacing','lineHeight','fontStyle','textDecoration','textAlign','textShadow'].forEach(function(p){ el.style[p]=''; });
-  }
-  else if(type==='color'){
-    ['color','backgroundColor','borderColor'].forEach(function(p){ el.style[p]=''; });
-  }
-  updateFontUI(el); updateColorUI(el);
-  showToast('リセットしました');
-};
-
-/* ========== フォント操作 ========== */
-function buildFontCats(){
-  var box = document.getElementById('smk-font-cats');
-  if(!box) return;
-  box.innerHTML = '';
-  Object.keys(SMK_CATS).forEach(function(k){
-    var b = document.createElement('button');
-    b.className = 'smk-cat-btn' + (k==='all'?' active':'');
-    b.textContent = SMK_CATS[k];
-    b.onclick = function(){
-      _smkCat = k;
-      document.querySelectorAll('.smk-cat-btn').forEach(function(x){ x.classList.remove('active'); });
-      b.classList.add('active');
-      buildFontSelect();
-    };
-    box.appendChild(b);
-  });
-}
-
-function buildFontSelect(){
-  var sel = document.getElementById('smk-font-select');
-  if(!sel) return;
-  var q = (document.getElementById('smk-font-search')||{}).value || '';
-  q = q.toLowerCase();
-  var list = SMK_FONTS.filter(function(f){
-    return (_smkCat==='all'||f.cat===_smkCat) && (q===''||f.n.toLowerCase().includes(q)||f.l.includes(q));
-  });
-  sel.innerHTML = '<option value="">-- フォントを選択 --</option>';
-  list.forEach(function(f){
-    var o = document.createElement('option');
-    o.value = f.n;
-    o.textContent = f.l + ' — ' + f.n;
-    sel.appendChild(o);
-  });
-}
-
-function buildCharFontSelect(){
-  var sel = document.getElementById('smask-char-font-sel');
-  if(!sel) return;
-  sel.innerHTML = '<option value="">-- 選択 --</option>';
-  SMK_FONTS.forEach(function(f){
-    var o = document.createElement('option');
-    o.value = f.n; o.textContent = f.l;
-    sel.appendChild(o);
-  });
-}
-
-window.smkFilterFont = function(q){ buildFontSelect(); };
-
-function loadGFont(name){
-  var id = 'gf-'+name.replace(/\s/g,'-');
-  if(!document.getElementById(id)){
-    var link = document.createElement('link');
-    link.id = id; link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family='+encodeURIComponent(name)+':wght@300;400;600;700&display=swap';
-    document.head.appendChild(link);
-  }
-}
-
-window.smkApplyFont = function(name){
-  if(!name) return;
-  var el = getEl(); if(!el){ showToast('要素を選択してください'); return; }
-  smkSaveHistory();
-  loadGFont(name);
-  el.style.fontFamily = '"'+name+'", sans-serif';
-  // プレビュー
-  var prev = document.getElementById('smk-font-preview');
-  var prevTxt = document.getElementById('smk-font-preview-text');
-  var prevName = document.getElementById('smk-font-preview-name');
-  if(prev){ prev.style.display='block'; }
-  if(prevTxt){ prevTxt.style.fontFamily = '"'+name+'", sans-serif'; }
-  if(prevName){ prevName.textContent = name; }
-  showToast('フォント適用: '+name);
-};
-
-/* ========== サイズ ========== */
-window.smkApplySize = function(v){
-  var el = getEl(); if(!el) return;
-  var px = Math.max(8, Math.min(300, parseInt(v)||16));
-  el.style.fontSize = px+'px';
-  setSlider('smk-size-range','smk-size-val',px,px+'px','smk-size-input');
-};
-window.smkSizeStep = function(d){
-  var el=getEl(); if(!el) return;
-  var cur = parseFloat(getComputedStyle(el).fontSize)||16;
-  smkApplySize(cur+d);
-};
-
-/* ========== 太さ ========== */
-window.smkApplyWeight = function(v){
-  var el=getEl(); if(!el) return;
-  el.style.fontWeight = v;
-  setSlider('smk-weight-range','smk-weight-val',parseInt(v),v);
-};
-window.smkSetWeight = function(v){ smkApplyWeight(v); };
-
-/* ========== 字間 ========== */
-window.smkApplyLS = function(v){
-  var el=getEl(); if(!el) return;
-  var em = parseInt(v)/100;
-  el.style.letterSpacing = em+'em';
-  var vEl = document.getElementById('smk-ls-val');
-  if(vEl) vEl.textContent = em.toFixed(2)+'em';
-  updateSliderGrad('smk-ls-range',parseInt(v));
-};
-
-/* ========== 行間 ========== */
-window.smkApplyLH = function(v){
-  var el=getEl(); if(!el) return;
-  var r = parseInt(v)/100;
-  el.style.lineHeight = r;
-  var vEl = document.getElementById('smk-lh-val');
-  if(vEl) vEl.textContent = r.toFixed(2);
-  updateSliderGrad('smk-lh-range',parseInt(v));
-};
-
-/* ========== 文字揃え ========== */
-window.smkApplyAlign = function(v){
-  var el=getEl(); if(!el) return;
-  el.style.textAlign = v;
-};
-
-/* ========== 変形 ========== */
-var _smkTransform = {scaleX:1, scaleY:1, rotate:'0deg'};
-window.smkApplyTransformPart = function(type, val){
-  var el=getEl(); if(!el) return;
-  _smkTransform[type] = val;
-  el.style.transform = 'scaleX('+_smkTransform.scaleX+') scaleY('+_smkTransform.scaleY+') rotate('+_smkTransform.rotate+')';
-  // バッジ更新
-  if(type==='scaleX'){var b=document.getElementById('smk-scx-val');if(b)b.textContent=parseFloat(val).toFixed(1);}
-  if(type==='scaleY'){var b2=document.getElementById('smk-scy-val');if(b2)b2.textContent=parseFloat(val).toFixed(1);}
-  if(type==='rotate'){var b3=document.getElementById('smk-rot-val');if(b3)b3.textContent=parseInt(val)+'°';}
-  updateSliderGrad('smk-rot-range', parseInt(val)||0);
-};
-window.smkResetTransform = function(){
-  var el=getEl(); if(!el) return;
-  el.style.transform = '';
-  _smkTransform = {scaleX:1, scaleY:1, rotate:'0deg'};
-  ['smk-scx-range','smk-scy-range','smk-rot-range'].forEach(function(id){
-    var r=document.getElementById(id);
-    if(r){r.value=(id==='smk-rot-range')?0:100; updateSliderGrad(id,r.value);}
-  });
-};
-
-/* ========== 余白 ========== */
-window.smkApplyMargin = function(side, v){
-  var el=getEl(); if(!el) return;
-  var px = parseInt(v)||0;
-  if(side==='top')   el.style.marginTop    = px+'px';
-  if(side==='bottom') el.style.marginBottom = px+'px';
-  if(side==='left')  el.style.marginLeft   = px+'px';
-  if(side==='right') el.style.marginRight  = px+'px';
-};
-
-/* ========== 装飾 ========== */
-window.smkToggleItalic = function(){
-  var el=getEl(); if(!el) return;
-  el.style.fontStyle = el.style.fontStyle==='italic' ? 'normal' : 'italic';
-  var btn = document.getElementById('smk-italic-btn');
-  if(btn) btn.style.color = el.style.fontStyle==='italic' ? '#C6A75C' : '';
-};
-window.smkDecorate = function(v){
-  var el=getEl(); if(!el) return;
-  el.style.textDecoration = v;
-};
-window.smkApplyShadow = function(v){
-  var el=getEl(); if(!el) return;
-  el.style.textShadow = v;
-};
-
-/* ========== カラー ========== */
-function buildSwatches(){
-  // 文字色スウォッチ
-  var tb = document.getElementById('smk-text-swatches');
-  if(tb){
-    SMK_TEXT_SWATCHES.forEach(function(c){
-      var s = makeSwatch(c, function(){ smkApplyColor('text',c); });
-      tb.appendChild(s);
-    });
-  }
-  // 背景色スウォッチ
-  var bb = document.getElementById('smk-bg-swatches');
-  if(bb){
-    SMK_BG_SWATCHES.forEach(function(c){
-      var s = makeSwatch(c, function(){ smkApplyColor('bg',c); });
-      bb.appendChild(s);
-    });
-  }
-}
-function makeSwatch(c, onclick){
-  var s = document.createElement('div');
-  s.className = 'smk-swatch';
-  if(c==='transparent'){
-    s.style.background = 'repeating-linear-gradient(45deg,#555 0,#555 4px,transparent 4px,transparent 8px)';
-    s.style.border = '1px solid #666';
-  } else {
-    s.style.background = c;
-  }
-  s.title = c;
-  s.onclick = onclick;
-  return s;
-}
-
-window.smkApplyColor = function(type, val){
-  var el = getEl(); if(!el) return;
-  smkSaveHistory();
-  if(type==='text'){
-    el.style.color = val;
-    updateColorInputs('smk-text-color','smk-text-color-hex','smk-font-textcolor','smk-font-textcolor-hex',val);
-  } else if(type==='bg'){
-    el.style.backgroundColor = val;
-    var bc = document.getElementById('smk-bg-color');
-    var bch = document.getElementById('smk-bg-color-hex');
-    if(bc && val!=='transparent') bc.value = val;
-    if(bch) bch.textContent = val;
-  } else if(type==='border'){
-    el.style.borderColor = val;
-    var brc = document.getElementById('smk-border-color');
-    var brch = document.getElementById('smk-border-color-hex');
-    if(brc) brc.value = val;
-    if(brch) brch.textContent = val;
-  }
-};
-function updateColorInputs(id1,id2,id3,id4,val){
-  [id1,id3].forEach(function(id){ var e=document.getElementById(id); if(e&&val&&val[0]==='#')e.value=val; });
-  [id2,id4].forEach(function(id){ var e=document.getElementById(id); if(e)e.textContent=val; });
-}
-
-window.smkApplyColorHex = function(type, val){
-  if(/^#[0-9a-fA-F]{3,6}$/.test(val)) smkApplyColor(type, val);
-};
-window.smkClearBg = function(){
-  var el=getEl(); if(!el) return;
-  el.style.backgroundColor = 'transparent';
-  var bch = document.getElementById('smk-bg-color-hex');
-  if(bch) bch.textContent = 'transparent';
-};
-window.smkClearBorder = function(){
-  var el=getEl(); if(!el) return;
-  el.style.borderColor = ''; el.style.border = 'none';
-};
-
-window.smkApplyBrandColor = function(val){
-  var el=getEl(); if(!el){ showToast('要素を選択してください'); return; }
-  smkSaveHistory();
-  el.style.color = val;
-  updateColorInputs('smk-text-color','smk-text-color-hex','smk-font-textcolor','smk-font-textcolor-hex',val);
-  showToast('ブランドカラー適用: '+val);
-};
-
-/* ========== 1文字スタイル ========== */
-window.smaskApplyCharColor = function(val){
-  var el=getEl(); if(!el) return;
-  el.style.color = val;
-  var hex = document.getElementById('smask-char-color-hex');
-  if(hex) hex.textContent = val;
-  smaskUpdateCharPreview();
-};
-window.smaskApplyCharBg = function(val){
-  var el=getEl(); if(!el) return;
-  el.style.backgroundColor = val;
-  var hex = document.getElementById('smask-char-bg-hex');
-  if(hex) hex.textContent = val;
-  smaskUpdateCharPreview();
-};
-window.smaskClearCharBg = function(){
-  var el=getEl(); if(!el) return;
-  el.style.backgroundColor = 'transparent';
-};
-window.smaskApplyCharFont = function(name){
-  var el=getEl(); if(!el) return;
-  if(name){ loadGFont(name); el.style.fontFamily = '"'+name+'", sans-serif'; }
-};
-window.smaskApplyCharSize = function(v){
-  var el=getEl(); if(!el) return;
-  el.style.fontSize = v+'px';
-  var vv = document.getElementById('smask-char-size-val');
-  if(vv) vv.textContent = v+'px';
-};
-window.smaskApplyCharWeight = function(v){
-  var el=getEl(); if(!el) return;
-  el.style.fontWeight = v;
-};
-
-/* ========== ミニツールバー連携 ========== */
-window.smaskMiniFont = function(){
-  smkTab('font');
-  if(typeof openPanel==='function') openPanel();
-  if(typeof smaskHideMiniToolbar==='function') smaskHideMiniToolbar();
-  setTimeout(function(){
-    var s=document.getElementById('smk-font-search');
-    if(s){s.focus();s.scrollIntoView({block:'nearest'});}
-  },200);
-};
-window.smaskMiniColor = function(){
-  smkTab('color');
-  if(typeof openPanel==='function') openPanel();
-  if(typeof smaskHideMiniToolbar==='function') smaskHideMiniToolbar();
-};
-
-/* ========== openPanel パッチ ========== */
 var _smkOrigOpenPanel = window.openPanel;
 window.openPanel = function(){
   if(_smkOrigOpenPanel) try{_smkOrigOpenPanel();}catch(e){}
@@ -6095,93 +5627,445 @@ window.openPanel = function(){
   if(p) p.classList.remove('smk-closed');
 };
 
-/* ========== UIの同期 ========== */
+/* ============================================================
+   EDIT MODE
+   ============================================================ */
+window.smkSetMode = function(mode){
+  _mode = mode;
+  var nb = document.getElementById('smk-mode-normal');
+  var cb = document.getElementById('smk-mode-char');
+  var nc = document.getElementById('smk-normal-ctrl');
+  var cc = document.getElementById('smk-char-ctrl');
+  if(nb) nb.classList.toggle('active', mode==='normal');
+  if(cb) cb.classList.toggle('active', mode==='char');
+  if(nc) nc.style.display = mode==='normal' ? 'block' : 'none';
+  if(cc) cc.style.display = mode==='char'   ? 'block' : 'none';
+  if(typeof setSelMode==='function') try{ setSelMode(mode==='char'?'char':'element'); }catch(e){}
+};
+
+/* ============================================================
+   CORE: Apply to DOM with !important to override CSS conflicts
+   ============================================================ */
+function getEl(){
+  return _el || window.smaskEl || (typeof selectedEl!=='undefined' ? selectedEl : null);
+}
+
+function setStyle(el, prop, val){
+  // Use setProperty with !important to override any CSS conflicts
+  if(!el) return;
+  try {
+    el.style.setProperty(prop, val, 'important');
+  } catch(e) {
+    try { el.style[prop] = val; } catch(e2){}
+  }
+}
+
+function loadGFont(name){
+  var id = 'gf-'+name.replace(/\s+/g,'-').toLowerCase();
+  if(!document.getElementById(id)){
+    var link = document.createElement('link');
+    link.id = id; link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family='+encodeURIComponent(name)+':wght@300;400;500;600;700;900&display=swap';
+    document.head.appendChild(link);
+  }
+}
+
+/* ============================================================
+   FONT OPERATIONS
+   ============================================================ */
+function buildFontSelect(){
+  var sel = document.getElementById('smk-font-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Select Font —</option>';
+  SMK_FONTS.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f.n;
+    o.textContent = f.label;
+    // Load font for preview in dropdown
+    loadGFont(f.n);
+    sel.appendChild(o);
+  });
+  // Preview on change (not apply)
+  sel.onchange = function(){
+    var name = sel.value;
+    if(!name) return;
+    loadGFont(name);
+    var pt = document.getElementById('smk-font-preview-txt');
+    var pn = document.getElementById('smk-font-preview-name');
+    var pr = document.getElementById('smk-font-preview-row');
+    if(pr) pr.style.display = 'flex';
+    if(pt){ pt.style.fontFamily = '"'+name+'", sans-serif'; pt.textContent = 'Aa Bb — The Quick Brown Fox'; }
+    if(pn) pn.textContent = name;
+  };
+}
+
+function buildCharFontSelect(){
+  var sel = document.getElementById('smk-char-font-sel');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Font —</option>';
+  SMK_FONTS.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f.n; o.textContent = f.n;
+    sel.appendChild(o);
+  });
+}
+
+window.smkApplyFont = function(name){
+  if(!name){ showToast('Select a font first'); return; }
+  var el = getEl(); if(!el){ showToast('Select an element first'); return; }
+  smkSaveHist();
+  loadGFont(name);
+  setStyle(el, 'font-family', '"'+name+'", sans-serif');
+  showToast('Font applied: '+name);
+};
+
+window.smkApplySize = function(v){
+  var el=getEl(); if(!el) return;
+  var px = Math.max(8, Math.min(300, parseFloat(v)||16));
+  setStyle(el, 'font-size', px+'px');
+  setSlider('smk-size-range','smk-size-val', Math.round(px), Math.round(px)+'px','smk-size-input');
+};
+
+window.smkApplyWeight = function(v){
+  var el=getEl(); if(!el) return;
+  setStyle(el, 'font-weight', String(v));
+  setSlider('smk-weight-range','smk-weight-val', parseInt(v), String(v));
+};
+
+window.smkApplyLS = function(v){
+  var el=getEl(); if(!el) return;
+  var em = parseInt(v)/100;
+  setStyle(el, 'letter-spacing', em+'em');
+  var ve = document.getElementById('smk-ls-val');
+  if(ve) ve.textContent = em.toFixed(2)+'em';
+  updateSliderGrad('smk-ls-range', parseInt(v));
+};
+
+window.smkApplyLH = function(v){
+  var el=getEl(); if(!el) return;
+  var r = parseInt(v)/100;
+  setStyle(el, 'line-height', String(r));
+  var ve = document.getElementById('smk-lh-val');
+  if(ve) ve.textContent = r.toFixed(2);
+  updateSliderGrad('smk-lh-range', parseInt(v));
+};
+
+window.smkApplyAlign = function(v){
+  var el=getEl(); if(!el) return;
+  setStyle(el, 'text-align', v);
+};
+
+window.smkToggleItalic = function(){
+  var el=getEl(); if(!el) return;
+  var cur = el.style.fontStyle || getComputedStyle(el).fontStyle;
+  var next = (cur==='italic') ? 'normal' : 'italic';
+  setStyle(el, 'font-style', next);
+  var btn = document.getElementById('smk-italic-btn');
+  if(btn) btn.classList.toggle('active', next==='italic');
+};
+
+window.smkDecorate = function(v){
+  var el=getEl(); if(!el) return;
+  setStyle(el, 'text-decoration', v);
+};
+
+window.smkApplyShadow = function(v){
+  var el=getEl(); if(!el) return;
+  setStyle(el, 'text-shadow', v);
+};
+
+/* Transform */
+window.smkApplyTransformPart = function(type, val){
+  var el=getEl(); if(!el) return;
+  _transform[type] = val;
+  var t = 'scaleX('+_transform.scaleX+') scaleY('+_transform.scaleY+') rotate('+_transform.rotate+')';
+  setStyle(el, 'transform', t);
+  if(type==='scaleX'){ var b=document.getElementById('smk-scx-val'); if(b) b.textContent=parseFloat(val).toFixed(1); }
+  if(type==='scaleY'){ var b2=document.getElementById('smk-scy-val'); if(b2) b2.textContent=parseFloat(val).toFixed(1); }
+  if(type==='rotate'){ var b3=document.getElementById('smk-rot-val'); if(b3) b3.textContent=parseInt(val)+'°'; }
+};
+
+window.smkResetTransform = function(){
+  var el=getEl(); if(!el) return;
+  el.style.removeProperty('transform');
+  _transform = {scaleX:1, scaleY:1, rotate:'0deg'};
+  ['smk-scx-range','smk-scy-range','smk-rot-range'].forEach(function(id){
+    var r=document.getElementById(id);
+    if(r){ r.value=(id==='smk-rot-range')?0:100; updateSliderGrad(id,r.value); }
+  });
+  if(document.getElementById('smk-scx-val')) document.getElementById('smk-scx-val').textContent='1.0';
+  if(document.getElementById('smk-scy-val')) document.getElementById('smk-scy-val').textContent='1.0';
+  if(document.getElementById('smk-rot-val')) document.getElementById('smk-rot-val').textContent='0°';
+};
+
+/* Margins */
+window.smkApplyMargin = function(side, v){
+  var el=getEl(); if(!el) return;
+  var px = parseInt(v)||0;
+  var map = {top:'margin-top',bottom:'margin-bottom',left:'margin-left',right:'margin-right'};
+  if(map[side]) setStyle(el, map[side], px+'px');
+};
+
+/* Char mode font */
+window.smkApplyCharFont = function(name){
+  var el=getEl(); if(!el) return;
+  if(name){ loadGFont(name); setStyle(el, 'font-family', '"'+name+'", sans-serif'); }
+};
+
+window.smkApplyCharSize = function(v){
+  var el=getEl(); if(!el) return;
+  setStyle(el, 'font-size', v+'px');
+  var ve = document.getElementById('smk-char-size-val');
+  if(ve) ve.textContent = v+'px';
+};
+
+/* ============================================================
+   COLOR OPERATIONS
+   ============================================================ */
+function buildSwatches(){
+  var tb = document.getElementById('smk-text-swatches');
+  if(tb) SMK_TEXT_SW.forEach(function(c){ tb.appendChild(makeSwatch(c,function(){ smkApplyColor('text',c); })); });
+  var bb = document.getElementById('smk-bg-swatches');
+  if(bb) SMK_BG_SW.forEach(function(c){ bb.appendChild(makeSwatch(c,function(){ smkApplyColor('bg',c); })); });
+}
+
+function makeSwatch(c, onclick){
+  var s = document.createElement('div');
+  s.className = 'smk-swatch';
+  if(c==='transparent'){
+    s.style.background='repeating-linear-gradient(45deg,#555 0,#555 4px,transparent 4px,transparent 8px)';
+    s.style.border='1px solid #666';
+  } else { s.style.background = c; }
+  s.title = c;
+  s.onclick = onclick;
+  return s;
+}
+
+window.smkApplyColor = function(type, val){
+  var el=getEl(); if(!el){ showToast('Select an element first'); return; }
+  smkSaveHist();
+  if(type==='text'){
+    setStyle(el,'color',val);
+    syncColorInputs('text', val);
+  } else if(type==='bg'){
+    if(val==='transparent') el.style.removeProperty('background-color');
+    else setStyle(el,'background-color',val);
+    syncColorInputs('bg', val);
+  } else if(type==='border'){
+    setStyle(el,'border-color',val);
+    // Also ensure border is visible
+    if(!el.style.borderStyle || el.style.borderStyle==='none') setStyle(el,'border-style','solid');
+    if(!el.style.borderWidth) setStyle(el,'border-width','1px');
+    syncColorInputs('border', val);
+  }
+  showToast(type+' color: '+val);
+};
+
+function syncColorInputs(type, val){
+  var isHex = val && val[0]==='#';
+  if(type==='text'){
+    var p1=document.getElementById('smk-text-color'); if(p1&&isHex) p1.value=val;
+    var h1=document.getElementById('smk-text-hex'); if(h1) h1.value=val;
+    var p2=document.getElementById('smk-font-textcolor'); if(p2&&isHex) p2.value=val;
+    var h2=document.getElementById('smk-font-texthex'); if(h2) h2.value=val;
+  } else if(type==='bg'){
+    var bp=document.getElementById('smk-bg-color'); if(bp&&isHex) bp.value=val;
+    var bh=document.getElementById('smk-bg-hex'); if(bh) bh.value=val;
+  } else if(type==='border'){
+    var rp=document.getElementById('smk-border-color'); if(rp&&isHex) rp.value=val;
+    var rh=document.getElementById('smk-border-hex'); if(rh) rh.value=val;
+  }
+}
+
+window.smkApplyColorHex = function(type, val){
+  if(/^#[0-9a-fA-F]{3,6}$/.test(val)) smkApplyColor(type, val);
+};
+
+window.smkClearBg = function(){
+  var el=getEl(); if(!el) return;
+  el.style.removeProperty('background-color');
+  var bh=document.getElementById('smk-bg-hex'); if(bh) bh.value='transparent';
+};
+window.smkClearBorder = function(){
+  var el=getEl(); if(!el) return;
+  el.style.removeProperty('border-color');
+  el.style.removeProperty('border-style');
+  el.style.removeProperty('border-width');
+};
+
+/* ============================================================
+   UNDO / REDO
+   ============================================================ */
+function smkSaveHist(){
+  var el = getEl(); if(!el) return;
+  var snap = {el:el, style:el.getAttribute('style')||''};
+  _hist = _hist.slice(0,_histIdx+1);
+  _hist.push(snap);
+  if(_hist.length>50) _hist.shift();
+  _histIdx = _hist.length-1;
+}
+
+window.smkUndo = function(){
+  if(_histIdx<=0){ showToast('Nothing to undo'); return; }
+  _histIdx--;
+  var snap=_hist[_histIdx];
+  if(snap && snap.el){ snap.el.setAttribute('style',snap.style); updateFontUI(snap.el); updateColorUI(snap.el); }
+  showToast('↩ Undone');
+};
+
+window.smkRedo = function(){
+  if(_histIdx>=_hist.length-1){ showToast('Nothing to redo'); return; }
+  _histIdx++;
+  var snap=_hist[_histIdx];
+  if(snap && snap.el){ snap.el.setAttribute('style',snap.style); updateFontUI(snap.el); updateColorUI(snap.el); }
+  showToast('↪ Redone');
+};
+
+/* ============================================================
+   RESET
+   ============================================================ */
+window.smkResetMenu = function(){
+  var m=document.getElementById('smk-reset-menu');
+  if(m) m.style.display = m.style.display==='none'?'block':'none';
+  setTimeout(function(){
+    document.addEventListener('click', function handler(e){
+      var m2=document.getElementById('smk-reset-menu');
+      if(m2 && !m2.contains(e.target)) m2.style.display='none';
+      document.removeEventListener('click',handler);
+    });
+  },100);
+};
+
+window.smkResetEl = function(type){
+  var m=document.getElementById('smk-reset-menu'); if(m) m.style.display='none';
+  var el=getEl(); if(!el) return;
+  smkSaveHist();
+  if(type==='all'){ el.removeAttribute('style'); }
+  else if(type==='font'){
+    ['font-family','font-size','font-weight','letter-spacing','line-height','font-style','text-decoration','text-align','text-shadow','transform'].forEach(function(p){
+      el.style.removeProperty(p);
+    });
+  }
+  else if(type==='color'){
+    ['color','background-color','border-color','border-style','border-width'].forEach(function(p){
+      el.style.removeProperty(p);
+    });
+  }
+  updateFontUI(el); updateColorUI(el);
+  showToast('Reset: '+type);
+};
+
+/* ============================================================
+   CSS OUTPUT
+   ============================================================ */
+window.smkCopyCSS = function(){
+  if(typeof copyCSS==='function') { copyCSS(); return; }
+  var el=getEl();
+  var css = el ? el.getAttribute('style') || 'No inline styles' : 'Select an element first';
+  // Show modal or alert
+  var modal=document.getElementById('css-modal');
+  if(modal){
+    var out=document.getElementById('css-output-text');
+    if(out) out.textContent = css;
+    modal.style.display='flex';
+  } else {
+    alert('CSS:\n'+css);
+  }
+};
+
+/* ============================================================
+   UI SYNC
+   ============================================================ */
 function updateColorUI(el){
   if(!el) return;
-  var cs = getComputedStyle(el);
-  var tc = rgbToHex(cs.color) || '#ffffff';
-  updateColorInputs('smk-text-color','smk-text-color-hex','smk-font-textcolor','smk-font-textcolor-hex',tc);
-  var bc = rgbToHex(cs.backgroundColor);
-  if(bc){
-    var bcEl = document.getElementById('smk-bg-color');
-    var bcHex = document.getElementById('smk-bg-color-hex');
-    if(bcEl) bcEl.value = bc;
-    if(bcHex) bcHex.textContent = bc;
-  }
+  try{
+    var cs=getComputedStyle(el);
+    var tc=rgbToHex(cs.color); if(tc) syncColorInputs('text',tc);
+    var bc=rgbToHex(cs.backgroundColor); if(bc) syncColorInputs('bg',bc);
+  }catch(e){}
 }
 
 function updateFontUI(el){
   if(!el) return;
-  var cs = getComputedStyle(el);
-  var fsPx = parseFloat(cs.fontSize)||16;
-  var fw   = parseInt(cs.fontWeight)||400;
-  var ls   = parseFloat(cs.letterSpacing)||0;
-  var lsEm = ls/fsPx;
-  var lh   = parseFloat(cs.lineHeight);
-  var lhR  = isNaN(lh) ? 1.5 : lh/fsPx;
-  setSlider('smk-size-range','smk-size-val', Math.round(fsPx), Math.round(fsPx)+'px', 'smk-size-input');
-  setSlider('smk-weight-range','smk-weight-val', Math.round(fw/100)*100, Math.round(fw/100)*100);
-  setSlider('smk-ls-range','smk-ls-val', Math.round(lsEm*100), lsEm.toFixed(2)+'em');
-  setSlider('smk-lh-range','smk-lh-val', Math.round(lhR*100), lhR.toFixed(2));
-  // 余白
-  var mt=parseInt(cs.marginTop)||0, mb=parseInt(cs.marginBottom)||0;
-  var ml=parseInt(cs.marginLeft)||0, mr=parseInt(cs.marginRight)||0;
-  ['smk-mt','smk-mb','smk-ml','smk-mr'].forEach(function(id,i){
-    var e=document.getElementById(id); if(e) e.value=[mt,mb,ml,mr][i];
-  });
+  try{
+    var cs=getComputedStyle(el);
+    var fsPx=parseFloat(cs.fontSize)||16;
+    var fw=parseInt(cs.fontWeight)||400;
+    var ls=parseFloat(cs.letterSpacing)||0;
+    var lsEm=ls/fsPx;
+    var lh=parseFloat(cs.lineHeight);
+    var lhR=isNaN(lh)?1.5:lh/fsPx;
+    setSlider('smk-size-range','smk-size-val',Math.round(fsPx),Math.round(fsPx)+'px','smk-size-input');
+    setSlider('smk-weight-range','smk-weight-val',Math.round(fw/100)*100,String(Math.round(fw/100)*100));
+    setSlider('smk-ls-range','smk-ls-val',Math.round(lsEm*100),lsEm.toFixed(2)+'em');
+    setSlider('smk-lh-range','smk-lh-val',Math.round(lhR*100),lhR.toFixed(2));
+    // margins
+    var mt=parseInt(cs.marginTop)||0,mb=parseInt(cs.marginBottom)||0;
+    var ml=parseInt(cs.marginLeft)||0,mr=parseInt(cs.marginRight)||0;
+    ['smk-mt','smk-mb','smk-ml','smk-mr'].forEach(function(id,i){
+      var e=document.getElementById(id); if(e) e.value=[mt,mb,ml,mr][i];
+    });
+  }catch(e){}
 }
 
-/* ========== 折りたたみ ========== */
-window.smkToggleCollapse = function(id){
-  var el = document.getElementById(id);
-  if(!el) return;
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
+/* ============================================================
+   ADVANCED COLLAPSE
+   ============================================================ */
+window.smkToggleAdv = function(){
+  _adv = !_adv;
+  var b=document.getElementById('smk-adv-body');
+  var a=document.getElementById('smk-adv-arrow');
+  if(b) b.style.display=_adv?'block':'none';
+  if(a) a.textContent=_adv?'▼':'▶';
 };
 
-/* ========== ユーティリティ ========== */
-function getEl(){
-  return _smkEl || window.smaskEl || (typeof selectedEl!=='undefined' ? selectedEl : null);
-}
+/* ============================================================
+   UTILITIES
+   ============================================================ */
 function rgbToHex(rgb){
   if(!rgb||rgb==='transparent') return null;
-  var m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  var m=rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if(!m) return rgb;
   return '#'+[m[1],m[2],m[3]].map(function(x){ return ('0'+parseInt(x).toString(16)).slice(-2); }).join('');
 }
+
 function setSlider(rangeId, valId, val, label, inputId){
   var r=document.getElementById(rangeId);
   var v=document.getElementById(valId);
   if(r){ r.value=val; updateSliderGrad(rangeId,val); }
-  if(v) v.textContent = label||val;
+  if(v) v.textContent=label||val;
   if(inputId){ var i=document.getElementById(inputId); if(i) i.value=val; }
 }
+
 function updateSliderGrad(id, val){
-  var el=document.getElementById(id);
-  if(!el) return;
+  var el=document.getElementById(id); if(!el) return;
   var min=parseFloat(el.min)||0, max=parseFloat(el.max)||100;
-  var pct = ((val-min)/(max-min)*100).toFixed(1);
-  el.style.background = 'linear-gradient(to right, #C6A75C '+pct+'%, #333 '+pct+'%)';
+  var pct=((val-min)/(max-min)*100).toFixed(1);
+  el.style.background='linear-gradient(to right,#C6A75C '+pct+'%,#333 '+pct+'%)';
 }
 
-/* ========== トースト通知 ========== */
 function showToast(msg){
-  var t = document.getElementById('smk-toast');
+  var t=document.getElementById('smk-toast');
   if(!t){
-    t = document.createElement('div');
-    t.id = 'smk-toast';
-    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,0.95);color:#C6A75C;padding:8px 18px;border-radius:20px;font-size:12px;z-index:9999999;border:1px solid rgba(198,167,92,0.4);letter-spacing:0.05em;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;';
+    t=document.createElement('div');
+    t.id='smk-toast';
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.95);color:#C6A75C;padding:8px 18px;border-radius:20px;font-size:12px;z-index:9999999;border:1px solid rgba(198,167,92,0.4);letter-spacing:0.05em;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;font-family:inherit;';
     document.body.appendChild(t);
   }
-  t.textContent = msg;
-  t.style.opacity = '1';
+  t.textContent=msg; t.style.opacity='1';
   clearTimeout(t._tid);
-  t._tid = setTimeout(function(){ t.style.opacity='0'; }, 2000);
+  t._tid=setTimeout(function(){ t.style.opacity='0'; },2000);
 }
 
-/* ========== イベントリスナー（sliderのinput） ========== */
+/* Mini toolbar compatibility */
+window.smaskMiniFont = function(){ smkTab('font'); if(typeof openPanel==='function') openPanel(); };
+window.smaskMiniColor = function(){ smkTab('color'); if(typeof openPanel==='function') openPanel(); };
+
+/* ============================================================
+   INPUT EVENT DELEGATION
+   ============================================================ */
 document.addEventListener('input', function(e){
-  var id = e.target.id;
-  var v  = e.target.value;
+  var id=e.target.id, v=e.target.value;
   if(id==='smk-size-range'||id==='smk-size-input') smkApplySize(v);
   else if(id==='smk-weight-range') smkApplyWeight(v);
   else if(id==='smk-ls-range')  smkApplyLS(v);
@@ -6192,404 +6076,39 @@ document.addEventListener('input', function(e){
   else if(id==='smk-scx-range') smkApplyTransformPart('scaleX',v/100);
   else if(id==='smk-scy-range') smkApplyTransformPart('scaleY',v/100);
   else if(id==='smk-rot-range') smkApplyTransformPart('rotate',v+'deg');
-  else if(id==='smask-char-color') smaskApplyCharColor(v);
-  else if(id==='smask-char-bg')    smaskApplyCharBg(v);
-  else if(id==='smask-char-size'){ smaskApplyCharSize(v); }
+  else if(id==='smk-char-size-range') smkApplyCharSize(v);
+  else if(id==='smk-char-color') smkApplyColor('text',v);
+  else if(id==='smk-char-bg')    smkApplyColor('bg',v);
 });
 
-/* ========== 起動 ========== */
+/* ============================================================
+   BOOT
+   ============================================================ */
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', smkInit);
 } else {
   smkInit();
 }
-setTimeout(smkInit, 500);
-setTimeout(smkInit, 1500);
+setTimeout(smkInit, 300);
+setTimeout(smkInit, 1200);
+
+/* Also re-patch after existing scripts load */
+window.addEventListener('load', function(){
+  patchSelectEl();
+  patchSwitchTabById();
+  syncSelModeBtn();
+});
 
 })();
 </script>
 
+<style id="smask-v10-style">
+/* ============================================================
+   SMASK v10 Admin Panel CSS
+   ============================================================ */
 
-<script id="smask-v9-select-fix">
-(function(){
-'use strict';
-
-/* ==============================================
-   SELECT MODE 完全修正スクリプト
-   - toggleClickMode を v9 UI 対応に再実装
-   - touchstart / pointerdown でiPhone対応
-   - デバッグ表示
-   ============================================== */
-
-/* --- デバッグバー --- */
-function smkDebugBar(){
-  var bar = document.getElementById('smk-debug-bar');
-  if(!bar){
-    bar = document.createElement('div');
-    bar.id = 'smk-debug-bar';
-    bar.style.cssText = [
-      'position:fixed','bottom:70px','left:0','right:340px',
-      'background:rgba(0,0,0,0.85)','color:#0f0',
-      'font-size:11px','font-family:monospace',
-      'padding:4px 10px','z-index:999998',
-      'border-top:1px solid #0f0','line-height:1.6',
-      'pointer-events:none'
-    ].join(';');
-    document.body.appendChild(bar);
-  }
-  return bar;
-}
-function smkDebug(msg){
-  var bar = smkDebugBar();
-  if(bar) bar.innerHTML = msg;
-}
-
-/* --- toggleClickMode 完全再実装 --- */
-function smkToggleClickModeV9(){
-  clickMode = !clickMode;
-  document.body.classList.toggle('click-mode', clickMode);
-
-  /* smk-click-btn の見た目 */
-  var btn = document.getElementById('smk-click-btn');
-  if(btn) btn.classList.toggle('active', clickMode);
-
-  /* 旧 UI 要素は安全に処理 */
-  function safeShow(id, show){
-    var el = document.getElementById(id);
-    if(el) el.style.display = show ? 'block' : 'none';
-  }
-  safeShow('sel-guide',        !clickMode);
-  safeShow('sel-waiting',       clickMode);
-  safeShow('sel-mode-switcher', clickMode);
-
-  if(clickMode){
-    /* ON: page-editable 要素を再スキャン・イベント登録 */
-    smkRebindEditable();
-    smkDebug('SELECT MODE: <span style="color:#0f0">ON</span> | 要素をタップしてください');
-  } else {
-    /* OFF: 選択解除 */
-    if(typeof selectedEl !== 'undefined' && selectedEl){
-      selectedEl.classList.remove('el-selected');
-      selectedEl = null;
-    }
-    smkDebug('SELECT MODE: <span style="color:#f66">OFF</span>');
-    /* v9: ガイドに戻す */
-    if(typeof showGuide === 'function') showGuide();
-  }
-}
-
-/* --- page-editable 要素へのイベント登録（iPhone対応） --- */
-var _smkBound = new WeakSet();
-
-function smkRebindEditable(){
-  /* 既存の page-editable + 動的に追加された要素も対象 */
-  var EXCLUDED = '#smask-admin-panel, .dev-banner, .mobile-menu, nav, #smk-debug-bar';
-  var targets = document.querySelectorAll(
-    'h1,h2,h3,h4,h5,h6,p,span,a,em,strong,label,li,' +
-    'div.footer-logo,div.footer-copy,div.hero-label,div.card-tag,div.market-status,' +
-    '[data-editable="true"],.page-editable'
-  );
-
-  targets.forEach(function(el){
-    if(el.closest(EXCLUDED)) return;
-    if(_smkBound.has(el)) return; /* 重複登録防止 */
-    _smkBound.add(el);
-
-    el.classList.add('page-editable');
-    /* ラベル */
-    if(!el.dataset.elLabel){
-      var preview = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,14);
-      el.dataset.elLabel = el.tagName.toLowerCase() + (preview ? ' : '+preview : '');
-    }
-
-    /* ---- touchstart (iOS Safari 最優先) ---- */
-    el.addEventListener('touchstart', function(e){
-      if(!clickMode) return;
-      if(typeof textMode !== 'undefined' && textMode) return;
-      /* タップ座標から実際の対象を取得 */
-      var touch = e.changedTouches[0];
-      var realTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-      /* パネル内なら無視 */
-      var panel = document.getElementById('smask-admin-panel');
-      if(panel && panel.contains(realTarget)) return;
-      e.stopPropagation();
-      /* preventDefault は text selection 防止のため */
-      e.preventDefault();
-      smkDoSelect(el, realTarget);
-    }, {passive: false});
-
-    /* ---- pointerdown (Android Chrome等) ---- */
-    el.addEventListener('pointerdown', function(e){
-      if(!clickMode) return;
-      if(typeof textMode !== 'undefined' && textMode) return;
-      var panel = document.getElementById('smask-admin-panel');
-      if(panel && panel.contains(e.target)) return;
-      e.stopPropagation();
-      smkDoSelect(el, e.target);
-    });
-
-    /* ---- click (PC / fallback) ---- */
-    el.addEventListener('click', function(e){
-      if(!clickMode) return;
-      if(typeof textMode !== 'undefined' && textMode) return;
-      var panel = document.getElementById('smask-admin-panel');
-      if(panel && panel.contains(e.target)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      smkDoSelect(el, e.target);
-    });
-  });
-
-  smkDebug('SELECT MODE: <span style="color:#0f0">ON</span> | 対象要素: '+targets.length+'個 登録済み');
-}
-
-/* --- 選択実行 --- */
-function smkDoSelect(el, rawTarget){
-  /* 前の選択を解除 */
-  document.querySelectorAll('.el-selected').forEach(function(x){ x.classList.remove('el-selected'); });
-
-  selectedEl = el;
-  window.smaskEl = el;
-  if(window._smkPatched){ /* v9スクリプトのパッチ済みなら直接呼ぶ */
-    try{ selectElement(el); }catch(e){}
-  } else {
-    el.classList.add('el-selected');
-    if(typeof updateSelControls === 'function') try{ updateSelControls(el); }catch(e){}
-    if(typeof openPanel === 'function') try{ openPanel(); }catch(e){}
-  }
-
-  /* v9 UI 更新 */
-  if(typeof smkOnSelect === 'function') smkOnSelect(el);
-
-  var tag  = el.tagName.toLowerCase();
-  var txt  = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,12);
-  var rawTag = rawTarget ? rawTarget.tagName.toLowerCase() : '?';
-  smkDebug(
-    'SELECT MODE: <span style="color:#0f0">ON</span> | ' +
-    '選択: <span style="color:#ff0">'+tag+' "'+txt+'"</span> | ' +
-    'tap: '+rawTag
-  );
-}
-
-/* --- smkSetMode との連携 --- */
-var _origSmkSetMode = window.smkSetMode;
-window.smkSetMode = function(mode){
-  if(_origSmkSetMode) _origSmkSetMode(mode);
-  /* mode='char' のとき textMode=true にして setSelMode も呼ぶ */
-  if(typeof setSelMode === 'function'){
-    try{ setSelMode(mode === 'char' ? 'char' : 'element'); }catch(e){}
-  }
-};
-
-/* --- SELECT MODE ボタンを上書き --- */
-function patchSelectModeBtn(){
-  var btn = document.getElementById('smk-click-btn');
-  if(!btn || btn._v9fixed) return;
-  btn._v9fixed = true;
-  btn.removeAttribute('onclick');
-  btn.addEventListener('click', function(e){
-    e.stopPropagation();
-    smkToggleClickModeV9();
-  });
-  btn.addEventListener('touchstart', function(e){
-    e.stopPropagation();
-    e.preventDefault();
-    smkToggleClickModeV9();
-  }, {passive: false});
-  console.log('[SMK v9fix] SELECT MODE btn patched');
-}
-
-/* --- 透明オーバーレイ対策 ---
-   click-mode ON 時、page-main の子孫で
-   position:fixed / absolute かつ背景なし要素に pointer-events:none を付与 */
-function smkFixOverlays(){
-  if(!clickMode) return;
-  var pageMain = document.getElementById('page-main');
-  if(!pageMain) return;
-  var panel = document.getElementById('smask-admin-panel');
-  /* page-main内の全fixed/absolute要素を確認 */
-  pageMain.querySelectorAll('*').forEach(function(el){
-    if(panel && panel.contains(el)) return;
-    var cs = getComputedStyle(el);
-    if((cs.position === 'fixed' || cs.position === 'absolute') &&
-       el.id !== 'smk-debug-bar' &&
-       !el.id.startsWith('smask') && !el.id.startsWith('smk') &&
-       !el.classList.contains('page-editable') &&
-       !el.classList.contains('smask-char')){
-      var bg = cs.backgroundColor;
-      var isTransparent = !bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)';
-      if(isTransparent && cs.pointerEvents !== 'none'){
-        el.dataset.smkPeOrig = cs.pointerEvents;
-        el.style.pointerEvents = 'none';
-      }
-    }
-  });
-}
-function smkRestoreOverlays(){
-  document.querySelectorAll('[data-smk-pe-orig]').forEach(function(el){
-    el.style.pointerEvents = el.dataset.smkPeOrig || '';
-    delete el.dataset.smkPeOrig;
-  });
-}
-
-/* --- 初期化 --- */
-function v9FixInit(){
-  patchSelectModeBtn();
-  /* 既存の initEditableElements も呼ばれた後に再バインド */
-  if(typeof initEditableElements === 'function'){
-    try{ initEditableElements(); }catch(e){}
-  }
-  smkDebug('v9fix 起動完了 | SELECT MODEボタンをタップしてください');
-}
-
-/* 起動 */
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', v9FixInit);
-} else {
-  v9FixInit();
-}
-setTimeout(v9FixInit, 600);
-setTimeout(patchSelectModeBtn, 1200);
-
-})();
-</script>
-
-</body>
-
-
-<!-- SMASK SIMPLE EDIT HOTFIX: 作業タブ修正 / 管理タブ整理 -->
-<style id="smask-simple-edit-style">
-/* ===== 1. 変形/余白グループを非表示 ===== */
-#sel-controls .ctrl-group ~ .ctrl-group {
-  display: none !important;
-}
-
-/* ===== 2. ショートカット（フォント追加/PW変更）は非表示 ===== */
-#smask-settings-shortcuts {
-  display: none !important;
-}
-
-/* ===== 3. キーコントロールを確実に表示 ===== */
-#sel-controls[style*="display:block"] .ctrl-row,
-#sel-controls[style*="display: block"] .ctrl-row {
-  display: flex;
-}
-
-/* ===== 4. タブ 3ボタングリッド（スマホ） ===== */
-@media (max-width: 768px) {
-  #design-panel .panel-tabs {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
-    gap: 6px !important;
-    padding: 8px 10px 10px !important;
-    overflow: visible !important;
-  }
-  #design-panel .panel-tab {
-    flex: none !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    padding: 10px 4px !important;
-    border-radius: 10px !important;
-    border-bottom: none !important;
-    background: rgba(255,255,255,.06) !important;
-    font-size: 12px !important;
-  }
-  #design-panel .panel-tab.active {
-    background: rgba(198,167,92,.20) !important;
-    color: #f4e5b5 !important;
-    box-shadow: inset 0 0 0 1px rgba(198,167,92,.6) !important;
-    border-bottom: none !important;
-  }
-  /* 4タブ以上は非表示 */
-  #design-panel .panel-tab[onclick*="tab-t1"],
-  #design-panel .panel-tab[onclick*="tab-t2"],
-  #design-panel .panel-tab[onclick*="tab-t3"],
-  #design-panel .panel-tab[onclick*="tab-body"] {
-    display: none !important;
-  }
-}
-
-/* ===== 5. 作業タブのフォント選択を目立たせる ===== */
-#sel-controls .ctrl-group {
-  padding: 0 !important;
-}
-#sel-controls .ctrl-group .ctrl-group-label {
-  font-size: 11px !important;
-  margin-bottom: 10px !important;
-  color: rgba(255,255,255,.5) !important;
-}
-
-/* ===== 6. サイズ+/-ボタン ===== */
-.smask-size-btns {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-.smask-size-btn {
-  flex: 1;
-  min-height: 38px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.08);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.smask-size-btn:active {
-  background: rgba(198,167,92,.25);
-}
-
-/* ===== 7. 太さクイックボタン ===== */
-.smask-weight-btns {
-  display: flex;
-  gap: 5px;
-  margin-top: 4px;
-}
-.smask-weight-btn {
-  flex: 1;
-  min-height: 36px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.8);
-  font-size: 12px;
-  cursor: pointer;
-}
-.smask-weight-btn.active,
-.smask-weight-btn:active {
-  background: rgba(198,167,92,.22);
-  border-color: rgba(198,167,92,.5);
-  color: #f4e5b5;
-}
-
-/* ===== 8. 作業タブガイド ===== */
-#smask-work-guide {
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(198,167,92,.09);
-  border: 1px solid rgba(198,167,92,.25);
-  color: #f3e4b2;
-  font-size: 12px;
-  line-height: 1.65;
-  margin-bottom: 14px;
-}
-
-/* ===== 9. 管理タブの見出し ===== */
-#smask-settings-section-title {
-  font-size: 11px;
-  color: rgba(255,255,255,.4);
-  letter-spacing: .1em;
-  margin: 16px 0 8px;
-  text-transform: uppercase;
-}
-
-/* ==========================================
-   SMASK v9 管理パネル CSS
-   ========================================== */
-
-/* パネル全体ラッパー */
-.smask-panel-wrap {
+/* Panel wrap */
+.smk-wrap {
   position: fixed;
   right: 0; top: 0; bottom: 0;
   width: 340px;
@@ -6597,818 +6116,417 @@ setTimeout(patchSelectModeBtn, 1200);
   flex-direction: column;
   height: 100vh;
   z-index: 99990;
-  font-family: 'Noto Sans JP', -apple-system, sans-serif;
+  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
   font-size: 13px;
   background: #1a1a1a;
-  border-left: 2px solid rgba(198,167,92,0.4);
+  border-left: 2px solid rgba(198,167,92,0.35);
   box-shadow: -8px 0 40px rgba(0,0,0,0.6);
   transform: translateX(0);
-  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  color: rgba(255,255,255,0.85);
 }
-.smask-panel-wrap.smk-closed {
+.smk-wrap.smk-closed {
   transform: translateX(100%);
   pointer-events: none;
 }
 
-/* ▼ ヘッダー */
+/* Header */
 .smk-header {
-  height: 48px;
-  min-height: 48px;
-  background: #111;
-  border-bottom: 1px solid rgba(198,167,92,0.3);
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  gap: 8px;
-  flex-shrink: 0;
+  height: 46px; min-height: 46px;
+  background: #0f0f0f;
+  border-bottom: 1px solid rgba(198,167,92,0.25);
+  display: flex; align-items: center;
+  padding: 0 8px; gap: 6px;
+  flex-shrink: 0; position: relative; z-index: 1;
 }
-.smk-header-left {
-  display: flex;
-  flex-direction: column;
-  min-width: 60px;
+.smk-hd-left { display:flex; flex-direction:column; min-width:50px; }
+.smk-logo { font-size:11px; font-weight:800; color:#C6A75C; letter-spacing:0.18em; line-height:1; }
+.smk-logo-sub { font-size:7px; color:rgba(255,255,255,0.25); letter-spacing:0.14em; margin-top:2px; }
+.smk-hd-center { flex:1; display:flex; justify-content:center; overflow:hidden; }
+.smk-sel-badge {
+  display:flex; align-items:center; gap:5px;
+  background:rgba(255,255,255,0.05);
+  padding:3px 9px; border-radius:20px;
+  border:1px solid rgba(255,255,255,0.08);
+  font-size:10px; color:rgba(255,255,255,0.55);
+  max-width:120px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
 }
-.smk-logo {
-  font-size: 12px;
-  font-weight: 800;
-  color: #C6A75C;
-  letter-spacing: 0.15em;
-  line-height: 1;
-}
-.smk-logo-sub {
-  font-size: 7px;
-  color: rgba(255,255,255,0.3);
-  letter-spacing: 0.12em;
-  margin-top: 2px;
-}
-.smk-header-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-.smk-sel-indicator {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(255,255,255,0.05);
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.08);
-  font-size: 11px;
-  color: rgba(255,255,255,0.6);
-  max-width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.smk-sel-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  flex-shrink: 0;
-  transition: background 0.2s;
-}
-.smk-sel-dot.active { background: #06d6a0; }
-.smk-header-right {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-}
+.smk-sel-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.2); flex-shrink:0; }
+.smk-sel-dot.active { background:#06d6a0; }
+.smk-hd-right { display:flex; gap:2px; align-items:center; }
 .smk-hbtn {
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.7);
-  font-size: 10px;
-  cursor: pointer;
-  min-width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.1s;
-  font-family: inherit;
+  padding:3px 5px; border-radius:5px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.65); font-size:10px;
+  cursor:pointer; min-width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  transition:background 0.1s; font-family:inherit;
 }
-.smk-hbtn:active { background: rgba(198,167,92,0.3); }
-.smk-hbtn-pub { background: rgba(39,174,96,0.2); border-color: rgba(39,174,96,0.4); color: #2ecc71; }
-.smk-hbtn-logout { background: rgba(211,56,28,0.15); border-color: rgba(211,56,28,0.3); color: #e74c3c; }
-.smk-hbtn-css { background: rgba(58,134,255,0.15); border-color: rgba(58,134,255,0.3); color: #3a86ff; }
+.smk-hbtn:active { background:rgba(198,167,92,0.3); }
+.smk-hbtn-pub  { background:rgba(39,174,96,0.2); border-color:rgba(39,174,96,0.4); color:#2ecc71; }
+.smk-hbtn-out  { background:rgba(211,56,28,0.15); border-color:rgba(211,56,28,0.3); color:#e74c3c; }
+.smk-hbtn-css  { background:rgba(58,134,255,0.15); border-color:rgba(58,134,255,0.3); color:#3a86ff; }
+.smk-hbtn-reset { background:rgba(255,200,0,0.1); border-color:rgba(255,200,0,0.3); color:#ffd166; }
 
-/* ▼ リセットメニュー */
+/* Reset menu */
 .smk-reset-menu {
-  position: absolute;
-  top: 52px;
-  right: 8px;
-  background: #252525;
-  border: 1px solid rgba(198,167,92,0.4);
-  border-radius: 10px;
-  padding: 6px;
-  z-index: 100000;
-  min-width: 180px;
+  position:absolute; top:50px; right:8px;
+  background:#252525; border:1px solid rgba(198,167,92,0.4);
+  border-radius:10px; padding:6px; z-index:100001; min-width:160px;
 }
 .smk-reset-menu button {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  text-align: left;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.8);
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 6px;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
+  display:block; width:100%; padding:8px 12px; text-align:left;
+  background:none; border:none; color:rgba(255,255,255,0.8);
+  font-size:12px; cursor:pointer; border-radius:6px; font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
 }
-.smk-reset-menu button:hover { background: rgba(255,255,255,0.08); }
+.smk-reset-menu button:hover { background:rgba(255,255,255,0.08); }
 
-/* ▼ ボディ（サイドバー＋メイン） */
+/* Body */
 .smk-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  display:flex; flex:1; min-height:0; overflow:hidden;
 }
 
-/* ▼ 左サイドバー */
+/* Sidebar */
 .smk-sidebar {
-  width: 60px;
-  min-width: 60px;
-  background: #111;
-  border-right: 1px solid rgba(255,255,255,0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  gap: 4px;
-  overflow-y: auto;
+  width:56px; min-width:56px;
+  background:#111;
+  border-right:1px solid rgba(255,255,255,0.06);
+  display:flex; flex-direction:column;
+  align-items:center; padding:8px 0; gap:4px;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
 }
 .smk-tab-btn {
-  width: 52px;
-  padding: 10px 4px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: none;
-  color: rgba(255,255,255,0.35);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  font-family: inherit;
+  width:48px; padding:9px 4px;
+  border-radius:10px; border:1px solid transparent;
+  background:none; color:rgba(255,255,255,0.3);
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:center; gap:3px;
+  -webkit-tap-highlight-color:transparent;
+  transition:background 0.15s, color 0.15s, border-color 0.15s;
+  font-family:inherit;
 }
-.smk-tab-btn:active, .smk-tab-btn.active {
-  background: rgba(198,167,92,0.15);
-  border-color: rgba(198,167,92,0.4);
-  color: #C6A75C;
+.smk-tab-btn.active, .smk-tab-btn:active {
+  background:rgba(198,167,92,0.15);
+  border-color:rgba(198,167,92,0.4);
+  color:#C6A75C;
 }
-.smk-tab-icon { font-size: 18px; line-height: 1; }
-.smk-tab-label { font-size: 8px; letter-spacing: 0.08em; font-weight: 600; }
+.smk-tab-icon { font-size:17px; line-height:1; }
+.smk-tab-lbl  { font-size:7px; letter-spacing:0.08em; font-weight:600; }
 
-.smk-sidebar-bottom {
-  margin-top: auto;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  border-top: 1px solid rgba(255,255,255,0.06);
+.smk-sb-bottom {
+  margin-top:auto; width:100%; display:flex;
+  flex-direction:column; align-items:center;
+  padding:8px 0; border-top:1px solid rgba(255,255,255,0.06);
 }
-.smk-sidebar-btn {
-  width: 44px;
-  padding: 8px 4px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.5);
-  font-size: 8px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  letter-spacing: 0.06em;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+.smk-mode-toggle {
+  width:40px; padding:7px 2px;
+  border-radius:8px; border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+  color:rgba(255,255,255,0.4); font-size:8px;
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:center; gap:2px; letter-spacing:0.06em;
+  font-family:inherit; font-weight:700;
+  -webkit-tap-highlight-color:transparent;
+  transition:all 0.15s;
 }
-.smk-sidebar-btn.active {
-  background: rgba(198,167,92,0.2);
-  border-color: #C6A75C;
-  color: #C6A75C;
+.smk-mode-toggle.active {
+  background:rgba(198,167,92,0.25);
+  border-color:#C6A75C; color:#C6A75C;
 }
-#smk-click-btn span { font-weight: 700; }
 
-/* ▼ メインエリア */
+/* Main area */
 .smk-main {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  background: #1a1a1a;
+  flex:1; overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:0;
+  /* custom scrollbar */
+  scrollbar-width:thin; scrollbar-color:#444 transparent;
 }
-.smk-pane {
-  min-height: 100%;
-  padding: 12px 14px 40px;
-}
+.smk-main::-webkit-scrollbar { width:3px; }
+.smk-main::-webkit-scrollbar-track { background:transparent; }
+.smk-main::-webkit-scrollbar-thumb { background:#444; border-radius:2px; }
 
-/* ▼ セクション */
+/* Pane */
+.smk-pane { padding:12px; display:block; }
+
+/* Section */
 .smk-section {
-  margin-bottom: 14px;
+  margin-bottom:14px;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
 }
-.smk-section-title {
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  color: rgba(198,167,92,0.8);
-  font-weight: 700;
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.smk-section:last-child { border-bottom:none; margin-bottom:0; }
+.smk-sec-title {
+  font-size:9px; font-weight:700; letter-spacing:0.14em;
+  color:rgba(255,255,255,0.35); text-transform:uppercase;
+  margin-bottom:8px;
 }
+.smk-sec-collapsible { cursor:pointer; user-select:none; }
+.smk-sec-collapsible:hover { color:rgba(255,255,255,0.55); }
 
-/* ▼ ガイド */
-.smk-guide {
-  text-align: center;
-  padding: 32px 16px;
-  color: rgba(255,255,255,0.4);
-}
-.smk-guide-icon { font-size: 32px; margin-bottom: 10px; }
-.smk-guide-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
-.smk-guide-desc { font-size: 11px; line-height: 1.7; }
-
-/* ▼ 選択中情報 */
-.smk-sel-info { }
-.smk-info-card {
-  background: rgba(198,167,92,0.08);
-  border: 1px solid rgba(198,167,92,0.25);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-}
-.smk-info-tag {
-  font-size: 10px;
-  color: #C6A75C;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
-}
-.smk-info-text {
-  font-size: 12px;
-  color: rgba(255,255,255,0.8);
-  word-break: break-all;
-  line-height: 1.5;
-}
-.smk-sel-info-mini {
-  font-size: 10px;
-  color: rgba(198,167,92,0.8);
-  margin-bottom: 10px;
-  padding: 5px 8px;
-  background: rgba(198,167,92,0.08);
-  border-radius: 6px;
-  border-left: 2px solid #C6A75C;
-}
-
-/* ▼ 編集モードボタン */
-.smk-mode-btns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
+/* Mode buttons */
+.smk-mode-btns { display:flex; gap:6px; }
 .smk-mode-btn {
-  padding: 12px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.5);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
+  flex:1; padding:8px 6px; border-radius:8px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);
+  color:rgba(255,255,255,0.5); cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  -webkit-tap-highlight-color:transparent;
+  transition:all 0.15s; font-family:inherit;
 }
 .smk-mode-btn.active {
-  background: rgba(198,167,92,0.15);
-  border-color: #C6A75C;
-  color: #C6A75C;
+  background:rgba(198,167,92,0.18);
+  border-color:rgba(198,167,92,0.5);
+  color:#C6A75C;
 }
-.smk-mode-icon { font-size: 20px; }
-.smk-mode-btn span { font-size: 12px; font-weight: 600; }
-.smk-mode-btn small { font-size: 9px; opacity: 0.6; }
+.smk-mode-ico  { font-size:18px; line-height:1; }
+.smk-mode-name { font-size:11px; font-weight:600; }
+.smk-mode-desc { font-size:9px; color:rgba(255,255,255,0.35); }
 
-/* ▼ アクションボタン */
+/* Guide */
+.smk-guide {
+  text-align:center; padding:24px 16px;
+  color:rgba(255,255,255,0.3);
+}
+.smk-guide-sm { padding:14px 12px; }
+.smk-guide-icon { font-size:28px; margin-bottom:8px; }
+.smk-guide-ttl  { font-size:12px; font-weight:600; margin-bottom:4px; color:rgba(255,255,255,0.5); }
+.smk-guide-desc { font-size:10px; line-height:1.5; }
+
+/* Selected info card */
+.smk-info-card {
+  background:rgba(198,167,92,0.08); border:1px solid rgba(198,167,92,0.2);
+  border-radius:8px; padding:10px 12px; margin-bottom:10px;
+}
+.smk-info-tag {
+  font-size:9px; font-weight:700; letter-spacing:0.14em;
+  color:#C6A75C; text-transform:uppercase; margin-bottom:3px;
+}
+.smk-info-txt { font-size:11px; color:rgba(255,255,255,0.7); }
+
+/* Quick action row */
+.smk-action-row { display:flex; gap:5px; flex-wrap:wrap; }
 .smk-action-btn {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.75);
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.1s;
-  white-space: nowrap;
+  flex:1; padding:7px 5px; border-radius:7px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.7); font-size:10px;
+  cursor:pointer; font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
 }
-.smk-action-btn:active { background: rgba(255,255,255,0.12); }
-.smk-action-danger { color: rgba(211,56,28,0.9); border-color: rgba(211,56,28,0.3); }
+.smk-action-btn:active { background:rgba(255,255,255,0.14); }
+.smk-action-danger { background:rgba(211,56,28,0.12); border-color:rgba(211,56,28,0.3); color:#e74c3c; }
 
-/* ▼ 分割ボタン */
+/* Split buttons */
 .smk-split-btn {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(58,134,255,0.4);
-  background: rgba(58,134,255,0.1);
-  color: #3a86ff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.1s;
+  width:100%; padding:9px 12px; border-radius:8px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.7); font-size:11px;
+  cursor:pointer; font-family:inherit; text-align:center;
+  -webkit-tap-highlight-color:transparent;
 }
-.smk-split-btn:active { background: rgba(58,134,255,0.25); }
-.smk-split-unwrap {
-  border-color: rgba(211,56,28,0.4);
-  background: rgba(211,56,28,0.08);
-  color: #d3381c;
+.smk-split-btn:active { background:rgba(255,255,255,0.12); }
+.smk-split-undo { border-color:rgba(211,56,28,0.3); color:#e74c3c; background:rgba(211,56,28,0.08); }
+
+/* Field */
+.smk-field { margin-bottom:10px; }
+.smk-lbl { display:block; font-size:9px; letter-spacing:0.1em; color:rgba(255,255,255,0.4); margin-bottom:5px; }
+
+/* Range slider */
+.smk-range {
+  width:100%; height:4px; cursor:pointer;
+  -webkit-appearance:none; appearance:none;
+  border-radius:2px; outline:none;
+  background:linear-gradient(to right,#C6A75C 50%,#333 50%);
+}
+.smk-range::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px;
+  border-radius:50%; background:#C6A75C;
+  cursor:pointer; border:2px solid #1a1a1a;
+  box-shadow:0 1px 4px rgba(0,0,0,0.5);
+}
+.smk-range::-moz-range-thumb {
+  width:14px; height:14px; border-radius:50%;
+  background:#C6A75C; cursor:pointer;
+  border:2px solid #1a1a1a;
 }
 
-/* ▼ 1文字パネル */
-.smk-char-preview-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-  padding: 10px;
-  background: rgba(255,255,255,0.04);
-  border-radius: 8px;
-}
-.smk-char-preview {
-  font-size: 36px;
-  min-width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  background: rgba(58,134,255,0.1);
-}
-.smk-char-meta { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+/* Slider row */
+.smk-slider-row { display:flex; gap:6px; align-items:center; }
+.smk-slider-row .smk-range { flex:1; }
 
-/* ▼ コントロール */
-.smk-ctrl-block {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
-}
-.smk-ctrl-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 10px;
-  color: rgba(255,255,255,0.5);
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
-}
+/* Val badge */
 .smk-val-badge {
-  font-size: 11px;
-  color: #C6A75C;
-  font-family: monospace;
-  background: rgba(198,167,92,0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.smk-ctrl-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.smk-ctrl-label {
-  font-size: 10px;
-  color: rgba(255,255,255,0.45);
-  min-width: 36px;
-}
-.smk-hex {
-  font-size: 10px;
-  color: #aaa;
-  font-family: monospace;
+  font-size:9px; color:#C6A75C;
+  background:rgba(198,167,92,0.1);
+  padding:1px 5px; border-radius:4px;
+  font-weight:600; font-style:normal;
 }
 
-/* ▼ レンジスライダー */
-.smk-range, .smk-range-sm {
-  width: 100%;
-  -webkit-appearance: none;
-  height: 5px;
-  border-radius: 3px;
-  background: linear-gradient(to right, #C6A75C 50%, #333 50%);
-  outline: none;
-  cursor: pointer;
-  margin: 4px 0;
-}
-.smk-range::-webkit-slider-thumb,
-.smk-range-sm::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: #C6A75C;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-}
-.smk-range-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.smk-range-row .smk-range { flex: 1; }
-
-/* ▼ ボタン系 */
-.smk-btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 6px;
-}
-.smk-step-btn, .smk-small-btn {
-  padding: 5px 9px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.75);
-  font-size: 11px;
-  cursor: pointer;
-  min-height: 30px;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.1s;
-  font-family: inherit;
-  white-space: nowrap;
-}
-.smk-step-btn:active, .smk-small-btn:active { background: rgba(198,167,92,0.25); color: #C6A75C; }
-
-/* ▼ インプット系 */
-.smk-input {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-  font-size: 12px;
-  box-sizing: border-box;
-  font-family: inherit;
-  outline: none;
-}
-.smk-input:focus { border-color: rgba(198,167,92,0.6); }
+/* Number input */
 .smk-num-input {
-  width: 56px;
-  padding: 5px 6px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-  font-size: 12px;
-  text-align: center;
-  font-family: monospace;
-  outline: none;
+  width:52px; padding:4px 6px;
+  background:#111; border:1px solid rgba(255,255,255,0.12);
+  border-radius:5px; color:rgba(255,255,255,0.85);
+  font-size:12px; text-align:center; font-family:inherit;
+}
+.smk-num-sm { width:40px; font-size:11px; padding:3px 4px; }
+
+/* Select */
+.smk-select {
+  width:100%; padding:7px 8px;
+  background:#111; border:1px solid rgba(255,255,255,0.14);
+  border-radius:6px; color:rgba(255,255,255,0.85);
+  font-size:12px; cursor:pointer; font-family:inherit; outline:none;
+}
+.smk-select-sm { padding:4px 6px; font-size:11px; }
+
+/* Font picker */
+.smk-font-picker { display:flex; flex-direction:column; gap:6px; }
+.smk-font-preview-row {
+  display:flex; align-items:baseline; gap:8px;
+  padding:8px 10px; background:#111;
+  border:1px solid rgba(198,167,92,0.2); border-radius:6px;
+}
+.smk-font-preview-txt { font-size:16px; color:rgba(255,255,255,0.9); }
+.smk-font-preview-name { font-size:10px; color:rgba(255,255,255,0.35); }
+
+/* Apply button */
+.smk-apply-btn {
+  width:100%; padding:9px; border-radius:7px;
+  background:linear-gradient(135deg,#C6A75C,#8B6914);
+  border:none; color:#000; font-size:12px;
+  font-weight:700; cursor:pointer; letter-spacing:0.08em;
+  font-family:inherit; -webkit-tap-highlight-color:transparent;
+  transition:opacity 0.15s;
+}
+.smk-apply-btn:active { opacity:0.85; }
+
+/* Weight buttons */
+.smk-weight-btns { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+.smk-wbtn {
+  flex:1; padding:5px 3px; border-radius:5px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:rgba(255,255,255,0.6); font-size:10px;
+  cursor:pointer; font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
+}
+.smk-wbtn:active { background:rgba(198,167,92,0.2); }
+
+/* Align buttons */
+.smk-align-btns { display:flex; gap:4px; }
+.smk-align-btn {
+  flex:1; padding:6px; border-radius:5px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:rgba(255,255,255,0.6); font-size:11px;
+  cursor:pointer; font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.smk-align-btn:active { background:rgba(198,167,92,0.2); }
+
+/* Style buttons (italic/underline) */
+.smk-style-btns { display:flex; gap:4px; }
+.smk-style-btn {
+  width:34px; height:30px; border-radius:6px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:rgba(255,255,255,0.7); font-size:13px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-family:serif;
+  -webkit-tap-highlight-color:transparent;
+}
+.smk-style-btn.active { background:rgba(198,167,92,0.25); border-color:#C6A75C; color:#C6A75C; }
+.smk-style-btn:active { background:rgba(198,167,92,0.2); }
+
+/* Shadow buttons */
+.smk-shadow-btns { display:flex; gap:4px; flex-wrap:wrap; }
+
+/* Color pickers */
+.smk-color-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.smk-color-picker {
+  width:36px; height:30px; border-radius:5px;
+  border:1px solid rgba(255,255,255,0.15); cursor:pointer;
+  padding:2px; background:transparent; flex-shrink:0;
 }
 .smk-hex-input {
-  flex: 1;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-  font-size: 12px;
-  font-family: monospace;
-  outline: none;
-  min-width: 0;
+  flex:1; padding:5px 8px;
+  background:#111; border:1px solid rgba(255,255,255,0.12);
+  border-radius:5px; color:rgba(255,255,255,0.85);
+  font-size:12px; font-family:monospace; outline:none;
 }
-.smk-select, .smk-select-sm {
-  width: 100%;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: #1e1e1e;
-  color: #fff;
-  font-size: 12px;
-  font-family: inherit;
-  outline: none;
-  cursor: pointer;
-}
-.smk-select-sm { padding: 5px 8px; font-size: 11px; }
-.smk-primary-btn {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  background: #C6A75C;
-  color: #000;
-  font-size: 13px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
+.smk-mini-btn {
+  padding:4px 8px; border-radius:5px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:rgba(255,255,255,0.5); font-size:10px;
+  cursor:pointer; font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
 }
 
-/* ▼ カラーピッカー */
-.smk-color-picker-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.smk-color-picker-row input[type=color] {
-  width: 40px; height: 36px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 0;
-}
+/* Swatches */
 .smk-swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 4px;
+  display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;
 }
 .smk-swatch {
-  width: 26px; height: 26px;
-  border-radius: 5px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform 0.1s, border-color 0.1s;
-  -webkit-tap-highlight-color: transparent;
+  width:22px; height:22px; border-radius:4px;
+  cursor:pointer; border:1px solid rgba(255,255,255,0.15);
+  transition:transform 0.1s;
 }
-.smk-swatch:active { transform: scale(1.2); border-color: #fff; }
+.smk-swatch:active { transform:scale(0.9); }
 
-/* ▼ ブランドカラー */
-.smk-brand-colors {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-}
-.smk-brand-swatch {
-  border-radius: 8px;
-  padding: 8px 4px 6px;
-  text-align: center;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform 0.1s, border-color 0.1s;
-  -webkit-tap-highlight-color: transparent;
-}
-.smk-brand-swatch:active { transform: scale(1.05); border-color: #C6A75C; }
-.smk-brand-swatch span { display: block; font-size: 8px; font-family: monospace; font-weight: 600; }
-.smk-brand-swatch small { display: block; font-size: 8px; opacity: 0.7; margin-top: 2px; }
-
-/* ▼ フォントカテゴリ */
-.smk-font-cats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.smk-cat-btn {
-  padding: 3px 8px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.5);
-  font-size: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.1s;
-}
-.smk-cat-btn.active {
-  background: rgba(198,167,92,0.15);
-  border-color: rgba(198,167,92,0.6);
-  color: #C6A75C;
+/* Color/Font info text */
+.smk-color-el-info, .smk-font-el-info {
+  font-size:10px; color:rgba(255,255,255,0.35);
+  padding:6px 8px; background:rgba(255,255,255,0.04);
+  border-radius:5px; margin-bottom:10px;
 }
 
-/* ▼ 折りたたみボタン */
-.smk-collapse-btn {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.35);
-  font-size: 11px;
-  cursor: pointer;
-  padding: 2px 4px;
-  font-family: inherit;
-}
+/* Row with label */
+.smk-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.smk-row.smk-row-label .smk-lbl { min-width:36px; margin-bottom:0; }
 
-/* ▼ モバイル対応 */
-@media (max-width: 768px) {
-  .smask-panel-wrap {
-    width: 100vw;
-    height: 78svh;
-    top: auto;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    border-left: none;
-    border-top: 2px solid rgba(198,167,92,0.4);
-    border-radius: 18px 18px 0 0;
-    transform: translateY(0);
-  }
-  .smask-panel-wrap.smk-closed {
-    transform: translateY(100%);
-  }
-  .smk-header { height: 44px; min-height: 44px; }
-  .smk-sidebar { width: 52px; min-width: 52px; }
-  .smk-tab-btn { width: 46px; padding: 8px 3px; }
-  .smk-brand-colors { grid-template-columns: repeat(3, 1fr); }
+/* Margin grid */
+.smk-margin-grid {
+  display:grid; grid-template-columns:1fr auto 1fr;
+  gap:4px; align-items:center; justify-items:center;
 }
+.smk-margin-c { font-size:9px; color:rgba(255,255,255,0.3); }
 
-/* ▼ 旧design-panelを完全非表示 */
-#design-panel, .panel-toggle, #el-badge { display: none !important; }
+/* Val (inline) */
+.smk-val { font-size:10px; color:#C6A75C; min-width:36px; text-align:right; }
 
-/* ▼ clickモード時の要素ハイライト（維持） */
-body.click-mode .page-editable:hover {
-  outline: 2px dashed rgba(58,134,255,0.7) !important;
-  cursor: pointer !important;
-}
+/* Selected element highlight */
 .el-selected {
-  outline: 2px solid #C6A75C !important;
+  outline: 2px solid rgba(198,167,92,0.85) !important;
   outline-offset: 2px !important;
 }
-.smask-char.smask-selected {
-  outline: 2px solid #3a86ff !important;
-  background: rgba(58,134,255,0.15) !important;
-}
 
-
-/* ========== v9fix: 選択モード時のタップ確保 ========== */
-body.click-mode #page-main {
-  position: relative;
-  z-index: 1;
-}
-body.click-mode .page-editable {
-  position: relative;
-  z-index: 2;
-  cursor: crosshair !important;
-}
-body.click-mode .page-editable:hover {
-  outline: 2px dashed rgba(58,134,255,0.8) !important;
-  outline-offset: 2px;
-  background-color: rgba(58,134,255,0.04) !important;
-}
-/* デバッグバーのスペース（モバイル） */
+/* Mobile */
 @media (max-width: 768px) {
-  #smk-debug-bar {
-    right: 0 !important;
-    bottom: 80svh !important;
+  .smk-wrap {
+    width: 100vw;
+    top: auto;
+    bottom: 0;
+    height: 65vh;
+    border-left: none;
+    border-top: 2px solid rgba(198,167,92,0.35);
+  }
+  .smk-wrap.smk-closed {
+    transform: translateY(100%);
   }
 }
-
 </style>
 
-<script id="smask-simple-edit-script">
-(function(){
-  if(window.__smaskSimpleEdit) return;
-  window.__smaskSimpleEdit = true;
-
-  /* ---- ユーティリティ ---- */
-  function q(s){ return document.querySelector(s); }
-  function qa(s){ return Array.from(document.querySelectorAll(s)); }
-
-  /* ---- 1. タブ名 ---- */
-  function relabel(){
-    qa('#design-panel .panel-tab').forEach(function(btn){
-      var oc = btn.getAttribute('onclick') || '';
-      if(oc.indexOf('tab-colors') !== -1)   btn.textContent = 'カラー';
-      if(oc.indexOf('tab-select') !== -1)   btn.textContent = '✏️ 作業';
-      if(oc.indexOf('tab-settings') !== -1) btn.textContent = '⚙ 管理';
-    });
-  }
-
-  /* ---- 2. ショートカット削除 ---- */
-  function removeShortcuts(){
-    var sc = document.getElementById('smask-settings-shortcuts');
-    if(sc) { sc.style.cssText = 'display:none!important'; }
-  }
-
-  /* ---- 3. 作業タブにガイドとクイックボタン追加 ---- */
-  function buildWorkUI(){
-    var tab = document.getElementById('tab-select');
-    if(!tab || document.getElementById('smask-work-guide')) return;
-
-    /* ガイド */
-    var guide = document.createElement('div');
-    guide.id = 'smask-work-guide';
-    guide.innerHTML = '① <strong>クリック選択モード ON</strong> を押す<br>'
-      + '② ページの編集したいテキストをタップ<br>'
-      + '③ フォント・サイズ・カラーを変更';
-    tab.insertBefore(guide, tab.firstChild);
-
-    /* サイズ +/- ボタン（サイズスライダー横に追加） */
-    var sizeSlider = document.getElementById('sel-size-slider');
-    if(sizeSlider && !document.getElementById('smask-size-btns')){
-      var sizeBtns = document.createElement('div');
-      sizeBtns.id = 'smask-size-btns';
-      sizeBtns.className = 'smask-size-btns';
-      sizeBtns.innerHTML =
-        '<button class="smask-size-btn" id="smask-sz-minus" type="button">－</button>' +
-        '<button class="smask-size-btn" id="smask-sz-plus"  type="button">＋</button>';
-      sizeSlider.parentNode.insertBefore(sizeBtns, sizeSlider.nextSibling);
-
-      document.getElementById('smask-sz-minus').addEventListener('click', function(){
-        sizeSlider.value = Math.max(8, parseInt(sizeSlider.value,10) - 1);
-        if(typeof applySelSize === 'function') applySelSize(sizeSlider);
-      });
-      document.getElementById('smask-sz-plus').addEventListener('click', function(){
-        sizeSlider.value = Math.min(96, parseInt(sizeSlider.value,10) + 1);
-        if(typeof applySelSize === 'function') applySelSize(sizeSlider);
-      });
-    }
-
-    /* 太さクイックボタン（スライダー横に追加） */
-    var wSlider = document.getElementById('sel-weight-slider');
-    if(wSlider && !document.getElementById('smask-weight-btns')){
-      var wBtns = document.createElement('div');
-      wBtns.id = 'smask-weight-btns';
-      wBtns.className = 'smask-weight-btns';
-      wBtns.innerHTML =
-        '<button class="smask-weight-btn" data-w="3" type="button">細</button>' +
-        '<button class="smask-weight-btn" data-w="4" type="button">標準</button>' +
-        '<button class="smask-weight-btn" data-w="7" type="button">太</button>';
-      wSlider.parentNode.insertBefore(wBtns, wSlider.nextSibling);
-      wBtns.querySelectorAll('button').forEach(function(b){
-        b.addEventListener('click', function(){
-          var v = parseInt(this.dataset.w, 10);
-          wSlider.value = v;
-          if(typeof applySelWeight === 'function') applySelWeight(wSlider);
-          wBtns.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
-          this.classList.add('active');
-        });
-      });
-    }
-  }
-
-  /* ---- 4. 管理タブ ---- */
-  function improveSettingsTab(){
-    var tab = document.getElementById('tab-settings');
-    if(!tab || document.getElementById('smask-settings-improved')) return;
-    tab.dataset.smaskSettingsImproved = '1';
-    // フォント追加セクションにIDをセット（switchToSettingsAndFocusで使用）
-    var fontSection = tab.querySelector('[id="custom-font-input"]');
-    if(fontSection){
-      var parent = fontSection.closest('.ctrl-group, div') || fontSection.parentNode;
-      parent.id = parent.id || 'smask-custom-font-section';
-    }
-    // パスワードセクションにIDをセット
-    var pwSection = tab.querySelector('[id="pw-current"]');
-    if(pwSection){
-      var parent2 = pwSection.closest('.ctrl-row, div') || pwSection.parentNode;
-      parent2.id = parent2.id || 'smask-password-section';
-    }
-  }
-
-  /* ---- メイン ---- */
-  function boot(){
-    relabel();
-    removeShortcuts();
-    buildWorkUI();
-    improveSettingsTab();
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
-  setTimeout(boot, 300);
-  setTimeout(boot, 900);
-  setTimeout(boot, 2000);
-  // ショートカットが後から作られてもすぐ隠す
-  var _obs = new MutationObserver(function(){
-    var sc = document.getElementById('smask-settings-shortcuts');
-    if(sc && sc.style.display !== 'none') {
-      sc.style.cssText = 'display:none!important';
-    }
-  });
-  _obs.observe(document.body || document.documentElement, {childList:true, subtree:true});
-})();
-</script>
+</body>
 </html>
-
-<!-- SMASK MOBILE SELECT-FIRST PATCH -->
-
-
-
-
-<!-- SMASK MOBILE SIMPLE TABS PATCH -->
-
-
-
-
-<!-- SMASK THREE TABS ONLY PATCH -->
-
-
