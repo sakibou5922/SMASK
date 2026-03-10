@@ -4826,5 +4826,129 @@ var _origSplitChars = null;
 })();
 </script>
 
+
+
+<!-- SMASK FONT SCROLL LIVE PREVIEW PATCH -->
+<style id="smask-font-scroll-live-style">
+@media (min-width: 769px) {
+  .smask-font-scroll-live {
+    min-height: 260px !important;
+    height: 260px !important;
+    max-height: 260px !important;
+    overflow-y: auto !important;
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+  }
+  .smask-font-scroll-live option {
+    padding: 6px 8px !important;
+  }
+}
+.smask-font-scroll-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.68);
+  line-height: 1.5;
+}
+</style>
+
+<script id="smask-font-scroll-live-script">
+(function(){
+  var FONT_SELECT_IDS = ['font-t1','font-t2','font-t3','font-body','sel-font-select'];
+
+  function isDesktop(){
+    return window.matchMedia && window.matchMedia('(min-width: 769px)').matches;
+  }
+
+  function applyById(sel){
+    if(!sel) return;
+    var id = sel.id || '';
+    try {
+      if(id === 'font-t1') window.setFont && window.setFont('--t1-font-family', sel);
+      else if(id === 'font-t2') window.setFont && window.setFont('--t2-font-family', sel);
+      else if(id === 'font-t3') window.setFont && window.setFont('--t3-font-family', sel);
+      else if(id === 'font-body') window.setFont && window.setFont('--body-font-family', sel);
+      else if(id === 'sel-font-select') window.applySelFont && window.applySelFont(sel);
+    } catch(e) {}
+  }
+
+  function moveIndex(sel, delta){
+    if(!sel || !delta) return;
+    var idx = sel.selectedIndex;
+    var next = idx;
+    for(var i=0; i<sel.options.length; i++){
+      next += delta;
+      if(next < 0 || next >= sel.options.length) return;
+      var opt = sel.options[next];
+      if(opt && !opt.disabled && opt.value !== '') {
+        sel.selectedIndex = next;
+        applyById(sel);
+        try { opt.selected = true; } catch(e) {}
+        return;
+      }
+    }
+  }
+
+  function addHint(sel){
+    if(!sel || sel.dataset.scrollHintAttached === '1') return;
+    sel.dataset.scrollHintAttached = '1';
+    var hint = document.createElement('div');
+    hint.className = 'smask-font-scroll-hint';
+    hint.textContent = '🖱️ スクロールでフォントを順番に試せます';
+    sel.insertAdjacentElement('afterend', hint);
+  }
+
+  function setupSelect(sel){
+    if(!sel || sel.dataset.scrollLiveReady === '1') return;
+    sel.dataset.scrollLiveReady = '1';
+
+    if(isDesktop()) {
+      sel.size = 12;
+      sel.classList.add('smask-font-scroll-live');
+      addHint(sel);
+    }
+
+    sel.addEventListener('wheel', function(e){
+      if(!isDesktop()) return;
+      e.preventDefault();
+      moveIndex(sel, e.deltaY > 0 ? 1 : -1);
+    }, {passive:false});
+
+    sel.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowDown') {
+        e.preventDefault();
+        moveIndex(sel, 1);
+      } else if(e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveIndex(sel, -1);
+      }
+    });
+
+    sel.addEventListener('input', function(){ applyById(sel); });
+    sel.addEventListener('change', function(){ applyById(sel); });
+    sel.addEventListener('click', function(){ applyById(sel); });
+
+    try {
+      Array.prototype.forEach.call(sel.options, function(opt){
+        if(opt && opt.value && !opt.disabled) opt.style.fontFamily = opt.value;
+      });
+    } catch(e) {}
+  }
+
+  function boot(){
+    FONT_SELECT_IDS.forEach(function(id){
+      setupSelect(document.getElementById(id));
+    });
+  }
+
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
