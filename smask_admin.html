@@ -1461,6 +1461,61 @@ function doLogin(){
   }
 }
 </script>
+
+/* ---- SITE SETTINGS UI ---- */
+.smk-field-label{
+  font-size:10px;color:#C6A75C;letter-spacing:.08em;
+  font-weight:700;margin-bottom:5px;
+}
+.smk-img-pick-btn{
+  display:inline-block;padding:6px 12px;
+  background:#2a2a2a;border:1px solid #C6A75C;
+  color:#C6A75C;border-radius:6px;font-size:10px;font-weight:700;
+  cursor:pointer;letter-spacing:.05em;transition:background .15s;
+  user-select:none;
+}
+.smk-img-pick-btn:hover{ background:#3a3219; }
+.smk-img-preview-box{
+  display:flex;align-items:center;gap:8px;
+  margin-top:6px;padding:6px 8px;
+  background:#1a1a1a;border:1px solid #333;border-radius:6px;
+}
+.smk-img-filename{
+  flex:1;font-size:9px;color:#888;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100px;
+}
+.smk-img-clear-btn{
+  background:none;border:none;color:#666;
+  font-size:14px;cursor:pointer;padding:0 2px;line-height:1;
+  transition:color .15s;
+}
+.smk-img-clear-btn:hover{ color:#e57373; }
+/* maintenance overlay */
+#smk-maint-overlay{
+  position:fixed;inset:0;z-index:9999998;
+  background:rgba(0,0,0,.72);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(2px);
+}
+#smk-maint-overlay .smk-maint-box{
+  background:linear-gradient(160deg,#1a1a1a 0%,#0d0d0d 100%);
+  border:1px solid #C6A75C;border-radius:16px;
+  padding:40px 32px 36px;max-width:360px;width:88%;
+  text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.8);
+}
+#smk-maint-overlay .smk-maint-icon{
+  font-size:40px;margin-bottom:16px;display:block;
+}
+#smk-maint-overlay .smk-maint-msg{
+  color:#e8dcc8;font-size:15px;line-height:1.65;font-weight:500;
+  letter-spacing:.04em;
+}
+#smk-maint-overlay .smk-maint-logo{
+  max-width:120px;max-height:40px;object-fit:contain;
+  margin-bottom:18px;display:none;
+}
+/* ---- end SITE SETTINGS UI ---- */
 </head>
 <body>
 
@@ -1873,148 +1928,136 @@ function doLogin(){
         </div><!-- /font-ctrl -->
       </div><!-- /font pane -->
       <!-- ===== SITE TAB ===== -->
+      
+      <!-- ===== SITE TAB ===== -->
       <div id="smk-pane-site" style="display:none;">
 
-        <div class="smk-guide smk-guide-sm" id="smk-site-guide">
-          <div class="smk-guide-icon" style="font-size:20px;">🌐</div>
-          <div class="smk-guide-text">Site-wide settings</div>
+        <!-- header guide -->
+        <div class="smk-guide smk-guide-sm" style="margin:10px 14px 4px;">
+          <div class="smk-guide-icon" style="font-size:18px;">🌐</div>
+          <div class="smk-guide-text" style="font-size:10px;color:#aaa;line-height:1.4;">
+            SITE SETTINGS<br>
+            <span style="color:#666;font-size:9px;">保存はlocalStorageに記録されます</span>
+          </div>
         </div>
 
-        <div class="smk-ctrl-group" style="padding:12px 14px;">
+        <div style="padding:0 12px 16px;">
 
-          <!-- Site Title -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">Site Title</label>
-            <input type="text" id="site-title-input" class="smk-input"
-              placeholder="My Site"
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
-              oninput="smkSiteLive('title',this.value)">
+          <!-- ── サイト名 ── -->
+          <div style="margin-bottom:14px;">
+            <div class="smk-field-label">📝 サイト名</div>
+            <input type="text" id="site-name-input"
+              placeholder="例：My Portfolio"
+              style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;
+                     color:#fff;padding:7px 10px;border-radius:6px;font-size:12px;
+                     outline:none;transition:border .2s;"
+              onfocus="this.style.borderColor='#C6A75C'"
+              onblur="this.style.borderColor='#3a3a3a'">
           </div>
 
-          <!-- Favicon URL -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">Favicon URL</label>
-            <input type="text" id="site-favicon-input" class="smk-input"
-              placeholder="https://..."
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
-              oninput="smkSiteLive('favicon',this.value)">
-          </div>
-
-          <!-- OG Title -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">OG Title</label>
-            <input type="text" id="site-og-title-input" class="smk-input"
-              placeholder="Open Graph title"
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
-              oninput="smkSiteLive('ogTitle',this.value)">
-          </div>
-
-          <!-- OG Description -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">OG Desc</label>
-            <input type="text" id="site-og-desc-input" class="smk-input"
-              placeholder="Open Graph description"
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
-              oninput="smkSiteLive('ogDesc',this.value)">
-          </div>
-
-          <!-- OG Image -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">OG Image</label>
-            <input type="text" id="site-og-image-input" class="smk-input"
-              placeholder="https://..."
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
-              oninput="smkSiteLive('ogImage',this.value)">
-          </div>
-
-          <!-- Analytics ID -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">GA4 / GTM ID</label>
-            <input type="text" id="site-analytics-input" class="smk-input"
-              placeholder="G-XXXXXXXX or GTM-XXXX"
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;">
-          </div>
-
-          <!-- Maintenance toggle -->
-          <div class="smk-row" style="margin-bottom:10px;align-items:center;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">Maintenance</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-              <input type="checkbox" id="site-maintenance-chk"
-                onchange="smkSiteLive('maintenance',this.checked)"
-                style="width:14px;height:14px;accent-color:#C6A75C;">
-              <span style="color:#ccc;font-size:10px;">Show maintenance banner</span>
+          <!-- ── ファビコン ── -->
+          <div style="margin-bottom:16px;">
+            <div class="smk-field-label">🔖 ファビコン</div>
+            <label class="smk-img-pick-btn" for="site-favicon-file">
+              📁 画像を選択
             </label>
+            <input type="file" id="site-favicon-file" accept="image/*"
+              style="display:none;" onchange="smkSitePickImage('favicon',this)">
+            <div id="site-favicon-preview" class="smk-img-preview-box" style="display:none;">
+              <img id="site-favicon-img" style="max-width:48px;max-height:48px;border-radius:4px;">
+              <span id="site-favicon-name" class="smk-img-filename"></span>
+              <button onclick="smkSiteClearImage('favicon')" class="smk-img-clear-btn">✕</button>
+            </div>
           </div>
 
-          <!-- Maintenance message -->
-          <div class="smk-row" style="margin-bottom:14px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">Banner Text</label>
-            <input type="text" id="site-maintenance-msg" class="smk-input"
-              placeholder="Under maintenance…"
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;"
-              oninput="smkSiteLive('maintenanceMsg',this.value)">
+          <!-- ── ロゴ画像 ── -->
+          <div style="margin-bottom:16px;">
+            <div class="smk-field-label">🖼 ロゴ画像</div>
+            <label class="smk-img-pick-btn" for="site-logo-file">
+              📁 画像を選択
+            </label>
+            <input type="file" id="site-logo-file" accept="image/*"
+              style="display:none;" onchange="smkSitePickImage('logo',this)">
+            <div id="site-logo-preview" class="smk-img-preview-box" style="display:none;">
+              <img id="site-logo-img"
+                style="max-width:100%;max-height:56px;border-radius:4px;object-fit:contain;">
+              <span id="site-logo-name" class="smk-img-filename"></span>
+              <button onclick="smkSiteClearImage('logo')" class="smk-img-clear-btn">✕</button>
+            </div>
           </div>
 
-          <!-- Divider -->
-          <div style="border-top:1px solid #333;margin:8px 0 12px;"></div>
-
-          <!-- Global Body Font -->
-          <div class="smk-row" style="margin-bottom:10px;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">Body Font</label>
-            <select id="site-body-font" class="smk-input"
-              style="flex:1;background:#2a2a2a;border:1px solid #444;color:#fff;padding:4px 6px;border-radius:4px;font-size:11px;">
-              <option value="">— unchanged —</option>
-              <option value="'Inter', sans-serif">Inter</option>
-              <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-              <option value="'Noto Serif JP', serif">Noto Serif JP</option>
-              <option value="'Roboto', sans-serif">Roboto</option>
-              <option value="'Montserrat', sans-serif">Montserrat</option>
-              <option value="'Poppins', sans-serif">Poppins</option>
-              <option value="'Playfair Display', serif">Playfair Display</option>
-              <option value="'Merriweather', serif">Merriweather</option>
-            </select>
+          <!-- ── OGP画像 ── -->
+          <div style="margin-bottom:16px;">
+            <div class="smk-field-label">📣 OGP画像 <span style="color:#555;font-size:9px;">（SNS共有時のサムネ）</span></div>
+            <label class="smk-img-pick-btn" for="site-ogp-file">
+              📁 画像を選択
+            </label>
+            <input type="file" id="site-ogp-file" accept="image/*"
+              style="display:none;" onchange="smkSitePickImage('ogp',this)">
+            <div id="site-ogp-preview" class="smk-img-preview-box" style="display:none;">
+              <img id="site-ogp-img"
+                style="max-width:100%;max-height:72px;border-radius:4px;object-fit:cover;">
+              <span id="site-ogp-name" class="smk-img-filename"></span>
+              <button onclick="smkSiteClearImage('ogp')" class="smk-img-clear-btn">✕</button>
+            </div>
           </div>
 
-          <!-- Global BG Color -->
-          <div class="smk-row" style="margin-bottom:10px;align-items:center;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">BG Color</label>
-            <input type="color" id="site-bg-color"
-              value="#ffffff"
-              oninput="smkSiteLive('bgColor',this.value)"
-              style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0;">
-            <span id="site-bg-color-val" style="color:#aaa;font-size:10px;margin-left:6px;">#ffffff</span>
+          <!-- ── Divider ── -->
+          <div style="border-top:1px solid #2a2a2a;margin:4px 0 14px;"></div>
+
+          <!-- ── メンテナンス ── -->
+          <div style="margin-bottom:10px;">
+            <div class="smk-field-label">🔧 メンテナンス表示</div>
+
+            <!-- ON/OFF toggle -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <button id="site-maint-toggle-btn"
+                onclick="smkSiteToggleMaint()"
+                style="padding:6px 14px;border-radius:20px;border:1px solid #555;
+                       background:#2a2a2a;color:#888;font-size:11px;font-weight:700;
+                       cursor:pointer;transition:all .2s;letter-spacing:0.05em;
+                       min-width:60px;text-align:center;">
+                OFF
+              </button>
+              <span id="site-maint-status-txt"
+                style="font-size:10px;color:#666;">メンテナンス中ではありません</span>
+            </div>
+
+            <!-- message input -->
+            <input type="text" id="site-maint-msg"
+              value="このサイトはメンテナンス中です。"
+              style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;
+                     color:#fff;padding:7px 10px;border-radius:6px;font-size:11px;outline:none;
+                     transition:border .2s;"
+              onfocus="this.style.borderColor='#C6A75C'"
+              onblur="this.style.borderColor='#3a3a3a'"
+              placeholder="メンテナンス文言を入力">
           </div>
 
-          <!-- Primary / Accent Color -->
-          <div class="smk-row" style="margin-bottom:14px;align-items:center;">
-            <label class="smk-lbl" style="width:90px;font-size:10px;">Accent Color</label>
-            <input type="color" id="site-accent-color"
-              value="#C6A75C"
-              oninput="smkSiteLive('accentColor',this.value)"
-              style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0;">
-            <span id="site-accent-color-val" style="color:#aaa;font-size:10px;margin-left:6px;">#C6A75C</span>
-          </div>
+          <!-- ── Divider ── -->
+          <div style="border-top:1px solid #2a2a2a;margin:14px 0 12px;"></div>
 
-          <!-- Divider -->
-          <div style="border-top:1px solid #333;margin:8px 0 12px;"></div>
+          <!-- ── 保存ボタン ── -->
+          <button onclick="smkSiteSave()"
+            style="width:100%;background:linear-gradient(135deg,#C6A75C,#8B6914);
+                   color:#000;border:none;padding:10px;border-radius:8px;
+                   cursor:pointer;font-size:12px;font-weight:800;
+                   letter-spacing:0.08em;box-shadow:0 2px 8px rgba(198,167,92,.35);
+                   transition:opacity .2s;"
+            onmouseover="this.style.opacity='.85'"
+            onmouseout="this.style.opacity='1'">
+            💾 保存する
+          </button>
 
-          <!-- Action buttons -->
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="smkSiteApply()"
-              style="flex:1;background:#C6A75C;color:#000;border:none;padding:8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:0.05em;min-width:80px;">
-              ✅ Apply All
-            </button>
-            <button onclick="smkSiteReset()"
-              style="flex:1;background:#3a3a3a;color:#ccc;border:1px solid #555;padding:8px;border-radius:6px;cursor:pointer;font-size:11px;min-width:80px;">
-              🔄 Reset
-            </button>
-          </div>
+          <!-- status -->
+          <div id="site-save-status"
+            style="margin-top:8px;font-size:10px;color:#8BC34A;
+                   min-height:16px;text-align:center;"></div>
 
-          <!-- Status -->
-          <div id="site-status" style="margin-top:8px;font-size:10px;color:#8BC34A;min-height:16px;"></div>
-
-        </div><!-- /ctrl-group -->
+        </div><!-- /padding -->
       </div><!-- /site pane -->
+
+
 
     </div><!-- /smk-main -->
   </div><!-- /smk-body -->
@@ -5533,7 +5576,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v12-script">
+<script id="smask-v13-script">
 (function(){
 'use strict';
 
@@ -6316,204 +6359,240 @@ window.addEventListener('load', function(){
 
 })();
 
+
 /* ============================================================
    SITE SETTINGS  (independent from design-edit logic)
    ============================================================ */
 (function(){
   'use strict';
 
-  /* ---- internal state, isolated from design state ---- */
-  var siteSettings = {
-    title: '',
-    favicon: '',
-    ogTitle: '',
-    ogDesc: '',
-    ogImage: '',
-    analytics: '',
+  var LS_KEY = 'smk_site_settings';
+
+  /* ---- default state ---- */
+  var SS = {
+    name: '',
+    faviconDataUrl: '',
+    logoDataUrl: '',
+    ogpDataUrl: '',
     maintenance: false,
-    maintenanceMsg: 'このサイトはメンテナンス中です。',
-    bodyFont: '',
-    bgColor: '#ffffff',
-    accentColor: '#C6A75C'
+    maintMsg: 'このサイトはメンテナンス中です。'
   };
 
-  /* ---- maintenance banner element ---- */
-  var _maintBanner = null;
-  function getMaintBanner(){
-    if(!_maintBanner){
-      _maintBanner = document.getElementById('smk-maint-banner');
-      if(!_maintBanner){
-        _maintBanner = document.createElement('div');
-        _maintBanner.id = 'smk-maint-banner';
-        _maintBanner.style.cssText =
-          'position:fixed;top:0;left:0;right:0;z-index:9999998;'+
-          'background:#e53e3e;color:#fff;text-align:center;'+
-          'padding:8px 16px;font-size:13px;font-weight:600;'+
-          'letter-spacing:0.05em;display:none;';
-        document.body.appendChild(_maintBanner);
-      }
-    }
-    return _maintBanner;
+  /* ── load from localStorage on boot ── */
+  function ssLoad(){
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if(raw){ var saved = JSON.parse(raw); Object.assign(SS, saved); }
+    }catch(e){}
   }
 
-  /* ---- live preview while typing ---- */
-  window.smkSiteLive = function(key, value){
-    switch(key){
-      case 'title':
-        document.title = value || document.title;
-        break;
-      case 'favicon':
-        if(value){
-          var lnk = document.querySelector("link[rel*='icon']");
-          if(!lnk){ lnk=document.createElement('link'); lnk.rel='icon'; document.head.appendChild(lnk); }
-          lnk.href = value;
-        }
-        break;
-      case 'maintenance':
-        getMaintBanner().style.display = value ? 'block' : 'none';
-        getMaintBanner().textContent = siteSettings.maintenanceMsg || 'Under maintenance';
-        break;
-      case 'maintenanceMsg':
-        if(siteSettings.maintenance) getMaintBanner().textContent = value;
-        break;
-      case 'bgColor':
-        document.body.style.backgroundColor = value;
-        var el = document.getElementById('site-bg-color-val');
-        if(el) el.textContent = value;
-        break;
-      case 'accentColor':
-        document.documentElement.style.setProperty('--color-accent', value);
-        var el2 = document.getElementById('site-accent-color-val');
-        if(el2) el2.textContent = value;
-        break;
-    }
-    siteSettings[key] = value;
-  };
+  /* ── save to localStorage ── */
+  function ssSave(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(SS)); }catch(e){}
+  }
 
-  /* ---- populate inputs when SITE tab opens ---- */
-  window.smkSitePopulate = function(){
-    var fields = [
-      ['site-title-input',       'title'],
-      ['site-favicon-input',     'favicon'],
-      ['site-og-title-input',    'ogTitle'],
-      ['site-og-desc-input',     'ogDesc'],
-      ['site-og-image-input',    'ogImage'],
-      ['site-analytics-input',   'analytics'],
-      ['site-maintenance-msg',   'maintenanceMsg']
-    ];
-    fields.forEach(function(pair){
-      var el = document.getElementById(pair[0]);
-      if(el && siteSettings[pair[1]]) el.value = siteSettings[pair[1]];
-    });
-    var chk = document.getElementById('site-maintenance-chk');
-    if(chk) chk.checked = !!siteSettings.maintenance;
-    var bgEl = document.getElementById('site-bg-color');
-    if(bgEl) bgEl.value = siteSettings.bgColor;
-    var acEl = document.getElementById('site-accent-color');
-    if(acEl) acEl.value = siteSettings.accentColor;
-  };
+  /* ── apply stored state to the live page ── */
+  function ssApplyToPage(){
+    /* site name → document.title */
+    if(SS.name) document.title = SS.name;
 
-  /* ---- apply all settings ---- */
-  window.smkSiteApply = function(){
-    /* read all inputs */
-    function v(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
-
-    siteSettings.title         = v('site-title-input');
-    siteSettings.favicon       = v('site-favicon-input');
-    siteSettings.ogTitle       = v('site-og-title-input');
-    siteSettings.ogDesc        = v('site-og-desc-input');
-    siteSettings.ogImage       = v('site-og-image-input');
-    siteSettings.analytics     = v('site-analytics-input');
-    siteSettings.maintenanceMsg= v('site-maintenance-msg');
-    siteSettings.maintenance   = document.getElementById('site-maintenance-chk')
-                                  ? document.getElementById('site-maintenance-chk').checked : false;
-    var fontEl = document.getElementById('site-body-font');
-    siteSettings.bodyFont = fontEl ? fontEl.value : '';
-    var bgEl2 = document.getElementById('site-bg-color');
-    siteSettings.bgColor = bgEl2 ? bgEl2.value : '#ffffff';
-    var acEl2 = document.getElementById('site-accent-color');
-    siteSettings.accentColor = acEl2 ? acEl2.value : '#C6A75C';
-
-    /* apply each */
-    if(siteSettings.title) document.title = siteSettings.title;
-
-    if(siteSettings.favicon){
+    /* favicon */
+    if(SS.faviconDataUrl){
       var lnk = document.querySelector("link[rel*='icon']");
-      if(!lnk){ lnk=document.createElement('link'); lnk.rel='icon'; document.head.appendChild(lnk); }
-      lnk.href = siteSettings.favicon;
+      if(!lnk){
+        lnk = document.createElement('link');
+        lnk.rel = 'shortcut icon';
+        document.head.appendChild(lnk);
+      }
+      lnk.href = SS.faviconDataUrl;
     }
 
-    /* OG tags (runtime update) */
-    function setMeta(prop, val){
-      if(!val) return;
-      var el = document.querySelector('meta[property="'+prop+'"]');
-      if(!el){ el=document.createElement('meta'); el.setAttribute('property',prop); document.head.appendChild(el); }
-      el.setAttribute('content', val);
+    /* logo: inject into first <img> whose alt/id contains 'logo', or nav area */
+    if(SS.logoDataUrl){
+      var logoEls = document.querySelectorAll('img[id*="logo"],img[class*="logo"],img[alt*="logo"],img[alt*="Logo"],#site-logo-target');
+      logoEls.forEach(function(el){ el.src = SS.logoDataUrl; });
     }
-    setMeta('og:title',       siteSettings.ogTitle);
-    setMeta('og:description', siteSettings.ogDesc);
-    setMeta('og:image',       siteSettings.ogImage);
 
-    /* Analytics: inject GA4 if not yet done */
-    if(siteSettings.analytics && !document.getElementById('smk-analytics-script')){
-      var id = siteSettings.analytics.trim();
-      if(/^G-/.test(id)){
-        var gs = document.createElement('script');
-        gs.async = true;
-        gs.src = 'https://www.googletagmanager.com/gtag/js?id='+id;
-        gs.id = 'smk-analytics-script';
-        document.head.appendChild(gs);
-        var gi = document.createElement('script');
-        gi.textContent = "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','"+id+"');";
-        document.head.appendChild(gi);
-      } else if(/^GTM-/.test(id)){
-        var gts = document.createElement('script');
-        gts.id = 'smk-analytics-script';
-        gts.textContent = "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','"+id+"');";
-        document.head.appendChild(gts);
+    /* OGP meta */
+    if(SS.ogpDataUrl){
+      var og = document.querySelector('meta[property="og:image"]');
+      if(!og){ og=document.createElement('meta'); og.setAttribute('property','og:image'); document.head.appendChild(og); }
+      og.setAttribute('content', SS.ogpDataUrl);
+    }
+
+    /* maintenance overlay */
+    updateMaintOverlay();
+  }
+
+  /* ── maintenance overlay ── */
+  var _overlay = null;
+  function getOverlay(){
+    if(!_overlay){
+      _overlay = document.getElementById('smk-maint-overlay');
+      if(!_overlay){
+        _overlay = document.createElement('div');
+        _overlay.id = 'smk-maint-overlay';
+        _overlay.innerHTML =
+          '<div class="smk-maint-box">' +
+            '<img class="smk-maint-logo" id="smk-maint-logo-img" src="" alt="logo">' +
+            '<span class="smk-maint-icon">🔧</span>' +
+            '<div class="smk-maint-msg" id="smk-maint-msg-txt"></div>' +
+          '</div>';
+        document.body.appendChild(_overlay);
       }
     }
+    return _overlay;
+  }
 
-    /* Maintenance banner */
-    var bn = getMaintBanner();
-    bn.textContent = siteSettings.maintenanceMsg || 'Under maintenance';
-    bn.style.display = siteSettings.maintenance ? 'block' : 'none';
-
-    /* Body font */
-    if(siteSettings.bodyFont){
-      document.body.style.fontFamily = siteSettings.bodyFont;
+  function updateMaintOverlay(){
+    var ov = getOverlay();
+    var msgEl  = document.getElementById('smk-maint-msg-txt');
+    var logoEl = document.getElementById('smk-maint-logo-img');
+    if(msgEl)  msgEl.textContent = SS.maintMsg || 'このサイトはメンテナンス中です。';
+    if(logoEl){
+      if(SS.logoDataUrl){
+        logoEl.src = SS.logoDataUrl;
+        logoEl.style.display = 'block';
+      } else {
+        logoEl.style.display = 'none';
+      }
     }
+    ov.style.display = SS.maintenance ? 'flex' : 'none';
+  }
 
-    /* Colors */
-    document.body.style.backgroundColor = siteSettings.bgColor;
-    document.documentElement.style.setProperty('--color-accent', siteSettings.accentColor);
+  /* ── toggle button state ── */
+  function syncMaintBtn(){
+    var btn = document.getElementById('site-maint-toggle-btn');
+    var txt = document.getElementById('site-maint-status-txt');
+    if(!btn) return;
+    if(SS.maintenance){
+      btn.textContent = 'ON';
+      btn.style.background = '#8B2020';
+      btn.style.borderColor = '#e57373';
+      btn.style.color = '#ffcdd2';
+      if(txt) txt.textContent = 'メンテナンス中';
+      if(txt) txt.style.color = '#ef9a9a';
+    } else {
+      btn.textContent = 'OFF';
+      btn.style.background = '#2a2a2a';
+      btn.style.borderColor = '#555';
+      btn.style.color = '#888';
+      if(txt) txt.textContent = 'メンテナンス中ではありません';
+      if(txt) txt.style.color = '#666';
+    }
+  }
 
-    /* status */
-    var st = document.getElementById('site-status');
-    if(st){ st.textContent = '✅ Applied'; setTimeout(function(){ if(st) st.textContent=''; }, 2500); }
+  /* ── populate UI inputs when SITE tab opens ── */
+  window.smkSitePopulate = function(){
+    ssLoad();
+    var nm = document.getElementById('site-name-input');
+    if(nm) nm.value = SS.name || '';
+
+    var mm = document.getElementById('site-maint-msg');
+    if(mm) mm.value = SS.maintMsg;
+
+    /* restore image previews */
+    restorePreview('favicon', SS.faviconDataUrl);
+    restorePreview('logo',    SS.logoDataUrl);
+    restorePreview('ogp',     SS.ogpDataUrl);
+
+    syncMaintBtn();
   };
 
-  /* ---- reset ---- */
-  window.smkSiteReset = function(){
-    var ids = ['site-title-input','site-favicon-input','site-og-title-input',
-               'site-og-desc-input','site-og-image-input','site-analytics-input','site-maintenance-msg'];
-    ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-    var chk = document.getElementById('site-maintenance-chk');
-    if(chk) chk.checked = false;
-    getMaintBanner().style.display = 'none';
-    var fontEl = document.getElementById('site-body-font');
-    if(fontEl) fontEl.value = '';
-    siteSettings = {
-      title:'', favicon:'', ogTitle:'', ogDesc:'', ogImage:'',
-      analytics:'', maintenance:false, maintenanceMsg:'このサイトはメンテナンス中です。',
-      bodyFont:'', bgColor:'#ffffff', accentColor:'#C6A75C'
+  function restorePreview(key, dataUrl){
+    if(!dataUrl) return;
+    var box = document.getElementById('site-'+key+'-preview');
+    var img = document.getElementById('site-'+key+'-img');
+    var nm  = document.getElementById('site-'+key+'-name');
+    if(img)  img.src = dataUrl;
+    if(nm)   nm.textContent = 'saved';
+    if(box)  box.style.display = 'flex';
+  }
+
+  /* ── image picker handler ── */
+  window.smkSitePickImage = function(key, inputEl){
+    var file = inputEl.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var dataUrl = e.target.result;
+      SS[key+'DataUrl'] = dataUrl;
+
+      /* preview */
+      var box = document.getElementById('site-'+key+'-preview');
+      var img = document.getElementById('site-'+key+'-img');
+      var nm  = document.getElementById('site-'+key+'-name');
+      if(img)  img.src = dataUrl;
+      if(nm)   nm.textContent = file.name;
+      if(box)  box.style.display = 'flex';
+
+      /* instant live apply */
+      ssApplyToPage();
     };
-    var st = document.getElementById('site-status');
-    if(st){ st.textContent = '🔄 Reset'; setTimeout(function(){ if(st) st.textContent=''; }, 2000); }
+    reader.readAsDataURL(file);
   };
+
+  /* ── clear image ── */
+  window.smkSiteClearImage = function(key){
+    SS[key+'DataUrl'] = '';
+    var box = document.getElementById('site-'+key+'-preview');
+    var img = document.getElementById('site-'+key+'-img');
+    var fi  = document.getElementById('site-'+key+'-file');
+    if(box) box.style.display = 'none';
+    if(img) img.src = '';
+    if(fi)  fi.value = '';
+    /* re-apply to page (will skip this image) */
+    ssApplyToPage();
+  };
+
+  /* ── maintenance toggle ── */
+  window.smkSiteToggleMaint = function(){
+    SS.maintenance = !SS.maintenance;
+    /* read current message from input */
+    var mm = document.getElementById('site-maint-msg');
+    if(mm) SS.maintMsg = mm.value || SS.maintMsg;
+    syncMaintBtn();
+    updateMaintOverlay();
+  };
+
+  /* ── save button ── */
+  window.smkSiteSave = function(){
+    /* read all text fields */
+    var nm = document.getElementById('site-name-input');
+    if(nm) SS.name = nm.value.trim();
+
+    var mm = document.getElementById('site-maint-msg');
+    if(mm) SS.maintMsg = mm.value.trim() || 'このサイトはメンテナンス中です。';
+
+    /* save */
+    ssSave();
+
+    /* apply to page */
+    ssApplyToPage();
+
+    /* feedback */
+    var st = document.getElementById('site-save-status');
+    if(st){
+      st.textContent = '✅ 保存しました';
+      setTimeout(function(){ if(st) st.textContent = ''; }, 2500);
+    }
+  };
+
+  /* ── boot: load & apply saved state immediately ── */
+  function smkSiteBoot(){
+    ssLoad();
+    ssApplyToPage();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', smkSiteBoot);
+  } else {
+    smkSiteBoot();
+  }
 
 })();
 /* ---- end SITE SETTINGS ---- */
+
 </script>
 
 <style id="smask-v10-style">
