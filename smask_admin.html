@@ -5982,6 +5982,100 @@ html body #smask-pub-fab {
 })();
 </script>
 
+
+
+<!-- SMASK HOTFIX 5: stronger mobile select workspace -->
+<style id="smask-select-workspace-strong-style">
+@media (max-width: 768px) {
+  html body #design-panel .panel-tabs .panel-tab {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-row[data-smask-hide='1'],
+  html body #tab-select #sel-controls .ctrl-color-row[data-smask-hide='1'],
+  html body #tab-select #sel-controls [data-smask-hide='1'] {
+    display: none !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-row.keep-row,
+  html body #tab-select #sel-controls .ctrl-color-row.keep-row {
+    display: flex !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-group:first-of-type {
+    border: 1px solid rgba(198,167,92,0.26) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02) !important;
+  }
+
+  html body #tab-select #sel-controls .ctrl-group:first-of-type .ctrl-group-label::after {
+    content: '  フォント・サイズ・色だけでOK';
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 400;
+  }
+}
+</style>
+<script id="smask-select-workspace-strong-script">
+(function(){
+  if(window.__smaskSelectWorkspaceStrong) return;
+  window.__smaskSelectWorkspaceStrong = true;
+
+  function isMobile(){ return window.innerWidth <= 768; }
+
+  function relabelTabsStrong(){
+    document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
+      var oc = btn.getAttribute('onclick') || '';
+      if(oc.indexOf("tab-select") !== -1) btn.textContent = '作業';
+      if(oc.indexOf("tab-settings") !== -1) btn.textContent = '管理';
+    });
+  }
+
+  function simplifySelectRows(){
+    var group = document.querySelector('#tab-select #sel-controls .ctrl-group');
+    if(!group) return;
+    group.querySelectorAll('.ctrl-row, .ctrl-color-row').forEach(function(row){
+      row.classList.remove('keep-row');
+      row.setAttribute('data-smask-hide','1');
+      var label = row.querySelector('.ctrl-label, .ctrl-color-label');
+      var txt = label ? (label.textContent || '').replace(/\s+/g,'').trim() : '';
+      if(['フォント','文字サイズ','太さ','文字カラー'].indexOf(txt) !== -1){
+        row.setAttribute('data-smask-hide','0');
+        row.classList.add('keep-row');
+      }
+    });
+  }
+
+  function removePresetNoise(){
+    ['smask-size-presets','smask-weight-presets'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && isMobile()) el.style.display = 'none';
+    });
+  }
+
+  function compactSelectedInfo(){
+    var info = document.getElementById('sel-info-text');
+    if(!info || !info.textContent) return;
+    var txt = info.textContent.replace(/\s+/g,' ').trim();
+    if(txt.length > 28) info.textContent = txt.slice(0, 28) + '…';
+  }
+
+  function boot(){
+    relabelTabsStrong();
+    simplifySelectRows();
+    removePresetNoise();
+    compactSelectedInfo();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
 </body>
 </html>
 
