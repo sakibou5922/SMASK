@@ -1526,862 +1526,494 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
 </div>
 
-<div id="design-panel">
-  <!-- スマホ用ドラッグハンドル -->
-  <div class="panel-drag-handle" id="panelDragHandle"></div>
-  <div class="panel-header">
-    <div class="panel-header-row1">
-      <span class="panel-title">⚙ DESIGN PANEL</span>
-      <div class="panel-actions">
-        <button class="panel-btn btn-reset" onclick="resetAll()">リセット</button>
-        <button class="panel-btn btn-copy"  onclick="copyCSS()">CSS出力</button>
-        <button class="panel-btn btn-logout" onclick="doLogout()">🔓 ログアウト</button>
-        <button onclick="smaskPublish()" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-weight:700;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:11px;letter-spacing:0.05em;margin-left:2px;">🚀 公開</button>
+
+<!-- ========== SMASK v9 管理パネル ========== -->
+<div id="smask-admin-panel" class="smask-panel-wrap">
+
+  <!-- ▼ 上部固定ヘッダー -->
+  <div class="smk-header">
+    <div class="smk-header-left">
+      <span class="smk-logo">SMASK</span>
+      <span class="smk-logo-sub">DESIGN PANEL</span>
+    </div>
+    <div class="smk-header-center">
+      <div class="smk-sel-indicator" id="smk-sel-indicator">
+        <span class="smk-sel-dot" id="smk-sel-dot"></span>
+        <span id="smk-sel-label">未選択</span>
       </div>
     </div>
-    <!-- クリック選択モード トグル -->
-    <button id="clickModeBtn" onclick="toggleClickMode()">クリック選択モード OFF</button>
-    <!-- 要素/文字 モード切替 -->
-    <div id="sel-mode-switcher" style="display:none;">
-      <div class="sel-mode-btns">
-        <button id="modeElemBtn" class="sel-mode-btn active" onclick="setSelMode('element')">📦 要素選択</button>
-        <button id="modeCharBtn" class="sel-mode-btn" onclick="setSelMode('char')">🔡 文字選択</button>
-      </div>
+    <div class="smk-header-right">
+      <button class="smk-hbtn smk-hbtn-undo" onclick="smkUndo()" title="元に戻す">↩</button>
+      <button class="smk-hbtn smk-hbtn-redo" onclick="smkRedo()" title="やり直し">↪</button>
+      <button class="smk-hbtn" onclick="smkResetMenu()" title="リセット">⊘</button>
+      <button class="smk-hbtn smk-hbtn-css" onclick="copyCSS()" title="CSS出力">CSS</button>
+      <button class="smk-hbtn smk-hbtn-pub" onclick="smaskPublish()" title="公開">公開</button>
+      <button class="smk-hbtn smk-hbtn-logout" onclick="doLogout()" title="ログアウト">出</button>
     </div>
   </div>
-  
-      <!-- フォントプレビューボックス -->
-      <div id="smask-fp-box" style="display:none;margin:8px 0;padding:10px 12px;background:#111;border:1px solid #C6A75C;border-radius:8px;">
-        <div style="font-size:9px;color:#888;margin-bottom:6px;letter-spacing:0.1em;" id="smask-fp-name">フォントプレビュー</div>
-        <div id="smask-fp-ja" style="font-size:20px;color:#fff;line-height:1.4;margin-bottom:2px;">あいうえお SMASK</div>
-        <div id="smask-fp-en" style="font-size:14px;color:#C6A75C;line-height:1.4;">ABCabc 0123456789</div>
-      </div>
-      <div class="panel-tabs">
-    <button class="panel-tab active" onclick="switchTab(this,'tab-colors')">カラー</button>
-    <button class="panel-tab" onclick="switchTab(this,'tab-select')">🎯選択</button>
-    <button class="panel-tab" onclick="switchTab(this,'tab-t1')">T①</button>
-    <button class="panel-tab" onclick="switchTab(this,'tab-t2')">T②</button>
-    <button class="panel-tab" onclick="switchTab(this,'tab-t3')">T③</button>
-    <button class="panel-tab" onclick="switchTab(this,'tab-body')">本文</button>
-    <button class="panel-tab" onclick="switchTab(this,'tab-settings')">⚙</button>
-  </div>
-  <div class="panel-body">
 
-    <!-- カラー -->
-    <div class="tab-content active" id="tab-colors">
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">🎨 カラーパレット</div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">背景</span><input type="color" class="ctrl-color" value="#fef4f4" onchange="setColor('--color-bg',this)"><span class="ctrl-color-hex" id="hex-bg">#fef4f4</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">メインテキスト</span><input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--color-text',this)"><span class="ctrl-color-hex" id="hex-text">#2b2b2b</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">補助テキスト</span><input type="color" class="ctrl-color" value="#a3a3a2" onchange="setColor('--color-sub',this)"><span class="ctrl-color-hex" id="hex-sub">#a3a3a2</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">アクセント（赤）</span><input type="color" class="ctrl-color" value="#d3381c" onchange="setColor('--color-accent',this)"><span class="ctrl-color-hex" id="hex-accent">#d3381c</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">ゴールド</span><input type="color" class="ctrl-color" value="#C6A75C" onchange="setColor('--color-gold',this)"><span class="ctrl-color-hex" id="hex-gold">#C6A75C</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">カード背景</span><input type="color" class="ctrl-color" value="#ffffff" onchange="setColor('--color-white',this)"><span class="ctrl-color-hex" id="hex-white">#ffffff</span></div>
-      </div>
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">📐 レイアウト</div>
-        <div class="ctrl-row"><span class="ctrl-label">セクション余白</span><input type="range" class="ctrl-slider" min="40" max="160" value="90" oninput="setPx('--section-padding',this,'px-section')"><span class="ctrl-value" id="px-section">90px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">カード角丸</span><input type="range" class="ctrl-slider" min="0" max="32" value="12" oninput="setPx('--card-radius',this,'px-radius')"><span class="ctrl-value" id="px-radius">12px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">カード間隔</span><input type="range" class="ctrl-slider" min="8" max="48" value="24" oninput="setPx('--card-gap',this,'px-gap')"><span class="ctrl-value" id="px-gap">24px</span></div>
-      </div>
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">🦸 ヒーロー</div>
-        <div class="ctrl-row"><span class="ctrl-label">タイトルサイズ</span><input type="range" class="ctrl-slider" min="28" max="96" value="52" oninput="setPx('--hero-title-size',this,'px-hero-t')"><span class="ctrl-value" id="px-hero-t">52px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">サブタイトル</span><input type="range" class="ctrl-slider" min="12" max="36" value="17" oninput="setPx('--hero-sub-size',this,'px-hero-s')"><span class="ctrl-value" id="px-hero-s">17px</span></div>
+  <!-- ▼ リセットメニュー（ドロップダウン） -->
+  <div class="smk-reset-menu" id="smk-reset-menu" style="display:none;">
+    <button onclick="smkResetEl('all')">🔄 この要素をリセット</button>
+    <button onclick="smkResetEl('font')">🔤 文字設定だけリセット</button>
+    <button onclick="smkResetEl('color')">🎨 色だけリセット</button>
+  </div>
+
+  <!-- ▼ メインボディ（サイドバー + コンテンツ） -->
+  <div class="smk-body">
+
+    <!-- ▼ 左サイドバー -->
+    <div class="smk-sidebar">
+      <button class="smk-tab-btn active" id="smk-btn-select" onclick="smkTab('select')">
+        <span class="smk-tab-icon">🎯</span>
+        <span class="smk-tab-label">SELECT</span>
+      </button>
+      <button class="smk-tab-btn" id="smk-btn-color" onclick="smkTab('color')">
+        <span class="smk-tab-icon">🎨</span>
+        <span class="smk-tab-label">COLOR</span>
+      </button>
+      <button class="smk-tab-btn" id="smk-btn-font" onclick="smkTab('font')">
+        <span class="smk-tab-icon">✏️</span>
+        <span class="smk-tab-label">FONT</span>
+      </button>
+
+      <!-- サイドバー下部 -->
+      <div class="smk-sidebar-bottom">
+        <button class="smk-sidebar-btn" onclick="toggleClickMode()" id="smk-click-btn" title="選択モード">
+          <span>SELECT</span><span style="font-size:9px;">MODE</span>
+        </button>
       </div>
     </div>
 
-    <!-- 🎯 クリック選択タブ -->
-    <div class="tab-content" id="tab-select">
-      <!-- クリックモードOFF時のガイド -->
-      <div id="sel-guide">
-        <div class="sel-empty">
-          <span class="sel-empty-icon">🎯</span>
-          上の <strong style="color:var(--color-gold)">クリック選択モード</strong> をONにして、<br>
-          ページ内のテキストをクリックしてください。
-        </div>
-      </div>
-      <!-- クリックモードON、未選択時 -->
-      <div id="sel-waiting" style="display:none">
-        <div class="sel-empty">
-          <span class="sel-empty-icon">👆</span>
-          <strong style="color:var(--color-gold)">選択モード ON</strong><br>
-          ページのテキストをクリックしてください
-        </div>
-      </div>
-      <!-- 選択後の調整UI -->
-      <div id="sel-controls" style="display:none">
-        <!-- 選択要素の情報 -->
-        <div class="sel-info-box">
-          <div class="sel-info-tag">選択中の要素</div>
-          <div class="sel-info-text" id="sel-info-text">-</div>
-        </div>
-        <!-- スタイル調整コントロール -->
-        <div class="ctrl-group">
-          <div class="ctrl-group-label">🔡 文字スタイル</div>
-          <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-            <span class="ctrl-label">フォント</span>
+    <!-- ▼ 右メインエリア -->
+    <div class="smk-main" id="smk-main">
 
-            <!-- フォントカテゴリ クイック選択 -->
-            <div id="smask-font-cats">
-              <button class="smask-font-cat-btn active" onclick="smaskFilterFontCat('all',this)">すべて</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('kirei',this)">✨きれい</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('kawaii',this)">🌸かわいい</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('luxury',this)">💎高級感</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('wa',this)">🎋和風</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('bold',this)">💪目立つ</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('readable',this)">📖読みやすい</button>
-              <button class="smask-font-cat-btn" onclick="smaskFilterFontCat('en',this)">🔤英字</button>
+      <!-- ===== SELECTタブ ===== -->
+      <div class="smk-pane" id="smk-pane-select">
+
+        <!-- 編集モード切り替え -->
+        <div class="smk-section">
+          <div class="smk-section-title">EDIT MODE</div>
+          <div class="smk-mode-btns">
+            <button class="smk-mode-btn active" id="smk-mode-normal" onclick="smkSetMode('normal')">
+              <span class="smk-mode-icon">⬜</span>
+              <span>通常編集</span>
+              <small>全体変更</small>
+            </button>
+            <button class="smk-mode-btn" id="smk-mode-char" onclick="smkSetMode('char')">
+              <span class="smk-mode-icon">✂️</span>
+              <span>1文字編集</span>
+              <small>文字単位</small>
+            </button>
+          </div>
+        </div>
+
+        <!-- 選択ガイド（未選択時） -->
+        <div class="smk-guide" id="smk-guide">
+          <div class="smk-guide-icon">👆</div>
+          <div class="smk-guide-title">テキストを選択してください</div>
+          <div class="smk-guide-desc">ページ上の文字をクリックして<br>編集対象を選んでください</div>
+          <div style="margin-top:12px;font-size:10px;color:rgba(255,255,255,0.3);">選択モードONが必要です</div>
+        </div>
+
+        <!-- 選択中情報（選択後に表示） -->
+        <div class="smk-sel-info" id="smk-sel-info" style="display:none;">
+          <div class="smk-info-card">
+            <div class="smk-info-tag" id="smk-info-tag">-</div>
+            <div class="smk-info-text" id="smk-info-text">-</div>
+          </div>
+
+          <!-- 通常編集モード時 -->
+          <div id="smk-normal-controls">
+            <div class="smk-section" style="margin-top:12px;">
+              <div class="smk-section-title">QUICK ACTIONS</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="smk-action-btn" onclick="smkTab('font')">✏️ フォント編集</button>
+                <button class="smk-action-btn" onclick="smkTab('color')">🎨 カラー編集</button>
+                <button class="smk-action-btn smk-action-danger" onclick="smkResetEl('all')">⊘ リセット</button>
+              </div>
             </div>
-
-            <div id="sel-font-preview-box" style="display:none;margin-bottom:8px;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(58,134,255,0.4);border-radius:8px;">
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;margin-bottom:6px;">フォントプレビュー</div>
-              <div id="sel-font-preview-text" style="font-size:22px;color:#fff;line-height:1.4;letter-spacing:0.05em;">Aあいうえお 漢字</div>
-              <div id="sel-font-preview-name" style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;"></div>
+            <div class="smk-section">
+              <div class="smk-section-title">1文字分割</div>
+              <button class="smk-split-btn" onclick="smaskSplitChars()">
+                ✂️ 1文字ずつ分割する
+              </button>
+              <div id="smk-unwrap-wrap" style="display:none;margin-top:6px;">
+                <button class="smk-split-btn smk-split-unwrap" onclick="unwrapSelected()">解除する</button>
+              </div>
             </div>
-            <input type="text" id="sel-font-search" placeholder="🔍 フォント検索..." 
-              oninput="filterFont(this, 'sel-font-select')"
-              style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;box-sizing:border-box;">
-            <select class="ctrl-select" id="sel-font-select" onchange="applySelFont(this)" oninput="applySelFont(this)" style="width:100%;">
-              <option value="">── デフォルト ──</option>
-              <option value="" disabled>━━ 明朝体・セリフ系（日本語）━━</option>
-              <option value="'Noto Serif JP', serif">Noto Serif JP｜ノトセリフ（標準明朝）</option>
-              <option value="'Zen Old Mincho', serif">Zen Old Mincho｜禅オールドみんちょう</option>
-              <option value="'Shippori Mincho', serif">Shippori Mincho｜しっぽり明朝</option>
-              <option value="'Shippori Antique', serif">Shippori Antique｜しっぽりアンティーク</option>
-              <option value="'Shippori Antique B1', serif">Shippori Antique B1｜しっぽりアンティークB1</option>
-              <option value="'Zen Antique', serif">Zen Antique｜禅アンティーク</option>
-              <option value="'Zen Antique Soft', serif">Zen Antique Soft｜禅アンティークソフト</option>
-              <option value="'Hina Mincho', serif">Hina Mincho｜ひな明朝</option>
-              <option value="'Kaisei Decol', serif">Kaisei Decol｜解星デコル</option>
-              <option value="'Kaisei Opti', serif">Kaisei Opti｜解星オプティ</option>
-              <option value="'Kaisei Tokumin', serif">Kaisei Tokumin｜解星得民</option>
-              <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi｜解星春の海</option>
-              <option value="'Klee One', cursive">Klee One｜クレー（手書き風）</option>
-              <option value="'BIZ UDMincho', serif">BIZ UDMincho｜BIZ UD明朝</option>
-              <option value="'Yuji Syuku', serif">Yuji Syuku｜游字宿</option>
-              <option value="'Yuji Mai', serif">Yuji Mai｜游字舞</option>
-              <option value="'Yuji Boku', serif">Yuji Boku｜游字墨</option>
-              <option value="'New Tegomin', serif">New Tegomin｜新手ごみん</option>
-              <option value="" disabled>━━ ゴシック体・サンセリフ系（日本語）━━</option>
-              <option value="'Noto Sans JP', sans-serif">Noto Sans JP｜ノトサンズ（標準ゴシック）</option>
-              <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c｜丸ゴシック</option>
-              <option value="'M PLUS 1p', sans-serif">M PLUS 1p｜Mプラス1p</option>
-              <option value="'M PLUS 1', sans-serif">M PLUS 1｜Mプラス1</option>
-              <option value="'M PLUS 2', sans-serif">M PLUS 2｜Mプラス2</option>
-              <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic｜BIZ UDゴシック</option>
-              <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic｜BIZ UDPゴシック</option>
-              <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New｜禅角ゴシック新</option>
-              <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique｜禅角ゴシックアンティーク</option>
-              <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic｜禅丸ゴシック</option>
-              <option value="'Murecho', sans-serif">Murecho｜むれちょ（細め）</option>
-              <option value="'DotGothic16', sans-serif">DotGothic16｜ドットゴシック（ドット風）</option>
-              <option value="" disabled>━━ 筆書き・デザイン系（日本語）━━</option>
-              <option value="'Reggae One', cursive">Reggae One｜レゲエ（太め個性派）</option>
-              <option value="'Rampart One', cursive">Rampart One｜ランパート（立体風）</option>
-              <option value="'Stick', sans-serif">Stick｜スティック（超細い）</option>
-              <option value="'Train One', cursive">Train One｜トレイン（スピード感）</option>
-              <option value="'Zen Loop', cursive">Zen Loop｜禅ループ（丸文字）</option>
-              <option value="'Rock 3D', cursive">Rock 3D｜ロック3D（立体）</option>
-              <option value="'Yomogi', cursive">Yomogi｜よもぎ（やわらか手書き）</option>
-              <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop｜はちまるポップ</option>
-              <option value="" disabled>━━ セリフ体（英字）━━</option>
-              <option value="'Playfair Display', serif">Playfair Display｜高級感・エレガント</option>
-              <option value="'Cormorant Garamond', serif">Cormorant Garamond｜クラシック上品</option>
-              <option value="'EB Garamond', serif">EB Garamond｜伝統的ガラモン</option>
-              <option value="'Cinzel', serif">Cinzel｜ローマン・石碑風</option>
-              <option value="'Lora', serif">Lora｜モダンセリフ</option>
-              <option value="'Merriweather', serif">Merriweather｜読みやすいセリフ</option>
-              <option value="'Libre Baskerville', serif">Libre Baskerville｜バスカービル</option>
-              <option value="'Crimson Text', serif">Crimson Text｜文学・書籍風</option>
-              <option value="" disabled>━━ サンセリフ体（英字）━━</option>
-              <option value="'Montserrat', sans-serif">Montserrat｜モダン・スタイリッシュ</option>
-              <option value="'Raleway', sans-serif">Raleway｜細め・洗練</option>
-              <option value="'Josefin Sans', sans-serif">Josefin Sans｜幾何学的・北欧風</option>
-              <option value="'Oswald', sans-serif">Oswald｜縦長・力強い</option>
-              <option value="'Nunito', sans-serif">Nunito｜丸みサンセリフ</option>
-              <option value="'Poppins', sans-serif">Poppins｜ポップ・現代的</option>
-              <option value="'Inter', sans-serif">Inter｜UI向け・読みやすい</option>
-              <option value="'Outfit', sans-serif">Outfit｜スマート・クリーン</option>
-              <option value="'DM Sans', sans-serif">DM Sans｜シンプル・ミニマル</option>
-              <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans｜現代的ゴシック</option>
-              <option value="" disabled>━━ デコレーション・英字特殊系 ━━</option>
-              <option value="'Bebas Neue', cursive">Bebas Neue｜太い大文字・インパクト</option>
-              <option value="'Anton', sans-serif">Anton｜極太インパクト</option>
-              <option value="'Righteous', cursive">Righteous｜レトロポップ</option>
-              <option value="'Fredoka One', cursive">Fredoka One｜かわいい丸文字</option>
-              <option value="'Pacifico', cursive">Pacifico｜手書きカジュアル</option>
-              <option value="'Dancing Script', cursive">Dancing Script｜筆記体・エレガント</option>
-              <option value="'Great Vibes', cursive">Great Vibes｜カリグラフィー風</option>
-            </select>
           </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">文字サイズ</span>
 
-            <!-- サイズ プリセット (スマホ向け) -->
-            <div class="smask-preset-row" id="smask-size-presets">
-              <button class="smask-preset-btn" onclick="smaskSetSize(11)">極小<br><span style="font-size:10px;">11px</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetSize(14)">小<br><span style="font-size:10px;">14px</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetSize(18)">中<br><span style="font-size:10px;">18px</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetSize(24)">大<br><span style="font-size:10px;">24px</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetSize(32)">特大<br><span style="font-size:10px;">32px</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetSize(48)">最大<br><span style="font-size:10px;">48px</span></button>
-            </div>
-
-            <input type="range" class="ctrl-slider" id="sel-size-slider" min="8" max="96" value="16"
-              oninput="applySelSize(this)">
-            <span class="ctrl-value" id="sel-size-val">16px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">太さ</span>
-
-            <!-- 太さ プリセット (スマホ向け) -->
-            <div class="smask-preset-row" id="smask-weight-presets">
-              <button class="smask-preset-btn" onclick="smaskSetWeight(300)">細<br><span style="font-size:10px;font-weight:300;">Aa</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetWeight(400)">普通<br><span style="font-size:10px;font-weight:400;">Aa</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetWeight(600)">中太<br><span style="font-size:10px;font-weight:600;">Aa</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetWeight(700)">太<br><span style="font-size:10px;font-weight:700;">Aa</span></button>
-              <button class="smask-preset-btn" onclick="smaskSetWeight(900)">極太<br><span style="font-size:10px;font-weight:900;">Aa</span></button>
-            </div>
-
-            <input type="range" class="ctrl-slider" id="sel-weight-slider" min="1" max="9" step="1" value="4"
-              oninput="applySelWeight(this)">
-            <span class="ctrl-value" id="sel-weight-val">400</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">字間</span>
-            <input type="range" class="ctrl-slider" id="sel-ls-slider" min="-5" max="80" value="0"
-              oninput="applySelLS(this)">
-            <span class="ctrl-value" id="sel-ls-val">0em</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">行間</span>
-            <input type="range" class="ctrl-slider" id="sel-lh-slider" min="8" max="40" value="16"
-              oninput="applySelLH(this)">
-            <span class="ctrl-value" id="sel-lh-val">1.6</span>
-          </div>
-          <div class="ctrl-color-row">
-            <span class="ctrl-color-label">文字カラー</span>
-            <input type="color" class="ctrl-color" id="sel-color" value="#2b2b2b" onchange="applySelColor(this)">
-            <span class="ctrl-color-hex" id="sel-color-hex">#2b2b2b</span>
-          </div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-group-label">↔ 変形</div>
-          <!-- 横幅比 scaleX -->
-          <div class="ctrl-row">
-            <span class="ctrl-label">横幅比</span>
-            <input type="range" class="ctrl-slider" id="sel-sx-slider" min="10" max="300" value="100" oninput="applySelTransform()">
-            <input type="number" class="ctrl-num" id="sel-sx-num" value="100" oninput="syncFromNum('sel-sx')">
-            <span class="ctrl-value" id="sel-sx-val">100%</span>
-          </div>
-          <!-- 縦幅比 scaleY -->
-          <div class="ctrl-row">
-            <span class="ctrl-label">縦幅比</span>
-            <input type="range" class="ctrl-slider" id="sel-sy-slider" min="10" max="300" value="100" oninput="applySelTransform()">
-            <input type="number" class="ctrl-num" id="sel-sy-num" value="100" oninput="syncFromNum('sel-sy')">
-            <span class="ctrl-value" id="sel-sy-val">100%</span>
-          </div>
-          <!-- 角度 rotate -->
-          <div class="ctrl-row">
-            <span class="ctrl-label">角度</span>
-            <input type="range" class="ctrl-slider" id="sel-rot-slider" min="-180" max="180" value="0" oninput="applySelTransform()">
-            <input type="number" class="ctrl-num" id="sel-rot-num" value="0" oninput="syncFromNum('sel-rot')">
-            <span class="ctrl-value" id="sel-rot-val">0°</span>
-          </div>
-          <!-- 横傾き skewX -->
-          <div class="ctrl-row">
-            <span class="ctrl-label">横傾き</span>
-            <input type="range" class="ctrl-slider" id="sel-skx-slider" min="-60" max="60" value="0" oninput="applySelTransform()">
-            <input type="number" class="ctrl-num" id="sel-skx-num" value="0" oninput="syncFromNum('sel-skx')">
-            <span class="ctrl-value" id="sel-skx-val">0°</span>
-          </div>
-          <!-- 縦傾き skewY -->
-          <div class="ctrl-row">
-            <span class="ctrl-label">縦傾き</span>
-            <input type="range" class="ctrl-slider" id="sel-sky-slider" min="-60" max="60" value="0" oninput="applySelTransform()">
-            <input type="number" class="ctrl-num" id="sel-sky-num" value="0" oninput="syncFromNum('sel-sky')">
-            <span class="ctrl-value" id="sel-sky-val">0°</span>
-          </div>
-          <!-- 変形基準点 -->
-          <div class="ctrl-group-label" style="margin-top:10px;">🎯 変形基準点</div>
-          <div class="origin-grid">
-            <button class="origin-btn" data-origin="left top"    onclick="setOrigin(this)">↖</button>
-            <button class="origin-btn" data-origin="center top"  onclick="setOrigin(this)">↑</button>
-            <button class="origin-btn" data-origin="right top"   onclick="setOrigin(this)">↗</button>
-            <button class="origin-btn" data-origin="left center" onclick="setOrigin(this)">←</button>
-            <button class="origin-btn active" data-origin="center center" onclick="setOrigin(this)">●</button>
-            <button class="origin-btn" data-origin="right center" onclick="setOrigin(this)">→</button>
-            <button class="origin-btn" data-origin="left bottom" onclick="setOrigin(this)">↙</button>
-            <button class="origin-btn" data-origin="center bottom" onclick="setOrigin(this)">↓</button>
-            <button class="origin-btn" data-origin="right bottom" onclick="setOrigin(this)">↘</button>
-          </div>
-          <!-- 変形リセット -->
-          <button class="sel-btn" style="margin-top:8px;width:100%;" onclick="resetTransform()">🔄 変形をリセット</button>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-group-label">📦 外側余白 (margin)</div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">上</span>
-            <input type="range" class="ctrl-slider" id="sel-mt-slider" min="-40" max="120" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-mt-num" value="0" oninput="syncFromNum('sel-mt')">
-            <span class="ctrl-value" id="sel-mt-val">0px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">下</span>
-            <input type="range" class="ctrl-slider" id="sel-mb-slider" min="-40" max="120" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-mb-num" value="0" oninput="syncFromNum('sel-mb')">
-            <span class="ctrl-value" id="sel-mb-val">0px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">左</span>
-            <input type="range" class="ctrl-slider" id="sel-ml-slider" min="-40" max="120" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-ml-num" value="0" oninput="syncFromNum('sel-ml')">
-            <span class="ctrl-value" id="sel-ml-val">0px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">右</span>
-            <input type="range" class="ctrl-slider" id="sel-mr-slider" min="-40" max="120" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-mr-num" value="0" oninput="syncFromNum('sel-mr')">
-            <span class="ctrl-value" id="sel-mr-val">0px</span>
-          </div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-group-label">🟦 内側余白 (padding)</div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">上</span>
-            <input type="range" class="ctrl-slider" id="sel-pt-slider" min="0" max="80" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-pt-num" value="0" oninput="syncFromNum('sel-pt')">
-            <span class="ctrl-value" id="sel-pt-val">0px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">下</span>
-            <input type="range" class="ctrl-slider" id="sel-pb-slider" min="0" max="80" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-pb-num" value="0" oninput="syncFromNum('sel-pb')">
-            <span class="ctrl-value" id="sel-pb-val">0px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">左</span>
-            <input type="range" class="ctrl-slider" id="sel-pl-slider" min="0" max="80" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-pl-num" value="0" oninput="syncFromNum('sel-pl')">
-            <span class="ctrl-value" id="sel-pl-val">0px</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">右</span>
-            <input type="range" class="ctrl-slider" id="sel-pr-slider" min="0" max="80" value="0" oninput="applySelSpacing()">
-            <input type="number" class="ctrl-num" id="sel-pr-num" value="0" oninput="syncFromNum('sel-pr')">
-            <span class="ctrl-value" id="sel-pr-val">0px</span>
-          </div>
-          <button class="sel-btn" style="margin-top:8px;width:100%;" onclick="resetSpacing()">🔄 余白をリセット</button>
-        </div>
-        <!-- アクション -->
-        <div class="sel-actions">
-          <button onclick="smaskSplitChars()" style="width:100%;padding:8px;background:#3a86ff;color:#fff;font-weight:700;border:none;border-radius:8px;font-size:12px;cursor:pointer;margin-bottom:8px;">✂️ 1文字ずつ分割</button>
-          <button class="sel-btn" onclick="splitToChars()" style="background:#3a86ff;color:#fff;font-weight:600;" title="選択要素のテキストを1文字ずつのspanに分割">✂️ 1文字分割</button>
-          <button class="sel-btn sel-btn-copy" onclick="copySelectedStyle()">📋 コピー</button>
-          <button class="sel-btn sel-btn-clear" onclick="clearSelectedStyle()">🗑 クリア</button>
-          <button class="sel-btn sel-btn-unwrap" id="sel-unwrap-btn" onclick="unwrapSelected()" style="display:none;">解除</button>
-        </div>
-        </div>
-
-          <!-- 文字カラーパネル（1文字分割後に表示） -->
-          <div id="smask-char-panel" style="display:none;margin-top:10px;padding:12px;background:rgba(58,134,255,0.1);border:1px solid rgba(58,134,255,0.4);border-radius:10px;">
-            <div style="color:#3a86ff;font-size:12px;font-weight:700;margin-bottom:10px;">🎨 選択文字のスタイル</div>
-
-            <div id="smask-char-preview-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
-              <div id="smask-char-preview" style="min-width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;">あ</div>
-              <div style="flex:1;min-width:0;">
-                <div id="smask-char-meta" style="font-size:11px;color:#9fb7d8;margin-bottom:4px;">選択文字</div>
-                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-                  <button onclick="smaskSelectPrevChar()" style="padding:7px 10px;background:#2d3748;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:34px;">← 前</button>
-                  <button onclick="smaskSelectNextChar()" style="padding:7px 10px;background:#2d3748;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:34px;">次 →</button>
-                  <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#cbd5e0;cursor:pointer;">
-                    <input type="checkbox" id="smask-char-auto-next" checked>
-                    色適用後に次へ
-                  </label>
+          <!-- 1文字編集モード時 -->
+          <div id="smk-char-controls" style="display:none;">
+            <div class="smk-section" style="margin-top:12px;">
+              <div class="smk-section-title">1文字スタイル</div>
+              <div id="smask-char-panel" style="display:none;">
+                <div class="smk-char-preview-wrap">
+                  <div class="smk-char-preview" id="smask-char-preview">あ</div>
+                  <div class="smk-char-meta" id="smask-char-meta">-</div>
+                </div>
+                <div class="smk-ctrl-row">
+                  <label class="smk-ctrl-label">文字色</label>
+                  <input type="color" id="smask-char-color" oninput="smaskApplyCharColor(this.value)">
+                  <span class="smk-hex" id="smask-char-color-hex">#ffffff</span>
+                </div>
+                <div class="smk-ctrl-row">
+                  <label class="smk-ctrl-label">背景色</label>
+                  <input type="color" id="smask-char-bg" oninput="smaskApplyCharBg(this.value)">
+                  <span class="smk-hex" id="smask-char-bg-hex">-</span>
+                  <button onclick="smaskClearCharBg()" class="smk-small-btn">透明</button>
+                </div>
+                <div class="smk-ctrl-row">
+                  <label class="smk-ctrl-label">フォント</label>
+                  <select id="smask-char-font-sel" onchange="smaskApplyCharFont(this.value)" class="smk-select-sm">
+                    <option value="">-- 選択 --</option>
+                  </select>
+                </div>
+                <div class="smk-ctrl-row">
+                  <label class="smk-ctrl-label">サイズ</label>
+                  <input type="range" id="smask-char-size" min="8" max="80" value="16"
+                    oninput="smaskApplyCharSize(this.value)" class="smk-range-sm">
+                  <span id="smask-char-size-val" style="font-size:11px;color:#C6A75C;min-width:28px;">16px</span>
+                </div>
+                <div class="smk-ctrl-row">
+                  <label class="smk-ctrl-label">太さ</label>
+                  <select id="smask-char-weight" onchange="smaskApplyCharWeight(this.value)" class="smk-select-sm">
+                    <option value="300">細 300</option>
+                    <option value="400" selected>標準 400</option>
+                    <option value="600">やや太 600</option>
+                    <option value="700">太 700</option>
+                    <option value="900">極太 900</option>
+                  </select>
                 </div>
               </div>
             </div>
-
-            <div style="font-size:10px;color:#9fb7d8;margin:0 0 6px 0;">よく使う文字色</div>
-            <div id="smask-char-color-swatches" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#ffffff')" style="background:#ffffff;border:2px solid #d1d5db;"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#2b2b2b')" style="background:#2b2b2b;border:2px solid #4b5563;"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#d3381c')" style="background:#d3381c;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#C6A75C')" style="background:#C6A75C;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#3a86ff')" style="background:#3a86ff;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#ff4d6d')" style="background:#ff4d6d;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#22c55e')" style="background:#22c55e;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharColor('#a855f7')" style="background:#a855f7;border:2px solid rgba(255,255,255,0.15);"></button>
-            </div>
-
-            <div style="font-size:10px;color:#9fb7d8;margin:0 0 6px 0;">よく使う背景色</div>
-            <div id="smask-char-bg-swatches" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('transparent')" style="background:linear-gradient(135deg,#111 25%,#333 25%,#333 50%,#111 50%,#111 75%,#333 75%);background-size:10px 10px;border:2px solid #60a5fa;position:relative;"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#000000')" style="background:#000000;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#ffffff')" style="background:#ffffff;border:2px solid #d1d5db;"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#fff3cd')" style="background:#fff3cd;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#dbeafe')" style="background:#dbeafe;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#fee2e2')" style="background:#fee2e2;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#dcfce7')" style="background:#dcfce7;border:2px solid rgba(255,255,255,0.15);"></button>
-              <button class="smask-swatch-btn" onclick="smaskQuickCharBg('#ede9fe')" style="background:#ede9fe;border:2px solid rgba(255,255,255,0.15);"></button>
-            </div>
-
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              <span style="color:#ccc;font-size:12px;min-width:40px;">文字色</span>
-              <input type="color" id="smask-char-color" value="#ffffff" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharColor(this)" onchange="smaskApplyCharColor(this)">
-              <span id="smask-char-color-hex" style="color:#888;font-size:11px;">#ffffff</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-              <span style="color:#ccc;font-size:12px;min-width:40px;">背景色</span>
-              <input type="color" id="smask-char-bg" value="#000000" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;" oninput="smaskApplyCharBg(this)" onchange="smaskApplyCharBg(this)">
-              <span id="smask-char-bg-hex" style="color:#888;font-size:11px;">#000000</span>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button onclick="smaskSetCharBgTransparent()" style="flex:1;padding:8px;background:#2d3748;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:40px;">背景を透明</button>
-              <button onclick="smaskColorAll()" style="flex:1;padding:8px;background:#3a86ff;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:40px;">全文字に適用</button>
-              <button onclick="smaskColorReset()" style="flex:1;padding:8px;background:#444;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;min-height:40px;">リセット</button>
+            <div class="smk-section">
+              <div class="smk-section-title">操作</div>
+              <button class="smk-split-btn" onclick="smaskSplitChars()">✂️ 再分割</button>
             </div>
           </div>
-        <div style="margin-top:10px;padding:8px;background:rgba(0,0,0,0.2);border-radius:5px;">
-          <div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;margin-bottom:5px;">生成インラインスタイル</div>
-          <div id="sel-style-preview" style="font-size:9px;color:rgba(255,255,255,0.5);font-family:monospace;word-break:break-all;line-height:1.7;min-height:24px;"></div>
+        </div>
+
+        <!-- カスタムフォント設定（SELECTタブ下部） -->
+        <div class="smk-section smk-section-collapse" style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+          <div class="smk-section-title">
+            <span>CUSTOM FONT</span>
+            <button class="smk-collapse-btn" onclick="smkToggleCollapse('smk-custom-font-body')">▼</button>
+          </div>
+          <div id="smk-custom-font-body" style="display:none;">
+            <input type="text" id="custom-font-input" placeholder="例: Zen Kurenaido" class="smk-input">
+            <input type="text" id="custom-font-label" placeholder="表示名（例：ゼン紅藤）" class="smk-input" style="margin-top:6px;">
+            <button onclick="addCustomFont()" class="smk-primary-btn" style="margin-top:6px;">追加する</button>
+            <div id="custom-font-list" style="margin-top:8px;font-size:11px;color:#888;"></div>
+          </div>
+          <!-- パスワード変更 -->
+          <div class="smk-section-title" style="margin-top:10px;">
+            <span>PASSWORD</span>
+            <button class="smk-collapse-btn" onclick="smkToggleCollapse('smk-pw-body')">▼</button>
+          </div>
+          <div id="smk-pw-body" style="display:none;">
+            <input type="password" id="pw-current" placeholder="現在のパスワード" class="smk-input">
+            <input type="password" id="pw-new" placeholder="新しいパスワード" class="smk-input" style="margin-top:6px;">
+            <input type="password" id="pw-confirm" placeholder="確認" class="smk-input" style="margin-top:6px;">
+            <button onclick="changePassword()" class="smk-primary-btn" style="margin-top:6px;">変更</button>
+            <div id="pw-msg" style="margin-top:6px;font-size:11px;text-align:center;min-height:16px;color:#C6A75C;"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- タイトル① -->
-    <div class="tab-content" id="tab-t1">
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">Ⓣ タイトル① — セクション英字ラベル</div>
-        <div class="ctrl-row"><span class="ctrl-label">文字サイズ</span><input type="range" class="ctrl-slider" min="8" max="28" value="13" oninput="setPx('--t1-size',this,'t1-sz')"><span class="ctrl-value" id="t1-sz">13px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">字間</span><input type="range" class="ctrl-slider" min="0" max="100" value="35" oninput="setEm('--t1-letter-spacing',this,'t1-ls',100)"><span class="ctrl-value" id="t1-ls">0.35em</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">行間</span><input type="range" class="ctrl-slider" min="10" max="30" value="14" oninput="setRaw('--t1-line-height',this,'t1-lh',10)"><span class="ctrl-value" id="t1-lh">1.4</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">太さ</span><input type="range" class="ctrl-slider" min="1" max="9" value="6" step="1" oninput="setWeight('--t1-weight',this,'t1-fw')"><span class="ctrl-value" id="t1-fw">600</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">横幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--t1-scale-x',this,'t1-sx')"><span class="ctrl-value" id="t1-sx">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">縦幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--t1-scale-y',this,'t1-sy')"><span class="ctrl-value" id="t1-sy">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">角度</span><input type="range" class="ctrl-slider" min="-30" max="30" value="0" oninput="setDeg('--t1-rotate',this,'t1-rot')"><span class="ctrl-value" id="t1-rot">0°</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="-20" max="60" value="0" oninput="setPx('--t1-margin-top',this,'t1-mt')"><span class="ctrl-value" id="t1-mt">0px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="60" value="12" oninput="setPx('--t1-margin-bottom',this,'t1-mb')"><span class="ctrl-value" id="t1-mb">12px</span></div>
-        <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-          <span class="ctrl-label">フォント</span>
-          <input type="text" class="font-search-input" placeholder="🔍 フォント検索..." 
-            oninput="filterFont(this, 'font-t1')"
-            style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;box-sizing:border-box;">
-          <select class="ctrl-select" id="font-t1" onchange="setFont('--t1-font-family',this)" 
-            style="width:100%;max-height:200px;">
+      <!-- ===== COLORタブ ===== -->
+      <div class="smk-pane" id="smk-pane-color" style="display:none;">
 
-            <option value="">── デフォルト ──</option>
-            <option value="" disabled>━━ 明朝体・セリフ系（日本語）━━</option>
-            <option value="'Noto Serif JP', serif">Noto Serif JP｜ノトセリフ（標準明朝）</option>
-            <option value="'Zen Old Mincho', serif">Zen Old Mincho｜禅オールドみんちょう</option>
-            <option value="'Shippori Mincho', serif">Shippori Mincho｜しっぽり明朝</option>
-            <option value="'Shippori Antique', serif">Shippori Antique｜しっぽりアンティーク</option>
-            <option value="'Shippori Antique B1', serif">Shippori Antique B1｜しっぽりアンティークB1</option>
-            <option value="'Zen Antique', serif">Zen Antique｜禅アンティーク</option>
-            <option value="'Zen Antique Soft', serif">Zen Antique Soft｜禅アンティークソフト</option>
-            <option value="'Hina Mincho', serif">Hina Mincho｜ひな明朝</option>
-            <option value="'Kaisei Decol', serif">Kaisei Decol｜解星デコル</option>
-            <option value="'Kaisei Opti', serif">Kaisei Opti｜解星オプティ</option>
-            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin｜解星得民</option>
-            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi｜解星春の海</option>
-            <option value="'Klee One', cursive">Klee One｜クレー（手書き風）</option>
-            <option value="'BIZ UDMincho', serif">BIZ UDMincho｜BIZ UD明朝</option>
-            <option value="'Yuji Syuku', serif">Yuji Syuku｜游字宿</option>
-            <option value="'Yuji Mai', serif">Yuji Mai｜游字舞</option>
-            <option value="'Yuji Boku', serif">Yuji Boku｜游字墨</option>
-            <option value="'New Tegomin', serif">New Tegomin｜新手ごみん</option>
-            <option value="" disabled>━━ ゴシック体・サンセリフ系（日本語）━━</option>
-            <option value="'Noto Sans JP', sans-serif">Noto Sans JP｜ノトサンズ（標準ゴシック）</option>
-            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c｜丸ゴシック</option>
-            <option value="'M PLUS 1p', sans-serif">M PLUS 1p｜Mプラス1p</option>
-            <option value="'M PLUS 1', sans-serif">M PLUS 1｜Mプラス1</option>
-            <option value="'M PLUS 2', sans-serif">M PLUS 2｜Mプラス2</option>
-            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic｜BIZ UDゴシック</option>
-            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic｜BIZ UDPゴシック</option>
-            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New｜禅角ゴシック新</option>
-            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique｜禅角ゴシックアンティーク</option>
-            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic｜禅丸ゴシック</option>
-            <option value="'Murecho', sans-serif">Murecho｜むれちょ（細め）</option>
-            <option value="'DotGothic16', sans-serif">DotGothic16｜ドットゴシック（ドット風）</option>
-            <option value="" disabled>━━ 筆書き・デザイン系（日本語）━━</option>
-            <option value="'Reggae One', cursive">Reggae One｜レゲエ（太め個性派）</option>
-            <option value="'Rampart One', cursive">Rampart One｜ランパート（立体風）</option>
-            <option value="'Stick', sans-serif">Stick｜スティック（超細い）</option>
-            <option value="'Train One', cursive">Train One｜トレイン（スピード感）</option>
-            <option value="'Zen Loop', cursive">Zen Loop｜禅ループ（丸文字）</option>
-            <option value="'Rock 3D', cursive">Rock 3D｜ロック3D（立体）</option>
-            <option value="'Yomogi', cursive">Yomogi｜よもぎ（やわらか手書き）</option>
-            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop｜はちまるポップ</option>
-            <option value="" disabled>━━ セリフ体（英字）━━</option>
-            <option value="'Playfair Display', serif">Playfair Display｜高級感・エレガント</option>
-            <option value="'Cormorant Garamond', serif">Cormorant Garamond｜クラシック上品</option>
-            <option value="'EB Garamond', serif">EB Garamond｜伝統的ガラモン</option>
-            <option value="'Cinzel', serif">Cinzel｜ローマン・石碑風</option>
-            <option value="'Lora', serif">Lora｜モダンセリフ</option>
-            <option value="'Merriweather', serif">Merriweather｜読みやすいセリフ</option>
-            <option value="'Libre Baskerville', serif">Libre Baskerville｜バスカービル</option>
-            <option value="'Crimson Text', serif">Crimson Text｜文学・書籍風</option>
-            <option value="" disabled>━━ サンセリフ体（英字）━━</option>
-            <option value="'Montserrat', sans-serif">Montserrat｜モダン・スタイリッシュ</option>
-            <option value="'Raleway', sans-serif">Raleway｜細め・洗練</option>
-            <option value="'Josefin Sans', sans-serif">Josefin Sans｜幾何学的・北欧風</option>
-            <option value="'Oswald', sans-serif">Oswald｜縦長・力強い</option>
-            <option value="'Nunito', sans-serif">Nunito｜丸みサンセリフ</option>
-            <option value="'Poppins', sans-serif">Poppins｜ポップ・現代的</option>
-            <option value="'Inter', sans-serif">Inter｜UI向け・読みやすい</option>
-            <option value="'Outfit', sans-serif">Outfit｜スマート・クリーン</option>
-            <option value="'DM Sans', sans-serif">DM Sans｜シンプル・ミニマル</option>
-            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans｜現代的ゴシック</option>
-            <option value="" disabled>━━ デコレーション・英字特殊系 ━━</option>
-            <option value="'Bebas Neue', cursive">Bebas Neue｜太い大文字・インパクト</option>
-            <option value="'Anton', sans-serif">Anton｜極太インパクト</option>
-            <option value="'Righteous', cursive">Righteous｜レトロポップ</option>
-            <option value="'Fredoka One', cursive">Fredoka One｜かわいい丸文字</option>
-            <option value="'Pacifico', cursive">Pacifico｜手書きカジュアル</option>
-            <option value="'Dancing Script', cursive">Dancing Script｜筆記体・エレガント</option>
-            <option value="'Great Vibes', cursive">Great Vibes｜カリグラフィー風</option>
-
-          </select>
+        <!-- 選択ガイド -->
+        <div class="smk-guide smk-guide-color" id="smk-color-guide">
+          <div class="smk-guide-icon">🎨</div>
+          <div class="smk-guide-title">要素を選択してください</div>
+          <div class="smk-guide-desc">SELECTタブで要素を選んでから<br>色を変更できます</div>
         </div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span><input type="color" class="ctrl-color" value="#C6A75C" onchange="setColor('--t1-color',this)"><span class="ctrl-color-hex" id="hex-t1">#C6A75C</span></div>
-      </div>
-    </div>
-
-    <!-- タイトル② -->
-    <div class="tab-content" id="tab-t2">
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">Ⓣ タイトル② — セクション日本語大見出し</div>
-        <div class="ctrl-row"><span class="ctrl-label">文字サイズ</span><input type="range" class="ctrl-slider" min="16" max="64" value="32" oninput="setPx('--t2-size',this,'t2-sz')"><span class="ctrl-value" id="t2-sz">32px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">字間</span><input type="range" class="ctrl-slider" min="0" max="80" value="5" oninput="setEm('--t2-letter-spacing',this,'t2-ls',100)"><span class="ctrl-value" id="t2-ls">0.05em</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">行間</span><input type="range" class="ctrl-slider" min="10" max="30" value="14" oninput="setRaw('--t2-line-height',this,'t2-lh',10)"><span class="ctrl-value" id="t2-lh">1.4</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">太さ</span><input type="range" class="ctrl-slider" min="1" max="9" value="7" step="1" oninput="setWeight('--t2-weight',this,'t2-fw')"><span class="ctrl-value" id="t2-fw">700</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">横幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--t2-scale-x',this,'t2-sx')"><span class="ctrl-value" id="t2-sx">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">縦幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--t2-scale-y',this,'t2-sy')"><span class="ctrl-value" id="t2-sy">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">角度</span><input type="range" class="ctrl-slider" min="-30" max="30" value="0" oninput="setDeg('--t2-rotate',this,'t2-rot')"><span class="ctrl-value" id="t2-rot">0°</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="-20" max="60" value="0" oninput="setPx('--t2-margin-top',this,'t2-mt')"><span class="ctrl-value" id="t2-mt">0px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="80" value="16" oninput="setPx('--t2-margin-bottom',this,'t2-mb')"><span class="ctrl-value" id="t2-mb">16px</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span>        <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-          <span class="ctrl-label">フォント</span>
-          <input type="text" class="font-search-input" placeholder="🔍 フォント検索..." 
-            oninput="filterFont(this, 'font-t2')"
-            style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;box-sizing:border-box;">
-          <select class="ctrl-select" id="font-t2" onchange="setFont('--t2-font-family',this)" 
-            style="width:100%;max-height:200px;">
-
-            <option value="">── デフォルト ──</option>
-            <option value="" disabled>━━ 明朝体・セリフ系（日本語）━━</option>
-            <option value="'Noto Serif JP', serif">Noto Serif JP｜ノトセリフ（標準明朝）</option>
-            <option value="'Zen Old Mincho', serif">Zen Old Mincho｜禅オールドみんちょう</option>
-            <option value="'Shippori Mincho', serif">Shippori Mincho｜しっぽり明朝</option>
-            <option value="'Shippori Antique', serif">Shippori Antique｜しっぽりアンティーク</option>
-            <option value="'Shippori Antique B1', serif">Shippori Antique B1｜しっぽりアンティークB1</option>
-            <option value="'Zen Antique', serif">Zen Antique｜禅アンティーク</option>
-            <option value="'Zen Antique Soft', serif">Zen Antique Soft｜禅アンティークソフト</option>
-            <option value="'Hina Mincho', serif">Hina Mincho｜ひな明朝</option>
-            <option value="'Kaisei Decol', serif">Kaisei Decol｜解星デコル</option>
-            <option value="'Kaisei Opti', serif">Kaisei Opti｜解星オプティ</option>
-            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin｜解星得民</option>
-            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi｜解星春の海</option>
-            <option value="'Klee One', cursive">Klee One｜クレー（手書き風）</option>
-            <option value="'BIZ UDMincho', serif">BIZ UDMincho｜BIZ UD明朝</option>
-            <option value="'Yuji Syuku', serif">Yuji Syuku｜游字宿</option>
-            <option value="'Yuji Mai', serif">Yuji Mai｜游字舞</option>
-            <option value="'Yuji Boku', serif">Yuji Boku｜游字墨</option>
-            <option value="'New Tegomin', serif">New Tegomin｜新手ごみん</option>
-            <option value="" disabled>━━ ゴシック体・サンセリフ系（日本語）━━</option>
-            <option value="'Noto Sans JP', sans-serif">Noto Sans JP｜ノトサンズ（標準ゴシック）</option>
-            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c｜丸ゴシック</option>
-            <option value="'M PLUS 1p', sans-serif">M PLUS 1p｜Mプラス1p</option>
-            <option value="'M PLUS 1', sans-serif">M PLUS 1｜Mプラス1</option>
-            <option value="'M PLUS 2', sans-serif">M PLUS 2｜Mプラス2</option>
-            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic｜BIZ UDゴシック</option>
-            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic｜BIZ UDPゴシック</option>
-            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New｜禅角ゴシック新</option>
-            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique｜禅角ゴシックアンティーク</option>
-            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic｜禅丸ゴシック</option>
-            <option value="'Murecho', sans-serif">Murecho｜むれちょ（細め）</option>
-            <option value="'DotGothic16', sans-serif">DotGothic16｜ドットゴシック（ドット風）</option>
-            <option value="" disabled>━━ 筆書き・デザイン系（日本語）━━</option>
-            <option value="'Reggae One', cursive">Reggae One｜レゲエ（太め個性派）</option>
-            <option value="'Rampart One', cursive">Rampart One｜ランパート（立体風）</option>
-            <option value="'Stick', sans-serif">Stick｜スティック（超細い）</option>
-            <option value="'Train One', cursive">Train One｜トレイン（スピード感）</option>
-            <option value="'Zen Loop', cursive">Zen Loop｜禅ループ（丸文字）</option>
-            <option value="'Rock 3D', cursive">Rock 3D｜ロック3D（立体）</option>
-            <option value="'Yomogi', cursive">Yomogi｜よもぎ（やわらか手書き）</option>
-            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop｜はちまるポップ</option>
-            <option value="" disabled>━━ セリフ体（英字）━━</option>
-            <option value="'Playfair Display', serif">Playfair Display｜高級感・エレガント</option>
-            <option value="'Cormorant Garamond', serif">Cormorant Garamond｜クラシック上品</option>
-            <option value="'EB Garamond', serif">EB Garamond｜伝統的ガラモン</option>
-            <option value="'Cinzel', serif">Cinzel｜ローマン・石碑風</option>
-            <option value="'Lora', serif">Lora｜モダンセリフ</option>
-            <option value="'Merriweather', serif">Merriweather｜読みやすいセリフ</option>
-            <option value="'Libre Baskerville', serif">Libre Baskerville｜バスカービル</option>
-            <option value="'Crimson Text', serif">Crimson Text｜文学・書籍風</option>
-            <option value="" disabled>━━ サンセリフ体（英字）━━</option>
-            <option value="'Montserrat', sans-serif">Montserrat｜モダン・スタイリッシュ</option>
-            <option value="'Raleway', sans-serif">Raleway｜細め・洗練</option>
-            <option value="'Josefin Sans', sans-serif">Josefin Sans｜幾何学的・北欧風</option>
-            <option value="'Oswald', sans-serif">Oswald｜縦長・力強い</option>
-            <option value="'Nunito', sans-serif">Nunito｜丸みサンセリフ</option>
-            <option value="'Poppins', sans-serif">Poppins｜ポップ・現代的</option>
-            <option value="'Inter', sans-serif">Inter｜UI向け・読みやすい</option>
-            <option value="'Outfit', sans-serif">Outfit｜スマート・クリーン</option>
-            <option value="'DM Sans', sans-serif">DM Sans｜シンプル・ミニマル</option>
-            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans｜現代的ゴシック</option>
-            <option value="" disabled>━━ デコレーション・英字特殊系 ━━</option>
-            <option value="'Bebas Neue', cursive">Bebas Neue｜太い大文字・インパクト</option>
-            <option value="'Anton', sans-serif">Anton｜極太インパクト</option>
-            <option value="'Righteous', cursive">Righteous｜レトロポップ</option>
-            <option value="'Fredoka One', cursive">Fredoka One｜かわいい丸文字</option>
-            <option value="'Pacifico', cursive">Pacifico｜手書きカジュアル</option>
-            <option value="'Dancing Script', cursive">Dancing Script｜筆記体・エレガント</option>
-            <option value="'Great Vibes', cursive">Great Vibes｜カリグラフィー風</option>
-
-          </select>
+        <div id="smk-color-controls" style="display:none;">
+          <div class="smk-sel-info-mini" id="smk-color-el-info">選択中: -</div>
         </div>
-<input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--t2-color',this)"><span class="ctrl-color-hex" id="hex-t2">#2b2b2b</span></div>
-      </div>
-    </div>
 
-    <!-- タイトル③ -->
-    <div class="tab-content" id="tab-t3">
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">Ⓣ タイトル③ — カード見出し</div>
-        <div class="ctrl-row"><span class="ctrl-label">文字サイズ</span><input type="range" class="ctrl-slider" min="12" max="40" value="18" oninput="setPx('--t3-size',this,'t3-sz')"><span class="ctrl-value" id="t3-sz">18px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">字間</span><input type="range" class="ctrl-slider" min="0" max="80" value="5" oninput="setEm('--t3-letter-spacing',this,'t3-ls',100)"><span class="ctrl-value" id="t3-ls">0.05em</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">行間</span><input type="range" class="ctrl-slider" min="10" max="30" value="15" oninput="setRaw('--t3-line-height',this,'t3-lh',10)"><span class="ctrl-value" id="t3-lh">1.5</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">太さ</span><input type="range" class="ctrl-slider" min="1" max="9" value="6" step="1" oninput="setWeight('--t3-weight',this,'t3-fw')"><span class="ctrl-value" id="t3-fw">600</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">横幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--t3-scale-x',this,'t3-sx')"><span class="ctrl-value" id="t3-sx">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">縦幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--t3-scale-y',this,'t3-sy')"><span class="ctrl-value" id="t3-sy">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">角度</span><input type="range" class="ctrl-slider" min="-30" max="30" value="0" oninput="setDeg('--t3-rotate',this,'t3-rot')"><span class="ctrl-value" id="t3-rot">0°</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="-20" max="60" value="0" oninput="setPx('--t3-margin-top',this,'t3-mt')"><span class="ctrl-value" id="t3-mt">0px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="60" value="10" oninput="setPx('--t3-margin-bottom',this,'t3-mb')"><span class="ctrl-value" id="t3-mb">10px</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span>        <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-          <span class="ctrl-label">フォント</span>
-          <input type="text" class="font-search-input" placeholder="🔍 フォント検索..." 
-            oninput="filterFont(this, 'font-t3')"
-            style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;box-sizing:border-box;">
-          <select class="ctrl-select" id="font-t3" onchange="setFont('--t3-font-family',this)" 
-            style="width:100%;max-height:200px;">
-
-            <option value="">── デフォルト ──</option>
-            <option value="" disabled>━━ 明朝体・セリフ系（日本語）━━</option>
-            <option value="'Noto Serif JP', serif">Noto Serif JP｜ノトセリフ（標準明朝）</option>
-            <option value="'Zen Old Mincho', serif">Zen Old Mincho｜禅オールドみんちょう</option>
-            <option value="'Shippori Mincho', serif">Shippori Mincho｜しっぽり明朝</option>
-            <option value="'Shippori Antique', serif">Shippori Antique｜しっぽりアンティーク</option>
-            <option value="'Shippori Antique B1', serif">Shippori Antique B1｜しっぽりアンティークB1</option>
-            <option value="'Zen Antique', serif">Zen Antique｜禅アンティーク</option>
-            <option value="'Zen Antique Soft', serif">Zen Antique Soft｜禅アンティークソフト</option>
-            <option value="'Hina Mincho', serif">Hina Mincho｜ひな明朝</option>
-            <option value="'Kaisei Decol', serif">Kaisei Decol｜解星デコル</option>
-            <option value="'Kaisei Opti', serif">Kaisei Opti｜解星オプティ</option>
-            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin｜解星得民</option>
-            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi｜解星春の海</option>
-            <option value="'Klee One', cursive">Klee One｜クレー（手書き風）</option>
-            <option value="'BIZ UDMincho', serif">BIZ UDMincho｜BIZ UD明朝</option>
-            <option value="'Yuji Syuku', serif">Yuji Syuku｜游字宿</option>
-            <option value="'Yuji Mai', serif">Yuji Mai｜游字舞</option>
-            <option value="'Yuji Boku', serif">Yuji Boku｜游字墨</option>
-            <option value="'New Tegomin', serif">New Tegomin｜新手ごみん</option>
-            <option value="" disabled>━━ ゴシック体・サンセリフ系（日本語）━━</option>
-            <option value="'Noto Sans JP', sans-serif">Noto Sans JP｜ノトサンズ（標準ゴシック）</option>
-            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c｜丸ゴシック</option>
-            <option value="'M PLUS 1p', sans-serif">M PLUS 1p｜Mプラス1p</option>
-            <option value="'M PLUS 1', sans-serif">M PLUS 1｜Mプラス1</option>
-            <option value="'M PLUS 2', sans-serif">M PLUS 2｜Mプラス2</option>
-            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic｜BIZ UDゴシック</option>
-            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic｜BIZ UDPゴシック</option>
-            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New｜禅角ゴシック新</option>
-            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique｜禅角ゴシックアンティーク</option>
-            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic｜禅丸ゴシック</option>
-            <option value="'Murecho', sans-serif">Murecho｜むれちょ（細め）</option>
-            <option value="'DotGothic16', sans-serif">DotGothic16｜ドットゴシック（ドット風）</option>
-            <option value="" disabled>━━ 筆書き・デザイン系（日本語）━━</option>
-            <option value="'Reggae One', cursive">Reggae One｜レゲエ（太め個性派）</option>
-            <option value="'Rampart One', cursive">Rampart One｜ランパート（立体風）</option>
-            <option value="'Stick', sans-serif">Stick｜スティック（超細い）</option>
-            <option value="'Train One', cursive">Train One｜トレイン（スピード感）</option>
-            <option value="'Zen Loop', cursive">Zen Loop｜禅ループ（丸文字）</option>
-            <option value="'Rock 3D', cursive">Rock 3D｜ロック3D（立体）</option>
-            <option value="'Yomogi', cursive">Yomogi｜よもぎ（やわらか手書き）</option>
-            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop｜はちまるポップ</option>
-            <option value="" disabled>━━ セリフ体（英字）━━</option>
-            <option value="'Playfair Display', serif">Playfair Display｜高級感・エレガント</option>
-            <option value="'Cormorant Garamond', serif">Cormorant Garamond｜クラシック上品</option>
-            <option value="'EB Garamond', serif">EB Garamond｜伝統的ガラモン</option>
-            <option value="'Cinzel', serif">Cinzel｜ローマン・石碑風</option>
-            <option value="'Lora', serif">Lora｜モダンセリフ</option>
-            <option value="'Merriweather', serif">Merriweather｜読みやすいセリフ</option>
-            <option value="'Libre Baskerville', serif">Libre Baskerville｜バスカービル</option>
-            <option value="'Crimson Text', serif">Crimson Text｜文学・書籍風</option>
-            <option value="" disabled>━━ サンセリフ体（英字）━━</option>
-            <option value="'Montserrat', sans-serif">Montserrat｜モダン・スタイリッシュ</option>
-            <option value="'Raleway', sans-serif">Raleway｜細め・洗練</option>
-            <option value="'Josefin Sans', sans-serif">Josefin Sans｜幾何学的・北欧風</option>
-            <option value="'Oswald', sans-serif">Oswald｜縦長・力強い</option>
-            <option value="'Nunito', sans-serif">Nunito｜丸みサンセリフ</option>
-            <option value="'Poppins', sans-serif">Poppins｜ポップ・現代的</option>
-            <option value="'Inter', sans-serif">Inter｜UI向け・読みやすい</option>
-            <option value="'Outfit', sans-serif">Outfit｜スマート・クリーン</option>
-            <option value="'DM Sans', sans-serif">DM Sans｜シンプル・ミニマル</option>
-            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans｜現代的ゴシック</option>
-            <option value="" disabled>━━ デコレーション・英字特殊系 ━━</option>
-            <option value="'Bebas Neue', cursive">Bebas Neue｜太い大文字・インパクト</option>
-            <option value="'Anton', sans-serif">Anton｜極太インパクト</option>
-            <option value="'Righteous', cursive">Righteous｜レトロポップ</option>
-            <option value="'Fredoka One', cursive">Fredoka One｜かわいい丸文字</option>
-            <option value="'Pacifico', cursive">Pacifico｜手書きカジュアル</option>
-            <option value="'Dancing Script', cursive">Dancing Script｜筆記体・エレガント</option>
-            <option value="'Great Vibes', cursive">Great Vibes｜カリグラフィー風</option>
-
-          </select>
+        <!-- ブランドカラー -->
+        <div class="smk-section">
+          <div class="smk-section-title">BRAND COLOR</div>
+          <div class="smk-brand-colors">
+            <div class="smk-brand-swatch" style="background:#fef4f4;" title="背景 #fef4f4"
+              onclick="smkApplyBrandColor('#fef4f4')">
+              <span>#fef4f4</span><small>背景</small>
+            </div>
+            <div class="smk-brand-swatch" style="background:#2b2b2b;color:#fff;" title="メイン文字 #2b2b2b"
+              onclick="smkApplyBrandColor('#2b2b2b')">
+              <span>#2b2b2b</span><small>メイン文字</small>
+            </div>
+            <div class="smk-brand-swatch" style="background:#a3a3a2;color:#fff;" title="補助文字 #a3a3a2"
+              onclick="smkApplyBrandColor('#a3a3a2')">
+              <span>#a3a3a2</span><small>補助文字</small>
+            </div>
+            <div class="smk-brand-swatch" style="background:#d3381c;color:#fff;" title="アクセント赤 #d3381c"
+              onclick="smkApplyBrandColor('#d3381c')">
+              <span>#d3381c</span><small>アクセント</small>
+            </div>
+            <div class="smk-brand-swatch" style="background:#C6A75C;color:#000;" title="ゴールド #C6A75C"
+              onclick="smkApplyBrandColor('#C6A75C')">
+              <span>#C6A75C</span><small>ゴールド</small>
+            </div>
+          </div>
         </div>
-<input type="color" class="ctrl-color" value="#2b2b2b" onchange="setColor('--t3-color',this)"><span class="ctrl-color-hex" id="hex-t3">#2b2b2b</span></div>
-      </div>
-    </div>
 
-    <!-- 本文 -->
-    <div class="tab-content" id="tab-body">
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">¶ 本文テキスト</div>
-        <div class="ctrl-row"><span class="ctrl-label">文字サイズ</span><input type="range" class="ctrl-slider" min="10" max="24" value="15" oninput="setPx('--body-size',this,'body-sz')"><span class="ctrl-value" id="body-sz">15px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">字間</span><input type="range" class="ctrl-slider" min="0" max="60" value="3" oninput="setEm('--body-letter-spacing',this,'body-ls',100)"><span class="ctrl-value" id="body-ls">0.03em</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">行間</span><input type="range" class="ctrl-slider" min="12" max="32" value="19" oninput="setRaw('--body-line-height',this,'body-lh',10)"><span class="ctrl-value" id="body-lh">1.9</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">太さ</span><input type="range" class="ctrl-slider" min="1" max="9" value="4" step="1" oninput="setWeight('--body-weight',this,'body-fw')"><span class="ctrl-value" id="body-fw">400</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">横幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--body-scale-x',this,'body-sx')"><span class="ctrl-value" id="body-sx">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">縦幅比</span><input type="range" class="ctrl-slider" min="50" max="150" value="100" oninput="setScale('--body-scale-y',this,'body-sy')"><span class="ctrl-value" id="body-sy">1.0</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">上余白</span><input type="range" class="ctrl-slider" min="0" max="40" value="0" oninput="setPx('--body-margin-top',this,'body-mt')"><span class="ctrl-value" id="body-mt">0px</span></div>
-        <div class="ctrl-row"><span class="ctrl-label">下余白</span><input type="range" class="ctrl-slider" min="0" max="40" value="0" oninput="setPx('--body-margin-bottom',this,'body-mb')"><span class="ctrl-value" id="body-mb">0px</span></div>
-        <div class="ctrl-color-row"><span class="ctrl-color-label">文字カラー</span>        <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
-          <span class="ctrl-label">フォント</span>
-          <input type="text" class="font-search-input" placeholder="🔍 フォント検索..." 
-            oninput="filterFont(this, 'font-body')"
-            style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;box-sizing:border-box;">
-          <select class="ctrl-select" id="font-body" onchange="setFont('--body-font-family',this)" 
-            style="width:100%;max-height:200px;">
-
-            <option value="">── デフォルト ──</option>
-            <option value="" disabled>━━ 明朝体・セリフ系（日本語）━━</option>
-            <option value="'Noto Serif JP', serif">Noto Serif JP｜ノトセリフ（標準明朝）</option>
-            <option value="'Zen Old Mincho', serif">Zen Old Mincho｜禅オールドみんちょう</option>
-            <option value="'Shippori Mincho', serif">Shippori Mincho｜しっぽり明朝</option>
-            <option value="'Shippori Antique', serif">Shippori Antique｜しっぽりアンティーク</option>
-            <option value="'Shippori Antique B1', serif">Shippori Antique B1｜しっぽりアンティークB1</option>
-            <option value="'Zen Antique', serif">Zen Antique｜禅アンティーク</option>
-            <option value="'Zen Antique Soft', serif">Zen Antique Soft｜禅アンティークソフト</option>
-            <option value="'Hina Mincho', serif">Hina Mincho｜ひな明朝</option>
-            <option value="'Kaisei Decol', serif">Kaisei Decol｜解星デコル</option>
-            <option value="'Kaisei Opti', serif">Kaisei Opti｜解星オプティ</option>
-            <option value="'Kaisei Tokumin', serif">Kaisei Tokumin｜解星得民</option>
-            <option value="'Kaisei HarunoUmi', serif">Kaisei HarunoUmi｜解星春の海</option>
-            <option value="'Klee One', cursive">Klee One｜クレー（手書き風）</option>
-            <option value="'BIZ UDMincho', serif">BIZ UDMincho｜BIZ UD明朝</option>
-            <option value="'Yuji Syuku', serif">Yuji Syuku｜游字宿</option>
-            <option value="'Yuji Mai', serif">Yuji Mai｜游字舞</option>
-            <option value="'Yuji Boku', serif">Yuji Boku｜游字墨</option>
-            <option value="'New Tegomin', serif">New Tegomin｜新手ごみん</option>
-            <option value="" disabled>━━ ゴシック体・サンセリフ系（日本語）━━</option>
-            <option value="'Noto Sans JP', sans-serif">Noto Sans JP｜ノトサンズ（標準ゴシック）</option>
-            <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c｜丸ゴシック</option>
-            <option value="'M PLUS 1p', sans-serif">M PLUS 1p｜Mプラス1p</option>
-            <option value="'M PLUS 1', sans-serif">M PLUS 1｜Mプラス1</option>
-            <option value="'M PLUS 2', sans-serif">M PLUS 2｜Mプラス2</option>
-            <option value="'BIZ UDGothic', sans-serif">BIZ UDGothic｜BIZ UDゴシック</option>
-            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPGothic｜BIZ UDPゴシック</option>
-            <option value="'Zen Kaku Gothic New', sans-serif">Zen Kaku Gothic New｜禅角ゴシック新</option>
-            <option value="'Zen Kaku Gothic Antique', sans-serif">Zen Kaku Gothic Antique｜禅角ゴシックアンティーク</option>
-            <option value="'Zen Maru Gothic', sans-serif">Zen Maru Gothic｜禅丸ゴシック</option>
-            <option value="'Murecho', sans-serif">Murecho｜むれちょ（細め）</option>
-            <option value="'DotGothic16', sans-serif">DotGothic16｜ドットゴシック（ドット風）</option>
-            <option value="" disabled>━━ 筆書き・デザイン系（日本語）━━</option>
-            <option value="'Reggae One', cursive">Reggae One｜レゲエ（太め個性派）</option>
-            <option value="'Rampart One', cursive">Rampart One｜ランパート（立体風）</option>
-            <option value="'Stick', sans-serif">Stick｜スティック（超細い）</option>
-            <option value="'Train One', cursive">Train One｜トレイン（スピード感）</option>
-            <option value="'Zen Loop', cursive">Zen Loop｜禅ループ（丸文字）</option>
-            <option value="'Rock 3D', cursive">Rock 3D｜ロック3D（立体）</option>
-            <option value="'Yomogi', cursive">Yomogi｜よもぎ（やわらか手書き）</option>
-            <option value="'Hachi Maru Pop', cursive">Hachi Maru Pop｜はちまるポップ</option>
-            <option value="" disabled>━━ セリフ体（英字）━━</option>
-            <option value="'Playfair Display', serif">Playfair Display｜高級感・エレガント</option>
-            <option value="'Cormorant Garamond', serif">Cormorant Garamond｜クラシック上品</option>
-            <option value="'EB Garamond', serif">EB Garamond｜伝統的ガラモン</option>
-            <option value="'Cinzel', serif">Cinzel｜ローマン・石碑風</option>
-            <option value="'Lora', serif">Lora｜モダンセリフ</option>
-            <option value="'Merriweather', serif">Merriweather｜読みやすいセリフ</option>
-            <option value="'Libre Baskerville', serif">Libre Baskerville｜バスカービル</option>
-            <option value="'Crimson Text', serif">Crimson Text｜文学・書籍風</option>
-            <option value="" disabled>━━ サンセリフ体（英字）━━</option>
-            <option value="'Montserrat', sans-serif">Montserrat｜モダン・スタイリッシュ</option>
-            <option value="'Raleway', sans-serif">Raleway｜細め・洗練</option>
-            <option value="'Josefin Sans', sans-serif">Josefin Sans｜幾何学的・北欧風</option>
-            <option value="'Oswald', sans-serif">Oswald｜縦長・力強い</option>
-            <option value="'Nunito', sans-serif">Nunito｜丸みサンセリフ</option>
-            <option value="'Poppins', sans-serif">Poppins｜ポップ・現代的</option>
-            <option value="'Inter', sans-serif">Inter｜UI向け・読みやすい</option>
-            <option value="'Outfit', sans-serif">Outfit｜スマート・クリーン</option>
-            <option value="'DM Sans', sans-serif">DM Sans｜シンプル・ミニマル</option>
-            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans｜現代的ゴシック</option>
-            <option value="" disabled>━━ デコレーション・英字特殊系 ━━</option>
-            <option value="'Bebas Neue', cursive">Bebas Neue｜太い大文字・インパクト</option>
-            <option value="'Anton', sans-serif">Anton｜極太インパクト</option>
-            <option value="'Righteous', cursive">Righteous｜レトロポップ</option>
-            <option value="'Fredoka One', cursive">Fredoka One｜かわいい丸文字</option>
-            <option value="'Pacifico', cursive">Pacifico｜手書きカジュアル</option>
-            <option value="'Dancing Script', cursive">Dancing Script｜筆記体・エレガント</option>
-            <option value="'Great Vibes', cursive">Great Vibes｜カリグラフィー風</option>
-
-          </select>
+        <!-- 文字色 -->
+        <div class="smk-section">
+          <div class="smk-section-title">文字色</div>
+          <div class="smk-color-picker-row">
+            <input type="color" id="smk-text-color" value="#ffffff"
+              oninput="smkApplyColor('text', this.value)">
+            <input type="text" id="smk-text-color-hex" value="#ffffff" placeholder="#ffffff"
+              oninput="smkApplyColorHex('text', this.value)" class="smk-hex-input">
+          </div>
+          <div class="smk-swatches" id="smk-text-swatches"></div>
         </div>
-<input type="color" class="ctrl-color" value="#a3a3a2" onchange="setColor('--body-color',this)"><span class="ctrl-color-hex" id="hex-body">#a3a3a2</span></div>
-      </div>
-    </div>
 
-    <!-- ⚙ 設定タブ -->
-    <div class="tab-content" id="tab-settings">
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">🔐 認証設定</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:14px;line-height:1.7;">
-          パスワードを変更します。
-          変更後は自動ログアウトされます。
+        <!-- 背景色 -->
+        <div class="smk-section">
+          <div class="smk-section-title">背景色</div>
+          <div class="smk-color-picker-row">
+            <input type="color" id="smk-bg-color" value="#000000"
+              oninput="smkApplyColor('bg', this.value)">
+            <input type="text" id="smk-bg-color-hex" value="#000000" placeholder="#000000"
+              oninput="smkApplyColorHex('bg', this.value)" class="smk-hex-input">
+            <button onclick="smkClearBg()" class="smk-small-btn">透明</button>
+          </div>
+          <div class="smk-swatches" id="smk-bg-swatches"></div>
         </div>
-        
-        <!-- カスタムフォント追加 -->
-        <div style="margin-top:16px;padding:12px;background:#1a1a1a;border-radius:10px;border:1px solid #333;">
-          <div style="color:#C6A75C;font-size:13px;font-weight:600;margin-bottom:10px;">＋ カスタムフォント追加</div>
-          <div style="font-size:11px;color:#888;margin-bottom:8px;">Google Fontsのフォント名を入力して追加できます</div>
-          <input type="text" id="custom-font-input" placeholder="例: Zen Kurenaido" 
-            style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:13px;box-sizing:border-box;margin-bottom:8px;">
-          <input type="text" id="custom-font-label" placeholder="表示名（例：ゼン紅藤）" 
-            style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:13px;box-sizing:border-box;margin-bottom:8px;">
-          <button onclick="addCustomFont()" 
-            style="width:100%;padding:8px;border-radius:8px;background:#C6A75C;color:#000;font-size:13px;font-weight:600;border:none;cursor:pointer;">
-            追加する
-          </button>
-          <div id="custom-font-list" style="margin-top:10px;"></div>
-        </div>
-<div class="ctrl-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <input type="password" id="pw-current" class="login-input" style="margin-bottom:0;font-size:13px;padding:10px 14px;text-align:left;" placeholder="現在のパスワード">
-          <input type="password" id="pw-new" class="login-input" style="margin-bottom:0;font-size:13px;padding:10px 14px;text-align:left;" placeholder="新しいパスワード">
-          <input type="password" id="pw-confirm" class="login-input" style="margin-bottom:0;font-size:13px;padding:10px 14px;text-align:left;" placeholder="新しいパスワード（確認）">
-          <button class="login-btn" style="padding:10px;font-size:12px;" onclick="changePassword()">パスワードを変更</button>
-          <div id="pw-msg" style="font-size:11px;min-height:16px;text-align:center;"></div>
+
+        <!-- 枠線色 -->
+        <div class="smk-section">
+          <div class="smk-section-title">枠線色</div>
+          <div class="smk-color-picker-row">
+            <input type="color" id="smk-border-color" value="#333333"
+              oninput="smkApplyColor('border', this.value)">
+            <input type="text" id="smk-border-color-hex" value="#333333" placeholder="#333333"
+              oninput="smkApplyColorHex('border', this.value)" class="smk-hex-input">
+            <button onclick="smkClearBorder()" class="smk-small-btn">なし</button>
+          </div>
         </div>
       </div>
-      <div class="ctrl-group">
-        <div class="ctrl-group-label">🔓 セッション</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:12px;line-height:1.7;">
-          現在のブラウザタブを閉じるまでログイン状態を保持します。
-        </div>
-        <button class="sel-btn" style="width:100%;background:rgba(211,56,28,0.2);color:#e8503a;border:1px solid rgba(211,56,28,0.35);" onclick="doLogout()">🔓 ログアウト</button>
-      </div>
-    </div>
 
-  </div>
+      <!-- ===== FONTタブ ===== -->
+      <div class="smk-pane" id="smk-pane-font" style="display:none;">
+
+        <!-- 選択ガイド -->
+        <div class="smk-guide smk-guide-font" id="smk-font-guide">
+          <div class="smk-guide-icon">✏️</div>
+          <div class="smk-guide-title">要素を選択してください</div>
+          <div class="smk-guide-desc">SELECTタブで要素を選んでから<br>フォントを変更できます</div>
+        </div>
+        <div id="smk-font-controls" style="display:none;">
+          <div class="smk-sel-info-mini" id="smk-font-el-info">選択中: -</div>
+
+          <!-- ===== 基本設定 ===== -->
+          <div class="smk-section">
+            <div class="smk-section-title">BASIC</div>
+
+            <!-- フォント種類 -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">フォント種類</div>
+              <div class="smk-font-cats" id="smk-font-cats"></div>
+              <input type="text" id="smk-font-search" placeholder="🔍 検索..." oninput="smkFilterFont(this.value)" class="smk-input" style="margin-top:6px;">
+              <select id="smk-font-select" onchange="smkApplyFont(this.value)" class="smk-select" style="margin-top:6px;"></select>
+              <div id="smk-font-preview" style="display:none;margin-top:8px;padding:10px;background:rgba(0,0,0,0.4);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:9px;color:#666;margin-bottom:4px;letter-spacing:0.1em;">PREVIEW</div>
+                <div id="smk-font-preview-text" style="font-size:22px;color:#fff;line-height:1.4;letter-spacing:0.05em;">Aa あいうえお 漢字 123</div>
+                <div id="smk-font-preview-name" style="font-size:10px;color:#666;margin-top:4px;"></div>
+              </div>
+            </div>
+
+            <!-- 文字サイズ -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">
+                <span>文字サイズ</span>
+                <span class="smk-val-badge" id="smk-size-val">16px</span>
+              </div>
+              <div class="smk-range-row">
+                <input type="range" id="smk-size-range" min="8" max="120" value="16" step="1"
+                  oninput="smkApplySize(this.value)" class="smk-range">
+                <input type="number" id="smk-size-input" min="8" max="300" value="16"
+                  oninput="smkApplySize(this.value)" class="smk-num-input">
+                <span style="color:#666;font-size:11px;">px</span>
+              </div>
+              <div class="smk-btn-row">
+                <button onclick="smkSizeStep(-1)" class="smk-step-btn">A▼</button>
+                <button onclick="smkSizeStep(-2)" class="smk-step-btn">A▼▼</button>
+                <button onclick="smkSizeStep(1)" class="smk-step-btn">A▲</button>
+                <button onclick="smkSizeStep(2)" class="smk-step-btn">A▲▲</button>
+              </div>
+            </div>
+
+            <!-- 太さ -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">
+                <span>太さ</span>
+                <span class="smk-val-badge" id="smk-weight-val">400</span>
+              </div>
+              <input type="range" id="smk-weight-range" min="100" max="900" value="400" step="100"
+                oninput="smkApplyWeight(this.value)" class="smk-range">
+              <div class="smk-btn-row">
+                <button onclick="smkSetWeight(300)" class="smk-step-btn">細</button>
+                <button onclick="smkSetWeight(400)" class="smk-step-btn">標準</button>
+                <button onclick="smkSetWeight(600)" class="smk-step-btn">やや太</button>
+                <button onclick="smkSetWeight(700)" class="smk-step-btn">太</button>
+                <button onclick="smkSetWeight(900)" class="smk-step-btn">極太</button>
+              </div>
+            </div>
+
+            <!-- 字間 -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">
+                <span>字間</span>
+                <span class="smk-val-badge" id="smk-ls-val">0em</span>
+              </div>
+              <input type="range" id="smk-ls-range" min="-10" max="100" value="0" step="1"
+                oninput="smkApplyLS(this.value)" class="smk-range">
+            </div>
+
+            <!-- 行間 -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">
+                <span>行間</span>
+                <span class="smk-val-badge" id="smk-lh-val">1.5</span>
+              </div>
+              <input type="range" id="smk-lh-range" min="80" max="400" value="150" step="5"
+                oninput="smkApplyLH(this.value)" class="smk-range">
+            </div>
+
+            <!-- 文字色（FONTタブ内） -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">文字色</div>
+              <div class="smk-color-picker-row">
+                <input type="color" id="smk-font-textcolor" value="#ffffff"
+                  oninput="smkApplyColor('text', this.value)">
+                <input type="text" id="smk-font-textcolor-hex" value="#ffffff" placeholder="#ffffff"
+                  oninput="smkApplyColorHex('text', this.value)" class="smk-hex-input">
+              </div>
+            </div>
+
+            <!-- 文字揃え -->
+            <div class="smk-ctrl-block">
+              <div class="smk-ctrl-label-row">文字揃え</div>
+              <div class="smk-btn-row">
+                <button onclick="smkApplyAlign('left')" class="smk-step-btn">左</button>
+                <button onclick="smkApplyAlign('center')" class="smk-step-btn">中央</button>
+                <button onclick="smkApplyAlign('right')" class="smk-step-btn">右</button>
+                <button onclick="smkApplyAlign('justify')" class="smk-step-btn">均等</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== 詳細設定 ===== -->
+          <div class="smk-section">
+            <div class="smk-section-title">
+              <span>DETAIL</span>
+              <button class="smk-collapse-btn" onclick="smkToggleCollapse('smk-detail-body')" id="smk-detail-toggle">▼</button>
+            </div>
+            <div id="smk-detail-body" style="display:none;">
+
+              <!-- 横幅比 -->
+              <div class="smk-ctrl-block">
+                <div class="smk-ctrl-label-row">
+                  <span>横幅比</span>
+                  <span class="smk-val-badge" id="smk-scx-val">1.0</span>
+                </div>
+                <input type="range" id="smk-scx-range" min="50" max="200" value="100" step="5"
+                  oninput="smkApplyTransformPart('scaleX', this.value/100)" class="smk-range">
+              </div>
+
+              <!-- 縦幅比 -->
+              <div class="smk-ctrl-block">
+                <div class="smk-ctrl-label-row">
+                  <span>縦幅比</span>
+                  <span class="smk-val-badge" id="smk-scy-val">1.0</span>
+                </div>
+                <input type="range" id="smk-scy-range" min="50" max="200" value="100" step="5"
+                  oninput="smkApplyTransformPart('scaleY', this.value/100)" class="smk-range">
+              </div>
+
+              <!-- 回転 -->
+              <div class="smk-ctrl-block">
+                <div class="smk-ctrl-label-row">
+                  <span>回転</span>
+                  <span class="smk-val-badge" id="smk-rot-val">0°</span>
+                </div>
+                <input type="range" id="smk-rot-range" min="-180" max="180" value="0" step="1"
+                  oninput="smkApplyTransformPart('rotate', this.value+'deg')" class="smk-range">
+                <button onclick="smkResetTransform()" class="smk-small-btn" style="margin-top:6px;">変形リセット</button>
+              </div>
+
+              <!-- 余白 -->
+              <div class="smk-ctrl-block">
+                <div class="smk-ctrl-label-row">余白 (px)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div>
+                    <div style="font-size:9px;color:#666;margin-bottom:3px;">上</div>
+                    <input type="number" id="smk-mt" value="0" oninput="smkApplyMargin('top', this.value)"
+                      class="smk-num-input" style="width:100%;">
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:#666;margin-bottom:3px;">下</div>
+                    <input type="number" id="smk-mb" value="0" oninput="smkApplyMargin('bottom', this.value)"
+                      class="smk-num-input" style="width:100%;">
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:#666;margin-bottom:3px;">左</div>
+                    <input type="number" id="smk-ml" value="0" oninput="smkApplyMargin('left', this.value)"
+                      class="smk-num-input" style="width:100%;">
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:#666;margin-bottom:3px;">右</div>
+                    <input type="number" id="smk-mr" value="0" oninput="smkApplyMargin('right', this.value)"
+                      class="smk-num-input" style="width:100%;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 装飾 -->
+              <div class="smk-ctrl-block">
+                <div class="smk-ctrl-label-row">装飾</div>
+                <div class="smk-btn-row">
+                  <button onclick="smkToggleItalic()" class="smk-step-btn" id="smk-italic-btn"><i>斜体</i></button>
+                  <button onclick="smkDecorate('underline')" class="smk-step-btn">下線</button>
+                  <button onclick="smkDecorate('line-through')" class="smk-step-btn">取消線</button>
+                  <button onclick="smkDecorate('none')" class="smk-step-btn" style="color:#d33;">なし</button>
+                </div>
+              </div>
+
+              <!-- 影 -->
+              <div class="smk-ctrl-block">
+                <div class="smk-ctrl-label-row">テキスト影</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button onclick="smkApplyShadow('1px 1px 2px rgba(0,0,0,0.5)')" class="smk-step-btn">弱</button>
+                  <button onclick="smkApplyShadow('2px 2px 6px rgba(0,0,0,0.7)')" class="smk-step-btn">中</button>
+                  <button onclick="smkApplyShadow('3px 3px 12px rgba(0,0,0,0.9)')" class="smk-step-btn">強</button>
+                  <button onclick="smkApplyShadow('0 0 10px #C6A75C')" class="smk-step-btn" style="color:#C6A75C;">金彩</button>
+                  <button onclick="smkApplyShadow('none')" class="smk-step-btn" style="color:#d33;">なし</button>
+                </div>
+              </div>
+
+            </div><!-- /detail-body -->
+          </div>
+
+        </div><!-- /font-controls -->
+      </div><!-- /font pane -->
+
+    </div><!-- /smk-main -->
+  </div><!-- /smk-body -->
+</div>
+<!-- /smask-admin-panel -->
+
+<!-- 旧パネルトグルボタン (非表示にして代替) -->
+<button id="smk-panel-toggle-btn" onclick="smkTogglePanel()" title="パネル開閉"
+  style="position:fixed;bottom:20px;right:20px;z-index:999999;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#C6A75C,#8B6914);color:#000;font-size:18px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.5);font-weight:700;-webkit-tap-highlight-color:transparent;">⚙</button>
+
 </div>
 
 <!-- CSS出力モーダル -->
@@ -2395,30 +2027,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <button onclick="copyToClipboard()" style="background:#C6A75C;color:#fff;border:none;padding:10px;border-radius:6px;cursor:pointer;font-size:12px;letter-spacing:0.15em;">クリップボードにコピー</button>
   </div>
 
-        <!-- 画像挿入セクション -->
-        <div id="smask-image-section" style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
-          <div style="font-size:11px;color:#C6A75C;font-weight:600;letter-spacing:0.08em;margin-bottom:10px;">🖼️ 画像挿入</div>
-          <div style="font-size:11px;color:#aaa;margin-bottom:8px;">選択した要素の直後に画像を挿入します</div>
-          <input type="text" id="smask-img-url" placeholder="画像URL（https://...）"
-            style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:12px;box-sizing:border-box;margin-bottom:6px;">
-          <div style="display:flex;gap:6px;margin-bottom:6px;">
-            <input type="text" id="smask-img-alt" placeholder="代替テキスト（任意）"
-              style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:12px;box-sizing:border-box;">
-            <input type="text" id="smask-img-width" placeholder="幅px"
-              style="width:65px;padding:6px 8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:12px;box-sizing:border-box;">
-          </div>
-          <div style="display:flex;gap:6px;">
-            <input type="file" id="smask-img-file" accept="image/*" style="display:none;" onchange="smaskLoadImgFile(this)">
-            <button onclick="document.getElementById('smask-img-file').click()"
-              style="flex:1;padding:8px;border-radius:8px;border:1px solid #555;background:#252525;color:#ddd;font-size:12px;cursor:pointer;">
-              📁 ローカル選択
-            </button>
-            <button onclick="smaskInsertImage()"
-              style="flex:1;padding:8px;border-radius:8px;border:none;background:rgba(198,167,92,0.85);color:#111;font-size:12px;font-weight:700;cursor:pointer;">
-              ➕ 挿入
-            </button>
-          </div>
-        </div>
+        
       </div>
 
 
@@ -5938,212 +5547,704 @@ html body #smask-pub-fab {
 .el-selected { outline:2px solid rgba(198,167,92,0.8) !important; outline-offset:2px !important; }
 </style>
 
-<script id="smask-v7-script">
+
+
+<script id="smask-v9-script">
 (function(){
 'use strict';
 
-/* ========== 選択要素をwindowに確実保存 ========== */
-function patchSelectEl(){
-  if(window._v7p) return;
-  if(typeof selectElement !== 'function') return;
-  window._v7p = true;
-  var orig = selectElement;
-  window.selectElement = selectElement = function(el){
+/* ========== フォントリスト ========== */
+var SMK_FONTS = [
+  {n:'Noto Sans JP',      l:'ノートSans',     cat:'readable'},
+  {n:'Noto Serif JP',     l:'ノートSerif',    cat:'readable'},
+  {n:'M PLUS Rounded 1c', l:'Mプラスラウンド', cat:'kawaii'},
+  {n:'Zen Maru Gothic',   l:'禅丸ゴシック',   cat:'kawaii'},
+  {n:'Yomogi',            l:'よもぎ',         cat:'kawaii'},
+  {n:'Kosugi Maru',       l:'コスギ丸',       cat:'kawaii'},
+  {n:'Klee One',          l:'クレーワン',     cat:'kirei'},
+  {n:'Sawarabi Gothic',   l:'さわらびゴシック',cat:'readable'},
+  {n:'Sawarabi Mincho',   l:'さわらび明朝',   cat:'kirei'},
+  {n:'Shippori Mincho',   l:'しっぽり明朝',   cat:'kirei'},
+  {n:'Hina Mincho',       l:'雛明朝',         cat:'kirei'},
+  {n:'Yuji Syuku',        l:'游字塾',         cat:'wa'},
+  {n:'Yuji Mai',          l:'游字舞',         cat:'wa'},
+  {n:'Zen Kurenaido',     l:'禅紅藤',         cat:'wa'},
+  {n:'Zen Old Mincho',    l:'禅古明朝',       cat:'wa'},
+  {n:'Zen Antique Soft',  l:'禅アンティーク', cat:'luxury'},
+  {n:'Kaisei Decol',      l:'解星デコール',   cat:'luxury'},
+  {n:'Kaisei Tokumin',    l:'解星得民',       cat:'luxury'},
+  {n:'DotGothic16',       l:'ドットゴシック', cat:'bold'},
+  {n:'Dela Gothic One',   l:'デラゴシック',   cat:'bold'},
+  {n:'Train One',         l:'トレインワン',   cat:'bold'},
+  {n:'Stick',             l:'スティック',     cat:'bold'},
+  {n:'RocknRoll One',     l:'ロックンロール', cat:'bold'},
+  {n:'Reggae One',        l:'レゲエワン',     cat:'bold'},
+  {n:'BIZ UDPGothic',     l:'BIZゴシック',    cat:'readable'},
+  {n:'BIZ UDPMincho',     l:'BIZ明朝',        cat:'readable'},
+  {n:'Kosugi',            l:'コスギ',         cat:'readable'},
+  {n:'Murecho',           l:'ムレーコ',       cat:'readable'},
+  {n:'Pacifico',          l:'Pacifico',       cat:'en'},
+  {n:'Playfair Display',  l:'Playfair',       cat:'en'},
+  {n:'Cormorant Garamond',l:'Cormorant',      cat:'en'},
+  {n:'Cinzel',            l:'Cinzel',         cat:'en'},
+  {n:'Josefin Sans',      l:'Josefin',        cat:'en'},
+  {n:'Raleway',           l:'Raleway',        cat:'en'},
+  {n:'Montserrat',        l:'Montserrat',     cat:'en'},
+];
+var SMK_CATS = {all:'すべて',kirei:'✨きれい',kawaii:'🌸かわいい',luxury:'💎高級感',wa:'🎋和風',bold:'💪目立つ',readable:'📖読みやすい',en:'🔤英字'};
+var SMK_TEXT_SWATCHES = ['#ffffff','#2b2b2b','#d3381c','#C6A75C','#a3a3a2','#3a86ff','#06d6a0','#ff6b6b','#ffd166','#4ecdc4','#e8c4e8','#f7a8a8'];
+var SMK_BG_SWATCHES   = ['transparent','#ffffff','#2b2b2b','#fef4f4','#fff8f0','#f0f4ff','#1a1a1a','#C6A75C','#d3381c','#3a86ff'];
+
+var _smkEl = null;     // 選択中要素
+var _smkCat = 'all';   // フォントカテゴリ
+var _smkMode = 'normal'; // 編集モード
+var _smkHistory = [];   // Undo履歴
+var _smkHistIdx = -1;   // 履歴インデックス
+var _smkPanelOpen = true;
+
+/* ========== 初期化 ========== */
+function smkInit(){
+  buildFontSelect();
+  buildFontCats();
+  buildSwatches();
+  buildCharFontSelect();
+  patchSelectElement();
+  patchSwitchTabById();
+  syncClickModeBtn();
+  setInterval(syncClickModeBtn, 800);
+  // パネル外クリックで閉じる（モバイル）
+  document.addEventListener('click', function(e){
+    var panel = document.getElementById('smask-admin-panel');
+    var toggleBtn = document.getElementById('smk-panel-toggle-btn');
+    if(!panel || !toggleBtn) return;
+    if(panel.classList.contains('smk-closed')) return;
+    if(panel.contains(e.target) || toggleBtn.contains(e.target)) return;
+    // モバイルのみ自動クローズ（clickMode中は閉じない）
+    if(window.innerWidth <= 768 && !clickMode) {
+      // panel.classList.add('smk-closed'); // コメントアウト: 必要に応じて有効化
+    }
+  });
+}
+
+/* ========== selectElement パッチ ========== */
+function patchSelectElement(){
+  if(window._smkPatched) return;
+  if(typeof window.selectElement !== 'function') return;
+  window._smkPatched = true;
+  var orig = window.selectElement;
+  window.selectElement = function(el){
+    _smkEl = el;
     window.smaskEl = el;
     orig(el);
+    smkOnSelect(el);
   };
+  console.log('[SMK v9] selectElement patched');
 }
 
-/* ========== フォント確実適用 ========== */
-function getTarget(){
-  var el = window.smaskEl;
-  try{ if(!el && typeof selectedEl!=='undefined') el=selectedEl; }catch(e){}
-  return el;
-}
-function v7ApplyFont(val){
-  var el=getTarget(); if(!el||!val) return;
-  el.style.fontFamily=val;
-  try{smaskEnsureFontLoaded(val);}catch(e){}
-  try{updateStylePreview();}catch(e){}
-}
-function v7ApplySize(val){
-  var el=getTarget(); if(!el) return;
-  el.style.fontSize=val+'px';
-  try{updateStylePreview();}catch(e){}
-}
-function v7ApplyWeight(val){
-  var el=getTarget(); if(!el) return;
-  el.style.fontWeight=val*100;
-  try{updateStylePreview();}catch(e){}
-}
-function v7ApplyColor(val){
-  var el=getTarget(); if(!el) return;
-  el.style.color=val;
-  try{updateStylePreview();}catch(e){}
-}
-function v7ApplyLS(val){
-  var el=getTarget(); if(!el) return;
-  el.style.letterSpacing=(val/100)+'em';
-  try{updateStylePreview();}catch(e){}
-}
-function v7ApplyLH(val){
-  var el=getTarget(); if(!el) return;
-  el.style.lineHeight=(val/10).toFixed(1);
-  try{updateStylePreview();}catch(e){}
-}
-
-/* ========== イベントリスナー直接アタッチ ========== */
-function attachAll(){
-  var map = [
-    ['sel-font-select',  'change', function(){ v7ApplyFont(this.value); }],
-    ['sel-font-select',  'input',  function(){ v7ApplyFont(this.value); }],
-    ['sel-size-slider',  'input',  function(){ v7ApplySize(this.value); }],
-    ['sel-size-slider',  'change', function(){ v7ApplySize(this.value); }],
-    ['sel-weight-slider','input',  function(){ v7ApplyWeight(this.value); }],
-    ['sel-weight-slider','change', function(){ v7ApplyWeight(this.value); }],
-    ['sel-color',        'input',  function(){ v7ApplyColor(this.value); }],
-    ['sel-color',        'change', function(){ v7ApplyColor(this.value); }],
-    ['sel-ls-slider',    'input',  function(){ v7ApplyLS(this.value); }],
-    ['sel-lh-slider',    'input',  function(){ v7ApplyLH(this.value); }],
-  ];
-  map.forEach(function(item){
-    var el=document.getElementById(item[0]);
-    if(el && !el['_v7_'+item[1]]){
-      el['_v7_'+item[1]]=true;
-      el.addEventListener(item[1],item[2]);
+/* ========== switchTabById パッチ（1文字分割との互換） ========== */
+function patchSwitchTabById(){
+  if(window._smkTabPatched) return;
+  if(typeof window.switchTabById !== 'function') return;
+  window._smkTabPatched = true;
+  var origSwitch = window.switchTabById;
+  window.switchTabById = function(tabId){
+    // 旧タブIDをv9タブにマッピング
+    if(tabId === 'tab-select'){
+      smkTab('select');
+    } else {
+      try{ origSwitch(tabId); }catch(e){}
     }
-  });
-}
-
-/* ========== タブラベル3つに設定 ========== */
-function fixTabs(){
-  var labels={
-    'tab-colors':'🎨 カラー',
-    'tab-select':'✏️ フォント',
-    'tab-settings':'⚙ 設定'
   };
-  document.querySelectorAll('#design-panel .panel-tab').forEach(function(btn){
-    var oc=btn.getAttribute('onclick')||'';
-    var m=oc.match(/'([^']+)'/);
-    var tid=m?m[1]:'';
-    btn.dataset.smaskTid=tid;
-    if(labels[tid]) btn.textContent=labels[tid];
-  });
 }
 
-/* ========== フォントタブで sel-controls の行を整理 ========== */
-function simplify(){
-  var keep=['フォント','文字サイズ','太さ','文字カラー','字間','行間'];
-  var grp=document.querySelector('#tab-select #sel-controls .ctrl-group');
-  if(!grp) return;
-  grp.querySelectorAll('.ctrl-row,.ctrl-color-row').forEach(function(row){
-    var lbl=row.querySelector('.ctrl-label,.ctrl-color-label');
-    var txt=lbl?(lbl.textContent||'').replace(/\s+/g,'').trim():'';
-    var show=keep.some(function(k){ return txt.indexOf(k)>=0; });
-    row.setAttribute('data-smask-hide', show?'0':'1');
-  });
-}
-
-/* ========== カラータブ → 要素選択時に文字色ピッカーを同期 ========== */
-function syncColorTab(){
-  var el=getTarget(); if(!el) return;
-  var cp=document.getElementById('sel-color');
-  if(cp){
-    var cs=getComputedStyle(el);
-    var rgb=cs.color;
-    // rgb → hex
-    var m=rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-    if(m){
-      var hex='#'+[m[1],m[2],m[3]].map(function(n){return parseInt(n).toString(16).padStart(2,'0');}).join('');
-      cp.value=hex;
-      var hexLbl=document.getElementById('sel-color-hex');
-      if(hexLbl) hexLbl.textContent=hex;
-    }
-  }
-}
-
-/* ========== 画像挿入機能 ========== */
-window.smaskLoadImgFile = function(input){
-  var file=input.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    document.getElementById('smask-img-url').value=e.target.result;
-  };
-  reader.readAsDataURL(file);
-};
-
-window.smaskInsertImage = function(){
-  var urlEl=document.getElementById('smask-img-url');
-  var altEl=document.getElementById('smask-img-alt');
-  var wEl=document.getElementById('smask-img-width');
-  var src=(urlEl&&urlEl.value.trim())||'';
-  if(!src){ alert('URLまたはファイルを指定してください'); return; }
-  var alt=(altEl&&altEl.value.trim())||'';
-  var w=(wEl&&wEl.value.trim())||'';
-  
-  var img=document.createElement('img');
-  img.src=src;
-  img.alt=alt;
-  img.style.maxWidth='100%';
-  img.style.height='auto';
-  if(w) img.style.width=w+'px';
-  img.style.display='block';
-  img.style.borderRadius='4px';
-  
-  // 選択中の要素の後に挿入、なければbodyの最初のsectionに
-  var target=getTarget();
-  if(target && target.parentNode){
-    target.parentNode.insertBefore(img, target.nextSibling);
+/* ========== クリックモードボタン同期 ========== */
+function syncClickModeBtn(){
+  patchSelectElement();
+  patchSwitchTabById();
+  var btn = document.getElementById('smk-click-btn');
+  if(!btn) return;
+  var isOn = (typeof clickMode !== 'undefined') && clickMode;
+  btn.classList.toggle('active', isOn);
+  // ガイド表示
+  if(isOn && _smkEl){
+    showSelInfo(_smkEl);
+  } else if(isOn && !_smkEl){
+    showGuide();
   } else {
-    var sec=document.querySelector('.page-editable');
-    if(sec && sec.parentNode) sec.parentNode.insertBefore(img, sec);
-    else document.body.appendChild(img);
+    showGuide();
   }
-  
-  // 入力クリア
-  if(urlEl) urlEl.value='';
-  if(altEl) altEl.value='';
-  if(wEl)   wEl.value='';
-  alert('✅ 画像を挿入しました！「公開」ボタンで反映してください。');
+}
+
+/* ========== 要素選択時 ========== */
+function smkOnSelect(el){
+  _smkEl = el;
+  showSelInfo(el);
+  updateColorUI(el);
+  updateFontUI(el);
+  smkSaveHistory();
+}
+
+function showGuide(){
+  var guide = document.getElementById('smk-guide');
+  var info  = document.getElementById('smk-sel-info');
+  if(guide) guide.style.display = 'block';
+  if(info)  info.style.display  = 'none';
+  // ヘッダー
+  var lbl = document.getElementById('smk-sel-label');
+  var dot = document.getElementById('smk-sel-dot');
+  if(lbl) lbl.textContent = '未選択';
+  if(dot) dot.classList.remove('active');
+}
+
+function showSelInfo(el){
+  var guide = document.getElementById('smk-guide');
+  var info  = document.getElementById('smk-sel-info');
+  if(guide) guide.style.display = 'none';
+  if(info)  info.style.display  = 'block';
+
+  var tag = el.tagName.toLowerCase();
+  var txt = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,20);
+  var tagEl  = document.getElementById('smk-info-tag');
+  var txtEl  = document.getElementById('smk-info-text');
+  if(tagEl) tagEl.textContent = tag.toUpperCase() + (el.dataset.elLabel ? ' / '+el.dataset.elLabel : '');
+  if(txtEl) txtEl.textContent = '"'+txt+(txt.length>=20?'…':'') + '"';
+
+  // ヘッダー
+  var lbl = document.getElementById('smk-sel-label');
+  var dot = document.getElementById('smk-sel-dot');
+  if(lbl) lbl.textContent = tag+(txt?' / '+txt.slice(0,8):'');
+  if(dot) dot.classList.add('active');
+
+  // unwrapボタン
+  var uw = document.getElementById('smk-unwrap-wrap');
+  if(uw) uw.style.display = el.classList.contains('char-styled') ? 'block' : 'none';
+
+  // COLOR / FONT ガイド非表示
+  ['color','font'].forEach(function(t){
+    var g = document.getElementById('smk-'+t+'-guide');
+    var c = document.getElementById('smk-'+t+'-controls');
+    var m = document.getElementById('smk-'+t+'-el-info');
+    if(g) g.style.display = 'none';
+    if(c) c.style.display = 'block';
+    if(m) m.textContent = '選択中: '+tag+' "'+txt.slice(0,12)+'"';
+  });
+}
+
+/* ========== タブ切り替え ========== */
+window.smkTab = function(tab){
+  ['select','color','font'].forEach(function(t){
+    var pane = document.getElementById('smk-pane-'+t);
+    var btn  = document.getElementById('smk-btn-'+t);
+    if(pane) pane.style.display = (t===tab) ? 'block' : 'none';
+    if(btn)  btn.classList.toggle('active', t===tab);
+  });
 };
 
-/* ========== カラータブクリック時に要素の色を反映 ========== */
-function patchSwitchTab(){
-  if(window._v7tabpatch) return;
-  if(typeof switchTabById!=='function') return;
-  window._v7tabpatch=true;
-  var orig=switchTabById;
-  window.switchTabById=switchTabById=function(tid){
-    orig(tid);
-    if(tid==='tab-colors' || tid==='tab-select'){
-      setTimeout(syncColorTab,50);
-    }
+/* ========== パネル開閉 ========== */
+window.smkTogglePanel = function(){
+  var p = document.getElementById('smask-admin-panel');
+  if(p) p.classList.toggle('smk-closed');
+};
+
+/* ========== 編集モード ========== */
+window.smkSetMode = function(mode){
+  _smkMode = mode;
+  var nb = document.getElementById('smk-mode-normal');
+  var cb = document.getElementById('smk-mode-char');
+  var nc = document.getElementById('smk-normal-controls');
+  var cc = document.getElementById('smk-char-controls');
+  if(nb) nb.classList.toggle('active', mode==='normal');
+  if(cb) cb.classList.toggle('active', mode==='char');
+  if(nc) nc.style.display = (mode==='normal') ? 'block' : 'none';
+  if(cc) cc.style.display = (mode==='char')   ? 'block' : 'none';
+  // textModeとの同期
+  if(typeof setSelMode === 'function'){
+    try{ setSelMode(mode==='char' ? 'char' : 'element'); }catch(e){}
+  }
+};
+
+/* ========== toggleClickMode同期 ========== */
+window.toggleClickMode = (function(){
+  var orig = window.toggleClickMode;
+  return function(){
+    if(orig) orig.apply(this, arguments);
+    setTimeout(syncClickModeBtn, 100);
   };
+})();
+
+/* ========== Undo / Redo ========== */
+function smkSaveHistory(){
+  if(!_smkEl) return;
+  var snap = {el: _smkEl, style: _smkEl.getAttribute('style') || ''};
+  // 現在位置より後を削除
+  _smkHistory = _smkHistory.slice(0, _smkHistIdx+1);
+  _smkHistory.push(snap);
+  if(_smkHistory.length > 50) _smkHistory.shift();
+  _smkHistIdx = _smkHistory.length - 1;
+}
+window.smkUndo = function(){
+  if(_smkHistIdx <= 0){ showToast('これ以上戻れません'); return; }
+  _smkHistIdx--;
+  var snap = _smkHistory[_smkHistIdx];
+  if(snap && snap.el){ snap.el.setAttribute('style', snap.style); updateFontUI(snap.el); updateColorUI(snap.el); }
+  showToast('↩ 元に戻しました');
+};
+window.smkRedo = function(){
+  if(_smkHistIdx >= _smkHistory.length-1){ showToast('これ以上進めません'); return; }
+  _smkHistIdx++;
+  var snap = _smkHistory[_smkHistIdx];
+  if(snap && snap.el){ snap.el.setAttribute('style', snap.style); updateFontUI(snap.el); updateColorUI(snap.el); }
+  showToast('↪ やり直しました');
+};
+
+/* ========== リセット ========== */
+window.smkResetMenu = function(){
+  var m = document.getElementById('smk-reset-menu');
+  if(m) m.style.display = m.style.display==='none' ? 'block' : 'none';
+  document.addEventListener('click', function handler(e){
+    var m2 = document.getElementById('smk-reset-menu');
+    if(m2 && !m2.contains(e.target)){ m2.style.display='none'; }
+    document.removeEventListener('click', handler);
+  }, {once:true});
+};
+window.smkResetEl = function(type){
+  var m = document.getElementById('smk-reset-menu');
+  if(m) m.style.display='none';
+  var el = getEl(); if(!el) return;
+  smkSaveHistory();
+  if(type==='all'){ el.removeAttribute('style'); }
+  else if(type==='font'){
+    ['fontFamily','fontSize','fontWeight','letterSpacing','lineHeight','fontStyle','textDecoration','textAlign','textShadow'].forEach(function(p){ el.style[p]=''; });
+  }
+  else if(type==='color'){
+    ['color','backgroundColor','borderColor'].forEach(function(p){ el.style[p]=''; });
+  }
+  updateFontUI(el); updateColorUI(el);
+  showToast('リセットしました');
+};
+
+/* ========== フォント操作 ========== */
+function buildFontCats(){
+  var box = document.getElementById('smk-font-cats');
+  if(!box) return;
+  box.innerHTML = '';
+  Object.keys(SMK_CATS).forEach(function(k){
+    var b = document.createElement('button');
+    b.className = 'smk-cat-btn' + (k==='all'?' active':'');
+    b.textContent = SMK_CATS[k];
+    b.onclick = function(){
+      _smkCat = k;
+      document.querySelectorAll('.smk-cat-btn').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      buildFontSelect();
+    };
+    box.appendChild(b);
+  });
 }
 
-/* ========== ブート ========== */
-function boot(){
-  patchSelectEl();
-  attachAll();
-  fixTabs();
-  simplify();
-  patchSwitchTab();
+function buildFontSelect(){
+  var sel = document.getElementById('smk-font-select');
+  if(!sel) return;
+  var q = (document.getElementById('smk-font-search')||{}).value || '';
+  q = q.toLowerCase();
+  var list = SMK_FONTS.filter(function(f){
+    return (_smkCat==='all'||f.cat===_smkCat) && (q===''||f.n.toLowerCase().includes(q)||f.l.includes(q));
+  });
+  sel.innerHTML = '<option value="">-- フォントを選択 --</option>';
+  list.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f.n;
+    o.textContent = f.l + ' — ' + f.n;
+    sel.appendChild(o);
+  });
 }
 
+function buildCharFontSelect(){
+  var sel = document.getElementById('smask-char-font-sel');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-- 選択 --</option>';
+  SMK_FONTS.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f.n; o.textContent = f.l;
+    sel.appendChild(o);
+  });
+}
+
+window.smkFilterFont = function(q){ buildFontSelect(); };
+
+function loadGFont(name){
+  var id = 'gf-'+name.replace(/\s/g,'-');
+  if(!document.getElementById(id)){
+    var link = document.createElement('link');
+    link.id = id; link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family='+encodeURIComponent(name)+':wght@300;400;600;700&display=swap';
+    document.head.appendChild(link);
+  }
+}
+
+window.smkApplyFont = function(name){
+  if(!name) return;
+  var el = getEl(); if(!el){ showToast('要素を選択してください'); return; }
+  smkSaveHistory();
+  loadGFont(name);
+  el.style.fontFamily = '"'+name+'", sans-serif';
+  // プレビュー
+  var prev = document.getElementById('smk-font-preview');
+  var prevTxt = document.getElementById('smk-font-preview-text');
+  var prevName = document.getElementById('smk-font-preview-name');
+  if(prev){ prev.style.display='block'; }
+  if(prevTxt){ prevTxt.style.fontFamily = '"'+name+'", sans-serif'; }
+  if(prevName){ prevName.textContent = name; }
+  showToast('フォント適用: '+name);
+};
+
+/* ========== サイズ ========== */
+window.smkApplySize = function(v){
+  var el = getEl(); if(!el) return;
+  var px = Math.max(8, Math.min(300, parseInt(v)||16));
+  el.style.fontSize = px+'px';
+  setSlider('smk-size-range','smk-size-val',px,px+'px','smk-size-input');
+};
+window.smkSizeStep = function(d){
+  var el=getEl(); if(!el) return;
+  var cur = parseFloat(getComputedStyle(el).fontSize)||16;
+  smkApplySize(cur+d);
+};
+
+/* ========== 太さ ========== */
+window.smkApplyWeight = function(v){
+  var el=getEl(); if(!el) return;
+  el.style.fontWeight = v;
+  setSlider('smk-weight-range','smk-weight-val',parseInt(v),v);
+};
+window.smkSetWeight = function(v){ smkApplyWeight(v); };
+
+/* ========== 字間 ========== */
+window.smkApplyLS = function(v){
+  var el=getEl(); if(!el) return;
+  var em = parseInt(v)/100;
+  el.style.letterSpacing = em+'em';
+  var vEl = document.getElementById('smk-ls-val');
+  if(vEl) vEl.textContent = em.toFixed(2)+'em';
+  updateSliderGrad('smk-ls-range',parseInt(v));
+};
+
+/* ========== 行間 ========== */
+window.smkApplyLH = function(v){
+  var el=getEl(); if(!el) return;
+  var r = parseInt(v)/100;
+  el.style.lineHeight = r;
+  var vEl = document.getElementById('smk-lh-val');
+  if(vEl) vEl.textContent = r.toFixed(2);
+  updateSliderGrad('smk-lh-range',parseInt(v));
+};
+
+/* ========== 文字揃え ========== */
+window.smkApplyAlign = function(v){
+  var el=getEl(); if(!el) return;
+  el.style.textAlign = v;
+};
+
+/* ========== 変形 ========== */
+var _smkTransform = {scaleX:1, scaleY:1, rotate:'0deg'};
+window.smkApplyTransformPart = function(type, val){
+  var el=getEl(); if(!el) return;
+  _smkTransform[type] = val;
+  el.style.transform = 'scaleX('+_smkTransform.scaleX+') scaleY('+_smkTransform.scaleY+') rotate('+_smkTransform.rotate+')';
+  // バッジ更新
+  if(type==='scaleX'){var b=document.getElementById('smk-scx-val');if(b)b.textContent=parseFloat(val).toFixed(1);}
+  if(type==='scaleY'){var b2=document.getElementById('smk-scy-val');if(b2)b2.textContent=parseFloat(val).toFixed(1);}
+  if(type==='rotate'){var b3=document.getElementById('smk-rot-val');if(b3)b3.textContent=parseInt(val)+'°';}
+  updateSliderGrad('smk-rot-range', parseInt(val)||0);
+};
+window.smkResetTransform = function(){
+  var el=getEl(); if(!el) return;
+  el.style.transform = '';
+  _smkTransform = {scaleX:1, scaleY:1, rotate:'0deg'};
+  ['smk-scx-range','smk-scy-range','smk-rot-range'].forEach(function(id){
+    var r=document.getElementById(id);
+    if(r){r.value=(id==='smk-rot-range')?0:100; updateSliderGrad(id,r.value);}
+  });
+};
+
+/* ========== 余白 ========== */
+window.smkApplyMargin = function(side, v){
+  var el=getEl(); if(!el) return;
+  var px = parseInt(v)||0;
+  if(side==='top')   el.style.marginTop    = px+'px';
+  if(side==='bottom') el.style.marginBottom = px+'px';
+  if(side==='left')  el.style.marginLeft   = px+'px';
+  if(side==='right') el.style.marginRight  = px+'px';
+};
+
+/* ========== 装飾 ========== */
+window.smkToggleItalic = function(){
+  var el=getEl(); if(!el) return;
+  el.style.fontStyle = el.style.fontStyle==='italic' ? 'normal' : 'italic';
+  var btn = document.getElementById('smk-italic-btn');
+  if(btn) btn.style.color = el.style.fontStyle==='italic' ? '#C6A75C' : '';
+};
+window.smkDecorate = function(v){
+  var el=getEl(); if(!el) return;
+  el.style.textDecoration = v;
+};
+window.smkApplyShadow = function(v){
+  var el=getEl(); if(!el) return;
+  el.style.textShadow = v;
+};
+
+/* ========== カラー ========== */
+function buildSwatches(){
+  // 文字色スウォッチ
+  var tb = document.getElementById('smk-text-swatches');
+  if(tb){
+    SMK_TEXT_SWATCHES.forEach(function(c){
+      var s = makeSwatch(c, function(){ smkApplyColor('text',c); });
+      tb.appendChild(s);
+    });
+  }
+  // 背景色スウォッチ
+  var bb = document.getElementById('smk-bg-swatches');
+  if(bb){
+    SMK_BG_SWATCHES.forEach(function(c){
+      var s = makeSwatch(c, function(){ smkApplyColor('bg',c); });
+      bb.appendChild(s);
+    });
+  }
+}
+function makeSwatch(c, onclick){
+  var s = document.createElement('div');
+  s.className = 'smk-swatch';
+  if(c==='transparent'){
+    s.style.background = 'repeating-linear-gradient(45deg,#555 0,#555 4px,transparent 4px,transparent 8px)';
+    s.style.border = '1px solid #666';
+  } else {
+    s.style.background = c;
+  }
+  s.title = c;
+  s.onclick = onclick;
+  return s;
+}
+
+window.smkApplyColor = function(type, val){
+  var el = getEl(); if(!el) return;
+  smkSaveHistory();
+  if(type==='text'){
+    el.style.color = val;
+    updateColorInputs('smk-text-color','smk-text-color-hex','smk-font-textcolor','smk-font-textcolor-hex',val);
+  } else if(type==='bg'){
+    el.style.backgroundColor = val;
+    var bc = document.getElementById('smk-bg-color');
+    var bch = document.getElementById('smk-bg-color-hex');
+    if(bc && val!=='transparent') bc.value = val;
+    if(bch) bch.textContent = val;
+  } else if(type==='border'){
+    el.style.borderColor = val;
+    var brc = document.getElementById('smk-border-color');
+    var brch = document.getElementById('smk-border-color-hex');
+    if(brc) brc.value = val;
+    if(brch) brch.textContent = val;
+  }
+};
+function updateColorInputs(id1,id2,id3,id4,val){
+  [id1,id3].forEach(function(id){ var e=document.getElementById(id); if(e&&val&&val[0]==='#')e.value=val; });
+  [id2,id4].forEach(function(id){ var e=document.getElementById(id); if(e)e.textContent=val; });
+}
+
+window.smkApplyColorHex = function(type, val){
+  if(/^#[0-9a-fA-F]{3,6}$/.test(val)) smkApplyColor(type, val);
+};
+window.smkClearBg = function(){
+  var el=getEl(); if(!el) return;
+  el.style.backgroundColor = 'transparent';
+  var bch = document.getElementById('smk-bg-color-hex');
+  if(bch) bch.textContent = 'transparent';
+};
+window.smkClearBorder = function(){
+  var el=getEl(); if(!el) return;
+  el.style.borderColor = ''; el.style.border = 'none';
+};
+
+window.smkApplyBrandColor = function(val){
+  var el=getEl(); if(!el){ showToast('要素を選択してください'); return; }
+  smkSaveHistory();
+  el.style.color = val;
+  updateColorInputs('smk-text-color','smk-text-color-hex','smk-font-textcolor','smk-font-textcolor-hex',val);
+  showToast('ブランドカラー適用: '+val);
+};
+
+/* ========== 1文字スタイル ========== */
+window.smaskApplyCharColor = function(val){
+  var el=getEl(); if(!el) return;
+  el.style.color = val;
+  var hex = document.getElementById('smask-char-color-hex');
+  if(hex) hex.textContent = val;
+  smaskUpdateCharPreview();
+};
+window.smaskApplyCharBg = function(val){
+  var el=getEl(); if(!el) return;
+  el.style.backgroundColor = val;
+  var hex = document.getElementById('smask-char-bg-hex');
+  if(hex) hex.textContent = val;
+  smaskUpdateCharPreview();
+};
+window.smaskClearCharBg = function(){
+  var el=getEl(); if(!el) return;
+  el.style.backgroundColor = 'transparent';
+};
+window.smaskApplyCharFont = function(name){
+  var el=getEl(); if(!el) return;
+  if(name){ loadGFont(name); el.style.fontFamily = '"'+name+'", sans-serif'; }
+};
+window.smaskApplyCharSize = function(v){
+  var el=getEl(); if(!el) return;
+  el.style.fontSize = v+'px';
+  var vv = document.getElementById('smask-char-size-val');
+  if(vv) vv.textContent = v+'px';
+};
+window.smaskApplyCharWeight = function(v){
+  var el=getEl(); if(!el) return;
+  el.style.fontWeight = v;
+};
+
+/* ========== ミニツールバー連携 ========== */
+window.smaskMiniFont = function(){
+  smkTab('font');
+  if(typeof openPanel==='function') openPanel();
+  if(typeof smaskHideMiniToolbar==='function') smaskHideMiniToolbar();
+  setTimeout(function(){
+    var s=document.getElementById('smk-font-search');
+    if(s){s.focus();s.scrollIntoView({block:'nearest'});}
+  },200);
+};
+window.smaskMiniColor = function(){
+  smkTab('color');
+  if(typeof openPanel==='function') openPanel();
+  if(typeof smaskHideMiniToolbar==='function') smaskHideMiniToolbar();
+};
+
+/* ========== openPanel パッチ ========== */
+var _smkOrigOpenPanel = window.openPanel;
+window.openPanel = function(){
+  if(_smkOrigOpenPanel) try{_smkOrigOpenPanel();}catch(e){}
+  var p = document.getElementById('smask-admin-panel');
+  if(p) p.classList.remove('smk-closed');
+};
+
+/* ========== UIの同期 ========== */
+function updateColorUI(el){
+  if(!el) return;
+  var cs = getComputedStyle(el);
+  var tc = rgbToHex(cs.color) || '#ffffff';
+  updateColorInputs('smk-text-color','smk-text-color-hex','smk-font-textcolor','smk-font-textcolor-hex',tc);
+  var bc = rgbToHex(cs.backgroundColor);
+  if(bc){
+    var bcEl = document.getElementById('smk-bg-color');
+    var bcHex = document.getElementById('smk-bg-color-hex');
+    if(bcEl) bcEl.value = bc;
+    if(bcHex) bcHex.textContent = bc;
+  }
+}
+
+function updateFontUI(el){
+  if(!el) return;
+  var cs = getComputedStyle(el);
+  var fsPx = parseFloat(cs.fontSize)||16;
+  var fw   = parseInt(cs.fontWeight)||400;
+  var ls   = parseFloat(cs.letterSpacing)||0;
+  var lsEm = ls/fsPx;
+  var lh   = parseFloat(cs.lineHeight);
+  var lhR  = isNaN(lh) ? 1.5 : lh/fsPx;
+  setSlider('smk-size-range','smk-size-val', Math.round(fsPx), Math.round(fsPx)+'px', 'smk-size-input');
+  setSlider('smk-weight-range','smk-weight-val', Math.round(fw/100)*100, Math.round(fw/100)*100);
+  setSlider('smk-ls-range','smk-ls-val', Math.round(lsEm*100), lsEm.toFixed(2)+'em');
+  setSlider('smk-lh-range','smk-lh-val', Math.round(lhR*100), lhR.toFixed(2));
+  // 余白
+  var mt=parseInt(cs.marginTop)||0, mb=parseInt(cs.marginBottom)||0;
+  var ml=parseInt(cs.marginLeft)||0, mr=parseInt(cs.marginRight)||0;
+  ['smk-mt','smk-mb','smk-ml','smk-mr'].forEach(function(id,i){
+    var e=document.getElementById(id); if(e) e.value=[mt,mb,ml,mr][i];
+  });
+}
+
+/* ========== 折りたたみ ========== */
+window.smkToggleCollapse = function(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+};
+
+/* ========== ユーティリティ ========== */
+function getEl(){
+  return _smkEl || window.smaskEl || (typeof selectedEl!=='undefined' ? selectedEl : null);
+}
+function rgbToHex(rgb){
+  if(!rgb||rgb==='transparent') return null;
+  var m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if(!m) return rgb;
+  return '#'+[m[1],m[2],m[3]].map(function(x){ return ('0'+parseInt(x).toString(16)).slice(-2); }).join('');
+}
+function setSlider(rangeId, valId, val, label, inputId){
+  var r=document.getElementById(rangeId);
+  var v=document.getElementById(valId);
+  if(r){ r.value=val; updateSliderGrad(rangeId,val); }
+  if(v) v.textContent = label||val;
+  if(inputId){ var i=document.getElementById(inputId); if(i) i.value=val; }
+}
+function updateSliderGrad(id, val){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var min=parseFloat(el.min)||0, max=parseFloat(el.max)||100;
+  var pct = ((val-min)/(max-min)*100).toFixed(1);
+  el.style.background = 'linear-gradient(to right, #C6A75C '+pct+'%, #333 '+pct+'%)';
+}
+
+/* ========== トースト通知 ========== */
+function showToast(msg){
+  var t = document.getElementById('smk-toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'smk-toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,0.95);color:#C6A75C;padding:8px 18px;border-radius:20px;font-size:12px;z-index:9999999;border:1px solid rgba(198,167,92,0.4);letter-spacing:0.05em;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(function(){ t.style.opacity='0'; }, 2000);
+}
+
+/* ========== イベントリスナー（sliderのinput） ========== */
+document.addEventListener('input', function(e){
+  var id = e.target.id;
+  var v  = e.target.value;
+  if(id==='smk-size-range'||id==='smk-size-input') smkApplySize(v);
+  else if(id==='smk-weight-range') smkApplyWeight(v);
+  else if(id==='smk-ls-range')  smkApplyLS(v);
+  else if(id==='smk-lh-range')  smkApplyLH(v);
+  else if(id==='smk-text-color'||id==='smk-font-textcolor') smkApplyColor('text',v);
+  else if(id==='smk-bg-color')  smkApplyColor('bg',v);
+  else if(id==='smk-border-color') smkApplyColor('border',v);
+  else if(id==='smk-scx-range') smkApplyTransformPart('scaleX',v/100);
+  else if(id==='smk-scy-range') smkApplyTransformPart('scaleY',v/100);
+  else if(id==='smk-rot-range') smkApplyTransformPart('rotate',v+'deg');
+  else if(id==='smask-char-color') smaskApplyCharColor(v);
+  else if(id==='smask-char-bg')    smaskApplyCharBg(v);
+  else if(id==='smask-char-size'){ smaskApplyCharSize(v); }
+});
+
+/* ========== 起動 ========== */
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',boot);
-} else { boot(); }
-setTimeout(boot, 300);
-setTimeout(boot, 1000);
-setTimeout(boot, 2500);
-
-// MutationObserver
-var obs=new MutationObserver(function(){ attachAll(); fixTabs(); });
-(document.body ? obs.observe(document.body,{childList:true,subtree:false}) :
- document.addEventListener('DOMContentLoaded',function(){ obs.observe(document.body,{childList:true,subtree:false}); }));
+  document.addEventListener('DOMContentLoaded', smkInit);
+} else {
+  smkInit();
+}
+setTimeout(smkInit, 500);
+setTimeout(smkInit, 1500);
 
 })();
 </script>
+
 </body>
 
 
@@ -6273,6 +6374,666 @@ var obs=new MutationObserver(function(){ attachAll(); fixTabs(); });
   margin: 16px 0 8px;
   text-transform: uppercase;
 }
+
+/* ==========================================
+   SMASK v9 管理パネル CSS
+   ========================================== */
+
+/* パネル全体ラッパー */
+.smask-panel-wrap {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  z-index: 99990;
+  font-family: 'Noto Sans JP', -apple-system, sans-serif;
+  font-size: 13px;
+  background: #1a1a1a;
+  border-left: 2px solid rgba(198,167,92,0.4);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.6);
+  transform: translateX(0);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.smask-panel-wrap.smk-closed {
+  transform: translateX(100%);
+}
+
+/* ▼ ヘッダー */
+.smk-header {
+  height: 48px;
+  min-height: 48px;
+  background: #111;
+  border-bottom: 1px solid rgba(198,167,92,0.3);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.smk-header-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 60px;
+}
+.smk-logo {
+  font-size: 12px;
+  font-weight: 800;
+  color: #C6A75C;
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+.smk-logo-sub {
+  font-size: 7px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+.smk-header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.smk-sel-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.05);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.smk-sel-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.smk-sel-dot.active { background: #06d6a0; }
+.smk-header-right {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.smk-hbtn {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  font-size: 10px;
+  cursor: pointer;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+  font-family: inherit;
+}
+.smk-hbtn:active { background: rgba(198,167,92,0.3); }
+.smk-hbtn-pub { background: rgba(39,174,96,0.2); border-color: rgba(39,174,96,0.4); color: #2ecc71; }
+.smk-hbtn-logout { background: rgba(211,56,28,0.15); border-color: rgba(211,56,28,0.3); color: #e74c3c; }
+.smk-hbtn-css { background: rgba(58,134,255,0.15); border-color: rgba(58,134,255,0.3); color: #3a86ff; }
+
+/* ▼ リセットメニュー */
+.smk-reset-menu {
+  position: absolute;
+  top: 52px;
+  right: 8px;
+  background: #252525;
+  border: 1px solid rgba(198,167,92,0.4);
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 100000;
+  min-width: 180px;
+}
+.smk-reset-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.smk-reset-menu button:hover { background: rgba(255,255,255,0.08); }
+
+/* ▼ ボディ（サイドバー＋メイン） */
+.smk-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ▼ 左サイドバー */
+.smk-sidebar {
+  width: 60px;
+  min-width: 60px;
+  background: #111;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 4px;
+  overflow-y: auto;
+}
+.smk-tab-btn {
+  width: 52px;
+  padding: 10px 4px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: none;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.smk-tab-btn:active, .smk-tab-btn.active {
+  background: rgba(198,167,92,0.15);
+  border-color: rgba(198,167,92,0.4);
+  color: #C6A75C;
+}
+.smk-tab-icon { font-size: 18px; line-height: 1; }
+.smk-tab-label { font-size: 8px; letter-spacing: 0.08em; font-weight: 600; }
+
+.smk-sidebar-bottom {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.smk-sidebar-btn {
+  width: 44px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  font-size: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  letter-spacing: 0.06em;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.smk-sidebar-btn.active {
+  background: rgba(198,167,92,0.2);
+  border-color: #C6A75C;
+  color: #C6A75C;
+}
+#smk-click-btn span { font-weight: 700; }
+
+/* ▼ メインエリア */
+.smk-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: #1a1a1a;
+}
+.smk-pane {
+  min-height: 100%;
+  padding: 12px 14px 40px;
+}
+
+/* ▼ セクション */
+.smk-section {
+  margin-bottom: 14px;
+}
+.smk-section-title {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: rgba(198,167,92,0.8);
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ▼ ガイド */
+.smk-guide {
+  text-align: center;
+  padding: 32px 16px;
+  color: rgba(255,255,255,0.4);
+}
+.smk-guide-icon { font-size: 32px; margin-bottom: 10px; }
+.smk-guide-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.smk-guide-desc { font-size: 11px; line-height: 1.7; }
+
+/* ▼ 選択中情報 */
+.smk-sel-info { }
+.smk-info-card {
+  background: rgba(198,167,92,0.08);
+  border: 1px solid rgba(198,167,92,0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.smk-info-tag {
+  font-size: 10px;
+  color: #C6A75C;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.smk-info-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.smk-sel-info-mini {
+  font-size: 10px;
+  color: rgba(198,167,92,0.8);
+  margin-bottom: 10px;
+  padding: 5px 8px;
+  background: rgba(198,167,92,0.08);
+  border-radius: 6px;
+  border-left: 2px solid #C6A75C;
+}
+
+/* ▼ 編集モードボタン */
+.smk-mode-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.smk-mode-btn {
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.smk-mode-btn.active {
+  background: rgba(198,167,92,0.15);
+  border-color: #C6A75C;
+  color: #C6A75C;
+}
+.smk-mode-icon { font-size: 20px; }
+.smk-mode-btn span { font-size: 12px; font-weight: 600; }
+.smk-mode-btn small { font-size: 9px; opacity: 0.6; }
+
+/* ▼ アクションボタン */
+.smk-action-btn {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.75);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+.smk-action-btn:active { background: rgba(255,255,255,0.12); }
+.smk-action-danger { color: rgba(211,56,28,0.9); border-color: rgba(211,56,28,0.3); }
+
+/* ▼ 分割ボタン */
+.smk-split-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(58,134,255,0.4);
+  background: rgba(58,134,255,0.1);
+  color: #3a86ff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+}
+.smk-split-btn:active { background: rgba(58,134,255,0.25); }
+.smk-split-unwrap {
+  border-color: rgba(211,56,28,0.4);
+  background: rgba(211,56,28,0.08);
+  color: #d3381c;
+}
+
+/* ▼ 1文字パネル */
+.smk-char-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+}
+.smk-char-preview {
+  font-size: 36px;
+  min-width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(58,134,255,0.1);
+}
+.smk-char-meta { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+/* ▼ コントロール */
+.smk-ctrl-block {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.smk-ctrl-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.smk-val-badge {
+  font-size: 11px;
+  color: #C6A75C;
+  font-family: monospace;
+  background: rgba(198,167,92,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.smk-ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.smk-ctrl-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  min-width: 36px;
+}
+.smk-hex {
+  font-size: 10px;
+  color: #aaa;
+  font-family: monospace;
+}
+
+/* ▼ レンジスライダー */
+.smk-range, .smk-range-sm {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #C6A75C 50%, #333 50%);
+  outline: none;
+  cursor: pointer;
+  margin: 4px 0;
+}
+.smk-range::-webkit-slider-thumb,
+.smk-range-sm::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #C6A75C;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.smk-range-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.smk-range-row .smk-range { flex: 1; }
+
+/* ▼ ボタン系 */
+.smk-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.smk-step-btn, .smk-small-btn {
+  padding: 5px 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.75);
+  font-size: 11px;
+  cursor: pointer;
+  min-height: 30px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.smk-step-btn:active, .smk-small-btn:active { background: rgba(198,167,92,0.25); color: #C6A75C; }
+
+/* ▼ インプット系 */
+.smk-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-size: 12px;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+}
+.smk-input:focus { border-color: rgba(198,167,92,0.6); }
+.smk-num-input {
+  width: 56px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+  font-family: monospace;
+  outline: none;
+}
+.smk-hex-input {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-size: 12px;
+  font-family: monospace;
+  outline: none;
+  min-width: 0;
+}
+.smk-select, .smk-select-sm {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #1e1e1e;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+.smk-select-sm { padding: 5px 8px; font-size: 11px; }
+.smk-primary-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  background: #C6A75C;
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ▼ カラーピッカー */
+.smk-color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.smk-color-picker-row input[type=color] {
+  width: 40px; height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0;
+}
+.smk-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+.smk-swatch {
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, border-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.smk-swatch:active { transform: scale(1.2); border-color: #fff; }
+
+/* ▼ ブランドカラー */
+.smk-brand-colors {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.smk-brand-swatch {
+  border-radius: 8px;
+  padding: 8px 4px 6px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, border-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.smk-brand-swatch:active { transform: scale(1.05); border-color: #C6A75C; }
+.smk-brand-swatch span { display: block; font-size: 8px; font-family: monospace; font-weight: 600; }
+.smk-brand-swatch small { display: block; font-size: 8px; opacity: 0.7; margin-top: 2px; }
+
+/* ▼ フォントカテゴリ */
+.smk-font-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.smk-cat-btn {
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.1s;
+}
+.smk-cat-btn.active {
+  background: rgba(198,167,92,0.15);
+  border-color: rgba(198,167,92,0.6);
+  color: #C6A75C;
+}
+
+/* ▼ 折りたたみボタン */
+.smk-collapse-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.35);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-family: inherit;
+}
+
+/* ▼ モバイル対応 */
+@media (max-width: 768px) {
+  .smask-panel-wrap {
+    width: 100vw;
+    height: 78svh;
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    border-left: none;
+    border-top: 2px solid rgba(198,167,92,0.4);
+    border-radius: 18px 18px 0 0;
+    transform: translateY(0);
+  }
+  .smask-panel-wrap.smk-closed {
+    transform: translateY(100%);
+  }
+  .smk-header { height: 44px; min-height: 44px; }
+  .smk-sidebar { width: 52px; min-width: 52px; }
+  .smk-tab-btn { width: 46px; padding: 8px 3px; }
+  .smk-brand-colors { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ▼ 旧design-panelを完全非表示 */
+#design-panel, .panel-toggle, #el-badge { display: none !important; }
+
+/* ▼ clickモード時の要素ハイライト（維持） */
+body.click-mode .page-editable:hover {
+  outline: 2px dashed rgba(58,134,255,0.7) !important;
+  cursor: pointer !important;
+}
+.el-selected {
+  outline: 2px solid #C6A75C !important;
+  outline-offset: 2px !important;
+}
+.smask-char.smask-selected {
+  outline: 2px solid #3a86ff !important;
+  background: rgba(58,134,255,0.15) !important;
+}
+
 </style>
 
 <script id="smask-simple-edit-script">
