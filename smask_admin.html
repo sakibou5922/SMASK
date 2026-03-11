@@ -1452,6 +1452,15 @@ function doLogin(){
     if(pm) pm.style.cssText = 'display:block!important;';
     try{ window.scrollTo(0,0); }catch(e){}
     if(err) err.textContent = '';
+    /* Re-register editable elements now that page-main is visible */
+    setTimeout(function(){
+      try{
+        if(typeof initEditableElements === 'function') initEditableElements();
+      }catch(ex){}
+      try{
+        if(typeof smkInit === 'function') smkInit();
+      }catch(ex){}
+    }, 150);
   } else {
     if(err) err.textContent = 'パスワードが違います';
     inp.value = '';
@@ -2779,8 +2788,12 @@ document.addEventListener('touchend', wrapSelection);
 
 // ページ内テキスト要素に page-editable を付与
 function initEditableElements(){
-  const EXCLUDED = '#design-panel, .dev-banner, .mobile-menu, .panel-toggle, nav';
-  const targets  = document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,span,a,em,strong,label,li,div.footer-logo,div.footer-copy,div.hero-label,div.card-tag,div.market-status');
+  /* Exclude only admin panel UI; nav links ARE editable */
+  const EXCLUDED = '#smask-admin-panel, .smask-panel-wrap, .dev-banner, #smk-panel-toggle-btn, #login-overlay, #css-modal, #smk-maint-overlay';
+  const targets  = document.querySelectorAll(
+    'h1,h2,h3,h4,h5,h6,p,span,a,button,em,strong,label,li,small,figcaption,blockquote,' +
+    'div.footer-logo,div.footer-copy,div.hero-label,div.card-tag,div.market-status'
+  );
   targets.forEach(el=>{
     if(el.closest(EXCLUDED)) return;
     el.classList.add('page-editable');
@@ -2788,13 +2801,22 @@ function initEditableElements(){
     const preview = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,14);
     el.dataset.elLabel = el.tagName.toLowerCase() + (preview ? ' : '+preview : '');
 
+    /* bubbling click – handles most cases */
     el.addEventListener('click', e=>{
       if(!clickMode) return;
       if(textMode) return;   // 文字選択モード中はクリック選択しない
       e.preventDefault();
       e.stopPropagation();
       selectElement(el);
-    });
+    }, false);
+    /* capture click – belt-and-suspenders for <a> inside nav / complex layouts */
+    el.addEventListener('click', e=>{
+      if(!clickMode) return;
+      if(textMode) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      selectElement(el);
+    }, true);
     // mousedown: 要素選択モードのみ選択阻止（文字選択モードは通す）
     el.addEventListener('mousedown', e=>{
       if(!clickMode || textMode) return;
@@ -5577,7 +5599,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v14-script">
+<script id="smask-v15-script">
 (function(){
 'use strict';
 
@@ -5691,7 +5713,7 @@ function patchSelectEl(){
 
 function patchEditable(){
   // Add touch/pointer support to all editable elements
-  var EXCLUDE = '#smask-admin-panel,.dev-banner,nav,#smk-panel-toggle-btn';
+  var EXCLUDE = '#smask-admin-panel,.smask-panel-wrap,.dev-banner,#smk-panel-toggle-btn,#login-overlay,#css-modal,#smk-maint-overlay';
   function bindEl(el){
     if(el._smk10bound) return;
     el._smk10bound = true;
@@ -5705,12 +5727,14 @@ function patchEditable(){
       e.stopPropagation();
       smkDoSelect(el);
     }, {passive: false});
-    // pointerdown for Android/PC
+    // pointerdown for Android/PC  (preventDefault stops <a> navigation)
     el.addEventListener('pointerdown', function(e){
       if(!(typeof clickMode !== 'undefined' && clickMode)) return;
       if(typeof textMode !== 'undefined' && textMode) return;
       var panel = document.getElementById('smask-admin-panel');
       if(panel && panel.contains(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
       smkDoSelect(el);
     });
   }
@@ -5723,6 +5747,8 @@ function patchEditable(){
     });
   }
   scanEditable();
+  /* Re-scan when initEditableElements adds new .page-editable elements */
+  window._smkRescanEditable = scanEditable;
   setInterval(scanEditable, 2000);
 }
 
@@ -5734,6 +5760,60 @@ function smkDoSelect(el){
   if(typeof selectElement === 'function') try{ selectElement(el); }catch(e){}
   smkOnSelect(el);
 }
+/* ─────────────────────────────────────────────────────────────────
+   CAPTURE-PHASE LINK/BUTTON INTERCEPTOR
+   Fires before <a> native navigation in ALL browsers including iOS.
+   When SELECT MODE is active, any tap/click on <a> or <button>
+   is redirected to smkDoSelect instead of following the link.
+   ───────────────────────────────────────────────────────────────── */
+(function(){
+  var _captureInstalled = false;
+  function installCapture(){
+    if(_captureInstalled) return;
+    _captureInstalled = true;
+    document.addEventListener('click', function(e){
+      /* only active in SELECT MODE, not TEXT mode */
+      if(!(typeof clickMode !== 'undefined' && clickMode)) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      /* never intercept admin panel clicks */
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(e.target)) return;
+      var toggle = document.getElementById('smk-panel-toggle-btn');
+      if(toggle && toggle.contains(e.target)) return;
+      /* intercept if target is / is inside an <a> or <button> */
+      var link = e.target.closest('a[href], button');
+      if(!link) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      /* pick the best target: prefer .page-editable ancestor */
+      var best = e.target.closest('.page-editable') ||
+                 e.target.closest('[data-editable="true"]') ||
+                 link;
+      smkDoSelect(best);
+    }, true /* capture phase */);
+
+    /* Also block touchend on links to prevent 300ms delayed click on iOS */
+    document.addEventListener('touchend', function(e){
+      if(!(typeof clickMode !== 'undefined' && clickMode)) return;
+      if(typeof textMode !== 'undefined' && textMode) return;
+      var panel = document.getElementById('smask-admin-panel');
+      if(panel && panel.contains(e.target)) return;
+      var link = e.target.closest('a[href], button');
+      if(!link) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, {capture: true, passive: false});
+  }
+
+  /* Install after DOM ready */
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', installCapture);
+  } else {
+    installCapture();
+  }
+})();
+/* ─── end CAPTURE-PHASE INTERCEPTOR ─── */
+
 
 function patchSwitchTabById(){
   if(window._smk10TabPatched) return;
@@ -5967,7 +6047,12 @@ window.smkApplyFont = function(name){
   var css = f ? f.css : '"'+name+'", sans-serif';
   smkSaveHist();
   loadGFont(name);
+  /* Apply to the element itself AND its inline text children so that
+     structures like <a><span>text</span></a> get the font visually */
   setStyle(el, 'font-family', css);
+  el.querySelectorAll('span,strong,em,b,i,small,label').forEach(function(child){
+    setStyle(child, 'font-family', css);
+  });
   var lbl = name + (f ? '（'+f.jp+'）' : '');
   showToast('Font applied: ' + lbl);
 };
@@ -6105,6 +6190,10 @@ window.smkApplyColor = function(type, val){
   smkSaveHist();
   if(type==='text'){
     setStyle(el,'color',val);
+    /* propagate text color to inline children */
+    el.querySelectorAll('span,strong,em,b,i,small,label').forEach(function(child){
+      setStyle(child,'color',val);
+    });
     syncColorInputs('text', val);
   } else if(type==='bg'){
     if(val==='transparent') el.style.removeProperty('background-color');
