@@ -1454,13 +1454,16 @@ function doLogin(){
     if(err) err.textContent = '';
     /* Re-register editable elements now that page-main is visible */
     setTimeout(function(){
-      try{
-        if(typeof initEditableElements === 'function') initEditableElements();
-      }catch(ex){}
-      try{
-        if(typeof smkInit === 'function') smkInit();
-      }catch(ex){}
-    }, 150);
+      try{ if(typeof smkScanEditable==='function') smkScanEditable(); }catch(ex){}
+      try{ if(typeof initEditableElements==='function') initEditableElements(); }catch(ex){}
+      try{ if(typeof smkInit==='function') smkInit(); }catch(ex){}
+      try{ if(typeof window._smkRescanEditable==='function') window._smkRescanEditable(); }catch(ex){}
+    }, 200);
+    /* Second pass for any fonts/content that load later */
+    setTimeout(function(){
+      try{ if(typeof smkScanEditable==='function') smkScanEditable(); }catch(ex){}
+      try{ if(typeof window._smkRescanEditable==='function') window._smkRescanEditable(); }catch(ex){}
+    }, 1500);
   } else {
     if(err) err.textContent = 'パスワードが違います';
     inp.value = '';
@@ -2788,41 +2791,111 @@ document.addEventListener('touchend', wrapSelection);
 
 // ページ内テキスト要素に page-editable を付与
 function initEditableElements(){
-  /* Exclude only admin panel UI; nav links ARE editable */
-  const EXCLUDED = '#smask-admin-panel, .smask-panel-wrap, .dev-banner, #smk-panel-toggle-btn, #login-overlay, #css-modal, #smk-maint-overlay';
-  const targets  = document.querySelectorAll(
-    'h1,h2,h3,h4,h5,h6,p,span,a,button,em,strong,label,li,small,figcaption,blockquote,' +
-    'div.footer-logo,div.footer-copy,div.hero-label,div.card-tag,div.market-status'
-  );
-  targets.forEach(el=>{
-    if(el.closest(EXCLUDED)) return;
+  smkScanEditable();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   smkScanEditable()
+   Full-page visible text scanner. Registers EVERY meaningful text
+   element on the public page as data-editable / page-editable.
+   Admin panel subtree is always excluded.
+   ───────────────────────────────────────────────────────────────── */
+function smkScanEditable(){
+  /* Subtrees to skip entirely */
+  var ADMIN_ROOTS = [
+    '#smask-admin-panel','#smk-panel-toggle-btn',
+    '#login-overlay','#css-modal','#smk-maint-overlay',
+    '.dev-banner','script','style','noscript','template',
+    '[data-smask-ui]'
+  ].join(',');
+
+  /* Tags that can carry editable text */
+  var EDITABLE_TAGS = new Set([
+    'H1','H2','H3','H4','H5','H6',
+    'P','SPAN','A','BUTTON','LI','STRONG','EM','B','I',
+    'SMALL','LABEL','FIGCAPTION','BLOCKQUOTE','TD','TH',
+    'DIV'   /* included for text-only divs */
+  ]);
+
+  /* Is a node in the admin UI? */
+  function isAdminEl(el){
+    return !!el.closest('#smask-admin-panel, #smk-panel-toggle-btn, ' +
+      '#login-overlay, #css-modal, #smk-maint-overlay, .dev-banner');
+  }
+
+  /* Has at least one non-empty TEXT_NODE direct child? */
+  function hasDirectText(el){
+    for(var n=el.firstChild; n; n=n.nextSibling){
+      if(n.nodeType===3 && n.textContent.trim().length > 0) return true;
+    }
+    return false;
+  }
+
+  /* Is the element visually rendered? */
+  function isVisible(el){
+    if(!el.isConnected) return false;
+    try{
+      var s = window.getComputedStyle(el);
+      if(s.display==='none' || s.visibility==='hidden' || s.opacity==='0') return false;
+    }catch(e){ return false; }
+    return true;
+  }
+
+  function registerEl(el){
+    if(el._smkRegistered) return;
+    el._smkRegistered = true;
     el.classList.add('page-editable');
-    // ラベル用テキスト
-    const preview = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,14);
+    el.setAttribute('data-editable','true');
+    var preview = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,14);
     el.dataset.elLabel = el.tagName.toLowerCase() + (preview ? ' : '+preview : '');
 
-    /* bubbling click – handles most cases */
-    el.addEventListener('click', e=>{
+    /* bubbling phase */
+    el.addEventListener('click', function(e){
       if(!clickMode) return;
-      if(textMode) return;   // 文字選択モード中はクリック選択しない
+      if(textMode) return;
       e.preventDefault();
       e.stopPropagation();
       selectElement(el);
     }, false);
-    /* capture click – belt-and-suspenders for <a> inside nav / complex layouts */
-    el.addEventListener('click', e=>{
+    /* capture phase – stops <a> navigation regardless of DOM depth */
+    el.addEventListener('click', function(e){
       if(!clickMode) return;
       if(textMode) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       selectElement(el);
     }, true);
-    // mousedown: 要素選択モードのみ選択阻止（文字選択モードは通す）
-    el.addEventListener('mousedown', e=>{
+    el.addEventListener('mousedown', function(e){
       if(!clickMode || textMode) return;
       e.preventDefault();
     });
-  });
+  }
+
+  /* Walk the entire document */
+  function walk(root){
+    if(!root) return;
+    var els = root.querySelectorAll(
+      'h1,h2,h3,h4,h5,h6,p,span,a,button,li,strong,em,b,i,'+
+      'small,label,figcaption,blockquote,td,th,div'
+    );
+    els.forEach(function(el){
+      if(isAdminEl(el)) return;
+      if(!EDITABLE_TAGS.has(el.tagName)) return;
+      /* For DIV: only register if it has a direct text node
+         (avoids registering layout containers) */
+      if(el.tagName==='DIV' && !hasDirectText(el)) return;
+      /* Skip elements with no meaningful text at all */
+      if(!(el.textContent||'').trim()) return;
+      /* Skip invisible elements */
+      if(!isVisible(el)) return;
+      registerEl(el);
+    });
+  }
+
+  walk(document.body);
+
+  /* Also expose for re-scanning after dynamic content loads */
+  window.smkScanEditable = smkScanEditable;
 }
 
 function selectElement(el){
@@ -5599,7 +5672,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v15-script">
+<script id="smask-v16-script">
 (function(){
 'use strict';
 
@@ -5740,6 +5813,11 @@ function patchEditable(){
   }
 
   function scanEditable(){
+    /* Re-run the full visible-text scanner to catch new elements */
+    if(typeof smkScanEditable === 'function'){
+      try{ smkScanEditable(); }catch(ex){}
+    }
+    /* Then bind touch/pointer handlers to all registered elements */
     var els = document.querySelectorAll('.page-editable, [data-editable="true"]');
     els.forEach(function(el){
       if(el.closest(EXCLUDE)) return;
@@ -5747,9 +5825,8 @@ function patchEditable(){
     });
   }
   scanEditable();
-  /* Re-scan when initEditableElements adds new .page-editable elements */
   window._smkRescanEditable = scanEditable;
-  setInterval(scanEditable, 2000);
+  setInterval(scanEditable, 3000);
 }
 
 function smkDoSelect(el){
@@ -5847,13 +5924,37 @@ window.smkToggleSelectMode = function(){
    ============================================================ */
 function smkOnSelect(el){
   _el = el;
+  /* Store effective target so all apply functions can use it */
+  window._smkEffectiveTarget = (typeof getEffectiveTarget==='function')
+    ? getEffectiveTarget(el) : el;
   updateHeaderLabel(el);
   showSelInfo(el);
   updateColorUI(el);
   updateFontUI(el);
   smkSaveHist();
-  // Show controls in color/font tab
   showTabControls();
+  /* Debug console output */
+  if(window._smkDebugMode){
+    var eff = window._smkEffectiveTarget;
+    console.log('[SMASK] Selected:', el.tagName, el.className.slice(0,40));
+    console.log('[SMASK] Effective target:', eff.tagName, eff.className.slice(0,40));
+    console.log('[SMASK] Text preview:', (el.textContent||'').trim().slice(0,40));
+    /* Visual debug badge */
+    var badge = document.getElementById('smk-debug-badge');
+    if(!badge){ badge=document.createElement('div'); badge.id='smk-debug-badge';
+      badge.style.cssText='position:fixed;bottom:70px;left:10px;z-index:9999999;'+
+        'background:#1a1a1a;color:#8BC34A;font-size:10px;padding:6px 10px;'+
+        'border-radius:6px;border:1px solid #C6A75C;max-width:280px;word-break:break-all;';
+      document.body.appendChild(badge); }
+    badge.style.display='block';
+    badge.innerHTML = '<b style="color:#C6A75C">SEL:</b> '+el.tagName+
+      ' <span style="color:#888">'+el.className.slice(0,30)+'</span><br>'+
+      '<b style="color:#8BC34A">EFF:</b> '+eff.tagName+
+      ' <span style="color:#888">'+eff.className.slice(0,30)+'</span><br>'+
+      '<span style="color:#ccc">"'+(el.textContent||'').trim().slice(0,35)+'"</span>';
+    clearTimeout(window._smkDebugTimer);
+    window._smkDebugTimer = setTimeout(function(){ badge.style.display='none'; }, 4000);
+  }
 }
 
 function updateHeaderLabel(el){
@@ -5966,6 +6067,59 @@ function setStyle(el, prop, val){
     try { el.style[prop] = val; } catch(e2){}
   }
 }
+/* ─────────────────────────────────────────────────────────────────
+   getEffectiveTarget(el)
+   Returns the deepest element that VISUALLY holds the text.
+   For <a><span>text</span></a>, returns the <span>.
+   For <p>text</p>, returns <p> itself.
+   ───────────────────────────────────────────────────────────────── */
+function getEffectiveTarget(el){
+  if(!el) return el;
+  /* If the element itself directly contains text (not just in children),
+     it IS the effective target */
+  function hasOwnText(node){
+    for(var n=node.firstChild; n; n=n.nextSibling){
+      if(n.nodeType===3 && n.textContent.trim().length > 0) return true;
+    }
+    return false;
+  }
+  if(hasOwnText(el)) return el;
+  /* Otherwise look for the shallowest child that is an inline text wrapper */
+  var INLINE_TAGS = ['SPAN','STRONG','EM','B','I','SMALL','LABEL','A'];
+  var found = null;
+  function descend(node, depth){
+    if(depth > 4) return;
+    for(var child=node.firstChild; child; child=child.nextSibling){
+      if(child.nodeType === 1){
+        if(INLINE_TAGS.indexOf(child.tagName) >= 0 && hasOwnText(child)){
+          if(!found) found = child;
+          return;
+        }
+        descend(child, depth+1);
+      }
+    }
+  }
+  descend(el, 0);
+  return found || el;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   applyToEffective(el, prop, val)
+   Applies a CSS property to BOTH the element AND its effective target.
+   This ensures nested text wrappers get the style too.
+   ───────────────────────────────────────────────────────────────── */
+function applyToEffective(el, prop, val){
+  if(!el) return;
+  setStyle(el, prop, val);
+  var eff = getEffectiveTarget(el);
+  if(eff && eff !== el) setStyle(eff, prop, val);
+  /* Also apply to ALL inline text descendants to catch multi-span structures */
+  el.querySelectorAll('span,strong,em,b,i,small,label').forEach(function(child){
+    setStyle(child, prop, val);
+  });
+}
+/* ─── end effective target helpers ─── */
+
 
 function loadGFont(name){
   var id = 'gf-'+name.replace(/\s+/g,'-').toLowerCase();
@@ -6049,10 +6203,7 @@ window.smkApplyFont = function(name){
   loadGFont(name);
   /* Apply to the element itself AND its inline text children so that
      structures like <a><span>text</span></a> get the font visually */
-  setStyle(el, 'font-family', css);
-  el.querySelectorAll('span,strong,em,b,i,small,label').forEach(function(child){
-    setStyle(child, 'font-family', css);
-  });
+  applyToEffective(el, 'font-family', css);
   var lbl = name + (f ? '（'+f.jp+'）' : '');
   showToast('Font applied: ' + lbl);
 };
@@ -6061,13 +6212,13 @@ window.smkApplyFont = function(name){
 window.smkApplySize = function(v){
   var el=getEl(); if(!el) return;
   var px = Math.max(8, Math.min(300, parseFloat(v)||16));
-  setStyle(el, 'font-size', px+'px');
+  applyToEffective(el, 'font-size', px+'px');
   setSlider('smk-size-range','smk-size-val', Math.round(px), Math.round(px)+'px','smk-size-input');
 };
 
 window.smkApplyWeight = function(v){
   var el=getEl(); if(!el) return;
-  setStyle(el, 'font-weight', String(v));
+  applyToEffective(el, 'font-weight', String(v));
   setSlider('smk-weight-range','smk-weight-val', parseInt(v), String(v));
 };
 
@@ -6110,7 +6261,7 @@ window.smkDecorate = function(v){
 
 window.smkApplyShadow = function(v){
   var el=getEl(); if(!el) return;
-  setStyle(el, 'text-shadow', v);
+  applyToEffective(el, 'text-shadow', v);
 };
 
 /* Transform */
@@ -6189,11 +6340,7 @@ window.smkApplyColor = function(type, val){
   var el=getEl(); if(!el){ showToast('Select an element first'); return; }
   smkSaveHist();
   if(type==='text'){
-    setStyle(el,'color',val);
-    /* propagate text color to inline children */
-    el.querySelectorAll('span,strong,em,b,i,small,label').forEach(function(child){
-      setStyle(child,'color',val);
-    });
+    applyToEffective(el,'color',val);
     syncColorInputs('text', val);
   } else if(type==='bg'){
     if(val==='transparent') el.style.removeProperty('background-color');
@@ -6450,6 +6597,42 @@ window.addEventListener('load', function(){
 })();
 
 
+
+/* ─────────────────────────────────────────────────────────────────
+   DEBUG HELPERS
+   smkDebug()       — toggle debug mode (console + badges)
+   smkDebugOverlay()— show/hide thin outlines on all .page-editable
+   ───────────────────────────────────────────────────────────────── */
+window._smkDebugMode = false;
+window.smkDebug = function(){
+  window._smkDebugMode = !window._smkDebugMode;
+  var st = document.getElementById('smk-debug-style');
+  if(!st){
+    st = document.createElement('style');
+    st.id = 'smk-debug-style';
+    document.head.appendChild(st);
+  }
+  if(window._smkDebugMode){
+    st.textContent = '.page-editable,[data-editable="true"]{' +
+      'outline:1px dashed rgba(198,167,92,.55) !important;' +
+      'outline-offset:1px !important;}';
+    console.log('[SMASK] Debug ON – editable elements outlined in gold');
+    /* Count and log */
+    var all = document.querySelectorAll('.page-editable,[data-editable="true"]');
+    console.log('[SMASK] Total editable elements:', all.length);
+    all.forEach(function(el){
+      var isAdmin = !!el.closest('#smask-admin-panel,#login-overlay,#css-modal');
+      if(isAdmin) console.warn('[SMASK] Admin element registered (should not be):', el.tagName, el.textContent.slice(0,20));
+    });
+  } else {
+    st.textContent = '';
+    console.log('[SMASK] Debug OFF');
+    var b = document.getElementById('smk-debug-badge');
+    if(b) b.style.display='none';
+  }
+  return 'Debug mode: ' + (window._smkDebugMode ? 'ON' : 'OFF');
+};
+/* ─── end DEBUG HELPERS ─── */
 /* ============================================================
    SITE SETTINGS  (independent from design-edit logic)
    ============================================================ */
