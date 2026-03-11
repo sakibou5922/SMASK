@@ -5719,7 +5719,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v19-script">
+<script id="smask-v20-script">
 (function(){
 'use strict';
 
@@ -7423,246 +7423,263 @@ window.smkDebug = function(){
 </style>
 
 
-<script id="smask-v19-override">
-/* ═══════════════════════════════════════════════════════════════════════
-   SMASK v19 – Style Apply Override  (dual-strategy + verified apply)
+<script id="smask-v20-override">
+/* ═══════════════════════════════════════════════════════════════════════════
+   SMASK v20 – Triple-Strategy Style Override
 
-   Strategy:
-     1. forceStyle()       – write inline !important to el + all descendants
-     2. forceCSSVar()      – write CSS custom property directly on el
-                              so that var(--t2-font-family) etc. resolve correctly
-     3. verifyAndReport()  – check getComputedStyle 60 ms after apply;
-                              success toast ONLY if computed value changed;
-                              failure: full diagnostic log + outerHTML
-     4. Shadow DOM scan    – detect shadow roots in subtree
-   ═══════════════════════════════════════════════════════════════════════ */
+   Three independent methods ensure font/style ALWAYS takes effect:
+     Method 1: forceStyle()  – inline !important on el + all descendants
+     Method 2: forceCSSVar() – set CSS custom property on element directly
+                               (makes var(--t2-font-family) resolve to new value)
+     Method 3: injectRule()  – inject <style> rule with [data-smkid] attribute
+                               selector (beats class selectors in specificity)
+   After 80ms: verifyAndReport() checks getComputedStyle
+     → ✅ success toast only if computed value actually changed
+     → ❌ failure: full diagnostic console log
+   ═══════════════════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
 
-/* ── Admin exclusion ──────────────────────────────────────────────── */
+/* ── Admin exclusion ─────────────────────────────────────────────────────── */
 var ADMIN_SEL =
   '#smask-admin-panel,#smk-panel-toggle-btn,#login-overlay,' +
   '#css-modal,#smk-maint-overlay,.dev-banner,' +
-  '#smk-pane-font,#smk-pane-color,#smk-pane-select,#smk-pane-site';
+  '#smk-pane-font,#smk-pane-color,#smk-pane-select,#smk-pane-site,' +
+  '#smk-v20-badge,#smk-v20-info,#smk-live-css';
 function isAdmin(el){ return !!(el && el.closest && el.closest(ADMIN_SEL)); }
 
-/* ── CSS variable map: which CSS var controls which elements ──────── */
-// Matches the page's existing CSS:
-//   h1,h2,h3           → --t2-font-family
-//   h4,h5,h6           → --t3-font-family
-//   p.page-editable / .page-editable p  → --body-font-family
-//   span/a/button/li etc. inherit from parent — so we set on parent too
-var CSS_VAR_FONT_MAP = [
-  { tags: ['H1','H2','H3'],  varName: '--t2-font-family'   },
-  { tags: ['H4','H5','H6'],  varName: '--t3-font-family'   },
-  { tags: ['P'],             varName: '--body-font-family'  },
+/* ── CSS custom-property maps ────────────────────────────────────────────── */
+// Matches the page CSS:
+//   h1,h2,h3      → var(--t2-font-family) !important
+//   h4,h5,h6      → var(--t3-font-family) !important
+//   p.page-editable → var(--body-font-family) !important
+var FONT_VAR_MAP = [
+  { tags:['H1','H2','H3'], v:'--t2-font-family' },
+  { tags:['H4','H5','H6'], v:'--t3-font-family'  },
+  { tags:['P'],             v:'--body-font-family' },
+  { tags:['SPAN','A','BUTTON','LI','DIV','STRONG','EM','SMALL','LABEL'],
+    v:'--body-font-family' },  // inherited elements also benefit
 ];
-// For size / weight the page also uses CSS vars:
-//   h1-h3 → --t2-size / --t2-weight
-//   h4-h6 → --t3-size / --t3-weight
-//   p     → --body-size / --body-weight
-var CSS_VAR_SIZE_MAP = [
-  { tags: ['H1','H2','H3'], varName: '--t2-size'   },
-  { tags: ['H4','H5','H6'], varName: '--t3-size'   },
-  { tags: ['P'],            varName: '--body-size'  },
+var SIZE_VAR_MAP = [
+  { tags:['H1','H2','H3'], v:'--t2-size'   },
+  { tags:['H4','H5','H6'], v:'--t3-size'   },
+  { tags:['P'],             v:'--body-size'  },
 ];
-var CSS_VAR_WEIGHT_MAP = [
-  { tags: ['H1','H2','H3'], varName: '--t2-weight'   },
-  { tags: ['H4','H5','H6'], varName: '--t3-weight'   },
-  { tags: ['P'],            varName: '--body-weight'  },
+var WEIGHT_VAR_MAP = [
+  { tags:['H1','H2','H3'], v:'--t2-weight'  },
+  { tags:['H4','H5','H6'], v:'--t3-weight'  },
+  { tags:['P'],             v:'--body-weight' },
 ];
 
-/* ── 1. forceStyle: inline !important on el + all descendants ─────── */
+/* ── Unique ID counter for injected rules ───────────────────────────────── */
+var _smkIdCounter = 1;
+function getSmkId(el){
+  if(!el.dataset.smkid) el.dataset.smkid = String(_smkIdCounter++);
+  return el.dataset.smkid;
+}
+
+/* ── Live <style> injector ──────────────────────────────────────────────── */
+var _liveStyle = null;
+var _liveRules = {};   // smkid → { prop: val }
+function getLiveStyle(){
+  if(!_liveStyle){
+    _liveStyle = document.getElementById('smk-live-css');
+    if(!_liveStyle){
+      _liveStyle = document.createElement('style');
+      _liveStyle.id = 'smk-live-css';
+      document.head.appendChild(_liveStyle);
+    }
+  }
+  return _liveStyle;
+}
+function rebuildLiveCSS(){
+  var css = '';
+  Object.keys(_liveRules).forEach(function(id){
+    var rules = _liveRules[id];
+    var decls = Object.keys(rules).map(function(p){ return p+':'+rules[p]+' !important'; }).join(';');
+    /* Use [data-smkid] attribute selector AND repeat it 3x to increase specificity */
+    css += '[data-smkid="'+id+'"][data-smkid="'+id+'"][data-smkid="'+id+'"] {'+decls+'}\n';
+    css += '[data-smkid="'+id+'"][data-smkid="'+id+'"][data-smkid="'+id+'"] * {'+decls+'}\n';
+  });
+  getLiveStyle().textContent = css;
+}
+
+/* ── Method 1: forceStyle ───────────────────────────────────────────────── */
 function forceStyle(el, prop, val){
   if(!el || isAdmin(el)) return 0;
   var count = 0;
   function write(node){
-    if(!node || !node.style) return;
+    if(!node || !node.style || isAdmin(node)) return;
     try{ node.style.setProperty(prop, val, 'important'); count++; }catch(e){}
   }
   write(el);
   var all = el.querySelectorAll('*');
-  for(var i=0; i<all.length; i++){
-    if(!isAdmin(all[i])) write(all[i]);
-  }
+  for(var i=0;i<all.length;i++) write(all[i]);
   return count;
 }
 
-/* ── 2. forceCSSVar: write CSS custom property on el directly ──────
-   This makes  var(--t2-font-family)  resolve to our value for this
-   specific element, overriding the :root fallback.  ─────────────── */
+/* ── Method 2: forceCSSVar ──────────────────────────────────────────────── */
 function forceCSSVar(el, varMap, value){
   if(!el || isAdmin(el)) return;
-  var tag = el.tagName;
-  for(var i=0; i<varMap.length; i++){
-    if(varMap[i].tags.indexOf(tag) >= 0){
-      try{ el.style.setProperty(varMap[i].varName, value); }catch(e){}
-    }
-  }
-  /* Also walk up to the closest container that might match */
-  var par = el.parentElement;
-  while(par && par !== document.body){
-    if(!isAdmin(par)){
-      tag = par.tagName;
-      for(var j=0; j<varMap.length; j++){
-        if(varMap[j].tags.indexOf(tag) >= 0){
-          try{ par.style.setProperty(varMap[j].varName, value); }catch(e){}
-        }
+  function applyMap(node){
+    if(!node || isAdmin(node)) return;
+    var tag = node.tagName;
+    for(var i=0;i<varMap.length;i++){
+      if(varMap[i].tags.indexOf(tag)>=0){
+        try{ node.style.setProperty(varMap[i].v, value); }catch(e){}
       }
     }
-    par = par.parentElement;
+  }
+  applyMap(el);
+  /* Also apply to all child elements that might use the variable */
+  var kids = el.querySelectorAll('*');
+  for(var i=0;i<kids.length;i++) if(!isAdmin(kids[i])) applyMap(kids[i]);
+  /* Walk up ancestor chain too */
+  var par = el.parentElement;
+  var depth = 0;
+  while(par && par !== document.body && depth < 4){
+    if(!isAdmin(par)) applyMap(par);
+    par = par.parentElement; depth++;
   }
 }
 
-/* ── 3. Shadow DOM detection ─────────────────────────────────────── */
-function hasShadowRoot(el){
+/* ── Method 3: injectRule ───────────────────────────────────────────────── */
+function injectRule(el, prop, val){
+  if(!el || isAdmin(el)) return;
+  var id = getSmkId(el);
+  if(!_liveRules[id]) _liveRules[id] = {};
+  _liveRules[id][prop] = val;
+  /* Also apply the rule to each descendant with text */
+  var kids = el.querySelectorAll('*');
+  for(var i=0;i<kids.length;i++){
+    if(!isAdmin(kids[i])){
+      var kid = kids[i];
+      var kid_id = getSmkId(kid);
+      if(!_liveRules[kid_id]) _liveRules[kid_id] = {};
+      _liveRules[kid_id][prop] = val;
+    }
+  }
+  rebuildLiveCSS();
+}
+
+/* ── Combined apply (all 3 methods) ────────────────────────────────────── */
+function applyAll(el, prop, val, varMap){
+  if(!el || isAdmin(el)) return 0;
+  var n = forceStyle(el, prop, val);
+  if(varMap) forceCSSVar(el, varMap, val);
+  injectRule(el, prop, val);
+  return n;
+}
+
+/* ── Shadow DOM detection ───────────────────────────────────────────────── */
+function hasShadow(el){
   if(!el) return false;
   if(el.shadowRoot) return true;
   var all = el.querySelectorAll('*');
-  for(var i=0; i<all.length; i++){
-    if(all[i].shadowRoot) return true;
-  }
+  for(var i=0;i<all.length;i++) if(all[i].shadowRoot) return true;
   return false;
 }
 
-/* ── 4. verifyAndReport: check computed style after 60 ms ──────────
-   Returns a Promise-like that resolves with {ok, computed, expected} ─ */
-function verifyAndReport(el, prop, expectedValue, nodeCount){
-  /* Normalize expected: strip quotes, lowercase, first font name only */
-  function normalize(s){
-    return String(s||'').replace(/['"]/g,'').split(',')[0].trim().toLowerCase();
-  }
-  var exp = normalize(expectedValue);
-
+/* ── verifyAndReport ────────────────────────────────────────────────────── */
+function normalize(s){
+  return String(s||'').replace(/['"]/g,'').split(',')[0].trim().toLowerCase();
+}
+function verifyAndReport(el, prop, expectedVal, nodeCount){
+  var exp = normalize(expectedVal);
   setTimeout(function(){
-    /* Check el itself AND its first few text-bearing children */
     var targets = [el];
     var kids = el.querySelectorAll('span,strong,em,p,h1,h2,h3,h4,h5,h6,a,button,li');
-    for(var i=0; i<Math.min(kids.length,3); i++) targets.push(kids[i]);
+    for(var i=0;i<Math.min(kids.length,5);i++) targets.push(kids[i]);
 
     var foundOk = false;
     var results = targets.map(function(node){
       var cs = window.getComputedStyle(node);
-      var computed = cs[prop] || cs.getPropertyValue(prop) || '';
-      var ok = normalize(computed).indexOf(exp) >= 0 || exp === 'inherit';
+      var computed = (cs.getPropertyValue(prop)||cs[prop]||'');
+      var ok = exp === '' || exp === 'inherit' || normalize(computed).indexOf(exp) >= 0;
       if(ok) foundOk = true;
-      return { tag: node.tagName, inline: node.style[prop]||'', computed: computed.slice(0,60), ok: ok };
+      return { tag: node.tagName, inline: (node.style&&node.style[prop])||'', computed: computed.slice(0,60), ok: ok };
     });
 
     if(foundOk){
-      /* ✅ Confirmed visual change */
-      var msg = '✅ ' + prop + ' → ' + expectedValue.slice(0,25) + ' (確認済)';
-      if(typeof window.showToast === 'function') window.showToast(msg);
-      console.log('[SMASKv19] ✅ CONFIRMED', prop, '=', expectedValue, '| nodes:', nodeCount);
-      if(window._smkV19debugMode) updateDebugBadge(el);
+      var msg = '✅ ' + prop + ' → ' + expectedVal.slice(0,20) + ' (確認済)';
+      if(typeof window.showToast==='function') window.showToast(msg);
+      console.log('[SMASKv20] ✅ CONFIRMED', prop, '=', expectedVal.slice(0,30), '| nodes:', nodeCount);
     } else {
-      /* ❌ Computed style did NOT change */
-      var shadowWarning = hasShadowRoot(el) ? ' [SHADOW DOM DETECTED]' : '';
-      var msg2 = '⚠ 見た目未変化' + shadowWarning + ' – コンソール確認';
-      if(typeof window.showToast === 'function') window.showToast(msg2);
-
-      console.group('[SMASKv19] ❌ STYLE NOT REFLECTED' + shadowWarning);
-      console.warn('prop     :', prop);
-      console.warn('expected :', expectedValue);
-      console.warn('nodes written:', nodeCount);
-      console.log ('─── Selected Element ───');
-      console.log ('tagName  :', el.tagName);
-      console.log ('class    :', el.className);
-      console.log ('id       :', el.id || '(none)');
-      console.log ('inline style[' + prop + ']:', el.style[prop] || el.style.getPropertyValue(prop));
-      console.log ('computed[' + prop + ']:', window.getComputedStyle(el)[prop]);
-      console.log ('outerHTML (truncated):', el.outerHTML.slice(0, 300));
-      console.log ('─── Children results ───');
-      results.forEach(function(r, i){
-        console.log('[' + i + ']', r.tag, r.ok ? '✓':'✗',
-          'inline:', r.inline, '| computed:', r.computed);
-      });
-      if(hasShadowRoot(el)){
-        console.warn('⚠ Shadow DOM found in element subtree – styles may not penetrate shadow boundary');
-      }
-      /* Check if CSS variable rule is overriding */
-      var cs2 = window.getComputedStyle(el);
-      console.log ('─── CSS Custom Properties on element ───');
+      var shadow = hasShadow(el) ? ' [SHADOW DOM]' : '';
+      if(typeof window.showToast==='function') window.showToast('⚠ 見た目未変化'+shadow+' – console確認');
+      console.group('[SMASKv20] ❌ NOT REFLECTED' + shadow);
+      console.warn('prop :', prop, '| expected :', expectedVal);
+      console.warn('nodes written :', nodeCount);
+      console.log('tagName :', el.tagName, '| class :', el.className.slice(0,60));
+      console.log('id :', el.id || '(none)');
+      console.log('inline['+prop+'] :', el.style.getPropertyValue(prop));
+      console.log('computed['+prop+'] :', window.getComputedStyle(el).getPropertyValue(prop));
+      console.log('outerHTML :', el.outerHTML.slice(0,400));
+      results.forEach(function(r,i){ console.log('['+i+']',r.tag,r.ok?'✓':'✗','inline:',r.inline,'computed:',r.computed); });
+      var cs = window.getComputedStyle(el);
       ['--t1-font-family','--t2-font-family','--t3-font-family','--body-font-family'].forEach(function(v){
-        console.log(v + ':', cs2.getPropertyValue(v) || '(not set)');
+        console.log(v+':', cs.getPropertyValue(v)||'(not set)');
       });
+      if(hasShadow(el)) console.warn('⚠ Shadow DOM detected — styles cannot cross shadow boundary');
       console.groupEnd();
-
-      /* Last resort: try CSS variable approach directly */
-      console.log('[SMASKv19] Attempting CSS variable override as fallback...');
-      if(prop === 'font-family'){
-        var tag2 = el.tagName;
-        var varName = tag2.match(/^H[123]$/) ? '--t2-font-family' :
-                      tag2.match(/^H[456]$/) ? '--t3-font-family' :
-                      tag2 === 'P'           ? '--body-font-family' : null;
-        if(varName){
-          try{ el.style.setProperty(varName, expectedValue); }catch(e){}
-          /* Also on :root as last resort */
-          try{ document.documentElement.style.setProperty(varName, expectedValue); }catch(e){}
-          console.log('[SMASKv19] CSS var fallback applied:', varName, '=', expectedValue);
-          /* Re-check after 100ms */
-          setTimeout(function(){
-            var cf = window.getComputedStyle(el).fontFamily;
-            if(normalize(cf).indexOf(exp) >= 0){
-              console.log('[SMASKv19] ✅ CSS var fallback WORKED. computed:', cf.slice(0,60));
-              if(typeof window.showToast === 'function') window.showToast('✅ CSS変数経由で適用完了');
-            } else {
-              console.error('[SMASKv19] ❌ Both approaches failed. computed:', cf.slice(0,60));
-              if(typeof window.showToast === 'function') window.showToast('❌ スタイル適用失敗 – 詳細はコンソール');
-            }
-          }, 100);
-        }
-      }
     }
-  }, 60);
+    updateDebugBadge(el);
+  }, 80);
 }
 
-/* ── 5. Canonical selection store ───────────────────────────────── */
-window._smkV19sel = null;
+/* ── Selection store ────────────────────────────────────────────────────── */
+window._smkV20sel = null;
 function setSel(el){
   if(!el || isAdmin(el)) return;
-  window._smkV19sel    = el;
+  window._smkV20sel    = el;
   window.smaskEl       = el;
   window.selectedEl    = el;
   window.smaskSelected = el;
 }
 function getSel(){
-  return window._smkV19sel
+  return window._smkV20sel
       || window.smaskEl
       || window.selectedEl
       || window.smaskSelected
       || null;
 }
 
-/* ── 6. Hook selection entry points ─────────────────────────────── */
-function hookSelectElement(){
-  var orig = window.selectElement;
-  window.selectElement = function(el){ setSel(el); if(typeof orig==='function') try{orig.call(this,el);}catch(e){} };
+/* ── Hook selection entry points ────────────────────────────────────────── */
+function hookFn(name){
+  var orig = window[name];
+  window[name] = function(el){
+    if(el && el.nodeType===1 && !isAdmin(el)) setSel(el);
+    if(typeof orig==='function') try{ orig.apply(this,arguments); }catch(e){}
+  };
 }
-function hookSmkDoSelect(){
-  var orig = window.smkDoSelect;
-  window.smkDoSelect = function(el){ setSel(el); if(typeof orig==='function') try{orig.call(this,el);}catch(e){} };
+/* Hook with retry in case functions load late */
+function installHooks(){
+  hookFn('selectElement');
+  hookFn('smkDoSelect');
+  hookFn('smkOnSelect');
 }
-function hookSmkOnSelect(){
-  var orig = window.smkOnSelect;
-  window.smkOnSelect = function(el){ setSel(el); if(typeof orig==='function') try{orig.call(this,el);}catch(e){} };
-}
+installHooks();
+setTimeout(installHooks, 500);
+setTimeout(installHooks, 1500);
+
+/* Capture-phase pointerdown as last resort */
 document.addEventListener('pointerdown', function(e){
   if(isAdmin(e.target) || !window.clickMode) return;
   var cur = e.target;
   while(cur && cur !== document.body){
-    if(cur.classList && (cur.classList.contains('page-editable') || cur.dataset.editable)){ setSel(cur); return; }
+    if(cur.classList && (cur.classList.contains('page-editable') || cur.dataset.editable)){
+      setSel(cur); return;
+    }
     cur = cur.parentElement;
   }
 }, true);
 
-/* ── 7. Font loading helper ─────────────────────────────────────── */
+/* ── Font loader ────────────────────────────────────────────────────────── */
+window._smkV20fonts = {};
 function ensureFont(css){
   var family = css.replace(/['"]/g,'').split(',')[0].trim();
-  if(!family) return;
-  window._smkV19fonts = window._smkV19fonts || {};
-  if(window._smkV19fonts[family]) return;
-  window._smkV19fonts[family] = true;
+  if(!family || window._smkV20fonts[family]) return;
+  window._smkV20fonts[family] = true;
   var link = document.createElement('link');
   link.rel  = 'stylesheet';
   link.href = 'https://fonts.googleapis.com/css2?family='
@@ -7670,9 +7687,7 @@ function ensureFont(css){
   document.head.appendChild(link);
 }
 
-/* ── 8. Override apply functions ──────────────────────────────── */
-
-/* 8a ── smkApplyFont ────────────────────────────────────────────── */
+/* ── Override smkApplyFont ───────────────────────────────────────────────── */
 var _origApplyFont = window.smkApplyFont;
 window.smkApplyFont = function(name){
   var el = getSel();
@@ -7682,227 +7697,209 @@ window.smkApplyFont = function(name){
   }
   var css;
   if(window.SMK_FONTS){
-    var f = window.SMK_FONTS.find(function(x){ return x.n===name; });
+    var f = Array.prototype.find ? window.SMK_FONTS.find(function(x){return x.n===name;}) : null;
+    if(!f) for(var i=0;i<window.SMK_FONTS.length;i++){ if(window.SMK_FONTS[i].n===name){f=window.SMK_FONTS[i];break;} }
     css = f ? f.css : ('"'+name+'", sans-serif');
   } else {
     css = '"'+name+'", sans-serif';
   }
   ensureFont(css);
-
-  /* Step 1: inline !important on el + all descendants */
-  var n = forceStyle(el, 'font-family', css);
-
-  /* Step 2: write CSS variable directly on element (overrides :root var) */
-  forceCSSVar(el, CSS_VAR_FONT_MAP, css);
-  /* Also write CSS var on each child that matches */
-  var kids = el.querySelectorAll('h1,h2,h3,h4,h5,h6,p');
-  kids.forEach(function(k){ if(!isAdmin(k)) forceCSSVar(k, CSS_VAR_FONT_MAP, css); });
-
-  /* Step 3: show neutral toast, then verify computed style after 60ms */
   if(typeof window.showToast==='function') window.showToast('Applying font…');
-
-  console.group('[SMASKv19] smkApplyFont');
-  console.log('el       :', el.tagName, el.className.slice(0,40));
-  console.log('font CSS :', css);
-  console.log('nodes    :', n);
-  console.log('shadowDOM:', hasShadowRoot(el));
+  var n = applyAll(el, 'font-family', css, FONT_VAR_MAP);
+  console.group('[SMASKv20] smkApplyFont');
+  console.log('el:', el.tagName, el.className.slice(0,50));
+  console.log('css:', css, '| nodes:', n, '| shadow:', hasShadow(el));
   console.groupEnd();
-
   verifyAndReport(el, 'font-family', css, n);
-  updateDebugBadge(el);
+  /* Also call original to keep UI in sync */
+  if(typeof _origApplyFont==='function') try{_origApplyFont.apply(this,arguments);}catch(e){}
 };
 
-/* 8b ── smkApplyColor ───────────────────────────────────────────── */
+/* ── Override smkApplyColor ──────────────────────────────────────────────── */
 var _origApplyColor = window.smkApplyColor;
 window.smkApplyColor = function(type, val){
   var el = getSel();
   if(!el){ if(typeof _origApplyColor==='function') try{_origApplyColor.apply(this,arguments);}catch(e){} return; }
-  var n = 0;
   if(type==='text'){
-    n = forceStyle(el, 'color', val);
+    var n = applyAll(el, 'color', val, null);
     verifyAndReport(el, 'color', val, n);
   } else if(type==='bg'){
     if(val==='transparent') try{el.style.removeProperty('background-color');}catch(e){}
-    else { try{el.style.setProperty('background-color', val, 'important'); n=1;}catch(e){} }
+    else try{el.style.setProperty('background-color',val,'important');}catch(e){}
   } else if(type==='border'){
     try{
-      el.style.setProperty('border-color', val, 'important');
-      el.style.setProperty('border-style', 'solid', 'important');
-      el.style.setProperty('border-width', '1px', 'important');
-      n = 1;
+      el.style.setProperty('border-color',val,'important');
+      el.style.setProperty('border-style','solid','important');
+      el.style.setProperty('border-width','1px','important');
     }catch(e){}
   }
   if(typeof _origApplyColor==='function') try{_origApplyColor.apply(this,arguments);}catch(e){}
 };
 
-/* 8c ── smkApplySize ────────────────────────────────────────────── */
+/* ── Override smkApplySize ───────────────────────────────────────────────── */
 var _origApplySize = window.smkApplySize;
 window.smkApplySize = function(v){
   var el = getSel();
   if(!el){ if(typeof _origApplySize==='function') try{_origApplySize.apply(this,arguments);}catch(e){} return; }
   var px = Math.max(8,Math.min(300,parseFloat(v)||16));
-  var n = forceStyle(el, 'font-size', px+'px');
-  forceCSSVar(el, CSS_VAR_SIZE_MAP, px+'px');
+  var n = applyAll(el, 'font-size', px+'px', SIZE_VAR_MAP);
   verifyAndReport(el, 'font-size', px+'px', n);
   if(typeof _origApplySize==='function') try{_origApplySize.apply(this,arguments);}catch(e){}
 };
 
-/* 8d ── smkApplyWeight ──────────────────────────────────────────── */
+/* ── Override smkApplyWeight ─────────────────────────────────────────────── */
 var _origApplyWeight = window.smkApplyWeight;
 window.smkApplyWeight = function(v){
   var el = getSel();
   if(!el){ if(typeof _origApplyWeight==='function') try{_origApplyWeight.apply(this,arguments);}catch(e){} return; }
-  var n = forceStyle(el, 'font-weight', String(v));
-  forceCSSVar(el, CSS_VAR_WEIGHT_MAP, String(v));
+  var n = applyAll(el, 'font-weight', String(v), WEIGHT_VAR_MAP);
   verifyAndReport(el, 'font-weight', String(v), n);
   if(typeof _origApplyWeight==='function') try{_origApplyWeight.apply(this,arguments);}catch(e){}
 };
 
-/* 8e ── smkApplyLS ──────────────────────────────────────────────── */
+/* ── Override smkApplyLS / smkApplyLH / smkApplyAlign ───────────────────── */
 var _origApplyLS = window.smkApplyLS;
 window.smkApplyLS = function(v){
   var el = getSel();
   if(!el){ if(typeof _origApplyLS==='function') try{_origApplyLS.apply(this,arguments);}catch(e){} return; }
-  var em = parseInt(v)/100;
-  forceStyle(el, 'letter-spacing', em+'em');
+  applyAll(el, 'letter-spacing', (parseInt(v)/100)+'em', null);
   if(typeof _origApplyLS==='function') try{_origApplyLS.apply(this,arguments);}catch(e){}
 };
-
-/* 8f ── smkApplyLH ──────────────────────────────────────────────── */
 var _origApplyLH = window.smkApplyLH;
 window.smkApplyLH = function(v){
   var el = getSel();
   if(!el){ if(typeof _origApplyLH==='function') try{_origApplyLH.apply(this,arguments);}catch(e){} return; }
-  var r = parseInt(v)/100;
-  forceStyle(el, 'line-height', String(r));
+  applyAll(el, 'line-height', String(parseInt(v)/100), null);
   if(typeof _origApplyLH==='function') try{_origApplyLH.apply(this,arguments);}catch(e){}
 };
-
-/* 8g ── smkApplyAlign ───────────────────────────────────────────── */
 var _origApplyAlign = window.smkApplyAlign;
 window.smkApplyAlign = function(v){
   var el = getSel();
   if(!el){ if(typeof _origApplyAlign==='function') try{_origApplyAlign.apply(this,arguments);}catch(e){} return; }
-  forceStyle(el, 'text-align', v);
+  applyAll(el, 'text-align', v, null);
   if(typeof _origApplyAlign==='function') try{_origApplyAlign.apply(this,arguments);}catch(e){}
 };
 
-/* ── 9. Debug badge ─────────────────────────────────────────────── */
+/* ── Debug badge ────────────────────────────────────────────────────────── */
 function updateDebugBadge(el){
-  if(!window._smkV19debugMode || !el) return;
-  var badge = document.getElementById('smk-v19-badge');
+  if(!window._smkV20debugMode) return;
+  var badge = document.getElementById('smk-v20-badge');
   if(!badge){
     badge = document.createElement('div');
-    badge.id = 'smk-v19-badge';
-    badge.style.cssText = 'position:fixed;bottom:70px;left:10px;z-index:9999999;'+
-      'background:rgba(10,10,10,.96);color:#8BC34A;font-size:10px;padding:8px 12px;'+
-      'border-radius:8px;border:1px solid #C6A75C;max-width:320px;word-break:break-all;'+
-      'line-height:1.7;box-shadow:0 4px 16px rgba(0,0,0,.6);font-family:monospace;';
+    badge.id = 'smk-v20-badge';
+    badge.style.cssText =
+      'position:fixed;bottom:70px;left:10px;z-index:9999999;'+
+      'background:rgba(8,8,8,.97);color:#8BC34A;font-size:10px;padding:8px 12px;'+
+      'border-radius:8px;border:1.5px solid #C6A75C;max-width:330px;word-break:break-all;'+
+      'line-height:1.75;box-shadow:0 4px 20px rgba(0,0,0,.7);font-family:monospace;pointer-events:none;';
     document.body.appendChild(badge);
   }
+  if(!el){ badge.style.display='none'; return; }
   var st = window.getComputedStyle(el);
   badge.style.display = 'block';
   badge.innerHTML =
-    '<div style="color:#C6A75C;font-weight:700;font-size:9px;margin-bottom:4px">▶ SMASKv19</div>'+
-    '<b style="color:#C6A75C">SEL:</b> <code style="color:#fff">'+el.tagName+'</code>'+
-    ' <span style="color:#555">.'+el.className.split(' ').slice(0,2).join('.')+'</span><br>'+
+    '<div style="color:#C6A75C;font-weight:700;font-size:9px;margin-bottom:3px">▶ SMASKv20 DEBUG</div>'+
+    '<b style="color:#C6A75C">SEL:</b> <code style="color:#fff">'+el.tagName+'</code> '+
+    '<span style="color:#555">'+el.className.split(' ').slice(0,2).join('.')+'</span><br>'+
     '<span style="color:#aaa">"'+(el.textContent||'').trim().slice(0,35)+'"</span>'+
-    '<hr style="border-color:#333;margin:4px 0">'+
+    '<hr style="border-color:#333;margin:3px 0">'+
     '<span style="color:#C6A75C">inline FF:</span> <span style="color:#fff">'+(el.style.fontFamily||'–')+'</span><br>'+
-    '<span style="color:#C6A75C">computed FF:</span><br><span style="color:#ddd">'+st.fontFamily.slice(0,50)+'</span><br>'+
-    '<span style="color:#C6A75C">size:</span> <span style="color:#ddd">'+st.fontSize+'</span> '+
-    '<span style="color:#C6A75C">w:</span> <span style="color:#ddd">'+st.fontWeight+'</span> '+
-    '<span style="color:#C6A75C">color:</span> <span style="color:#ddd">'+st.color+'</span>'+
-    (hasShadowRoot(el) ? '<br><span style="color:#e57373">⚠ Shadow DOM</span>' : '');
+    '<span style="color:#C6A75C">computed FF:</span><br><span style="color:#cff">'+st.fontFamily.slice(0,55)+'</span><br>'+
+    '<span style="color:#C6A75C">size:</span><span style="color:#ddd">'+st.fontSize+'</span> '+
+    '<span style="color:#C6A75C">w:</span><span style="color:#ddd">'+st.fontWeight+'</span> '+
+    '<span style="color:#C6A75C">col:</span><span style="color:#ddd">'+st.color+'</span>'+
+    (hasShadow(el) ? '<br><span style="color:#e57373">⚠ Shadow DOM</span>' : '');
 }
 
-/* ── 10. Public API (window.SMK) ─────────────────────────────────── */
+/* ── Public API ─────────────────────────────────────────────────────────── */
 window.SMK = window.SMK || {};
 
 window.SMK.debug = function(){
-  window._smkV19debugMode = !window._smkV19debugMode;
-  var st = document.getElementById('smk-v19-debug-style');
-  if(!st){ st=document.createElement('style'); st.id='smk-v19-debug-style'; document.head.appendChild(st); }
-  var badge = document.getElementById('smk-v19-badge');
-  if(window._smkV19debugMode){
-    st.textContent='.page-editable,[data-editable="true"]{outline:1.5px dashed rgba(198,167,92,.7)!important;outline-offset:2px!important;}'+
+  window._smkV20debugMode = !window._smkV20debugMode;
+  var st = document.getElementById('smk-v20-debug-style');
+  if(!st){ st=document.createElement('style'); st.id='smk-v20-debug-style'; document.head.appendChild(st); }
+  var badge = document.getElementById('smk-v20-badge');
+  var info  = document.getElementById('smk-v20-info');
+  if(window._smkV20debugMode){
+    st.textContent =
+      '.page-editable,[data-editable="true"]{outline:1.5px dashed rgba(198,167,92,.7)!important;outline-offset:2px!important;}'+
       '.page-editable:hover{outline-color:#C6A75C!important;background:rgba(198,167,92,.06)!important;}';
     var all=document.querySelectorAll('.page-editable,[data-editable="true"]');
     var pg=Array.prototype.filter.call(all,function(e){return !isAdmin(e);});
-    console.group('[SMASKv19] Debug ON');
+    console.group('[SMASKv20] Debug ON');
     console.log('Editable page elements:',pg.length);
-    pg.forEach(function(el,i){ if(i<25) console.log(' ['+i+']',el.tagName,el.className.slice(0,30),'"'+(el.textContent||'').trim().slice(0,25)+'"'); });
+    pg.forEach(function(el,i){ if(i<30) console.log('['+i+']',el.tagName,el.className.slice(0,30),'"'+(el.textContent||'').trim().slice(0,25)+'"'); });
     console.groupEnd();
-    var info=document.getElementById('smk-v19-info');
-    if(!info){ info=document.createElement('div'); info.id='smk-v19-info';
-      info.style.cssText='position:fixed;top:8px;right:8px;z-index:9999998;background:rgba(10,10,10,.9);color:#C6A75C;font-size:9px;padding:6px 10px;border-radius:6px;border:1px solid #C6A75C44;pointer-events:none;font-family:monospace;';
+    if(!info){ info=document.createElement('div'); info.id='smk-v20-info';
+      info.style.cssText='position:fixed;top:8px;right:8px;z-index:9999998;background:rgba(8,8,8,.9);color:#C6A75C;font-size:9px;padding:6px 10px;border-radius:6px;border:1px solid #C6A75C44;pointer-events:none;font-family:monospace;';
       document.body.appendChild(info); }
     info.style.display='block';
-    info.innerHTML='🔍 <b>v19 DEBUG ON</b><br>'+pg.length+' editable<br><span style="color:#888">tap→inspect</span>';
-    if(typeof window.showToast==='function') window.showToast('v19 Debug ON – '+pg.length+' elements');
+    info.innerHTML='🔍 <b>v20 DEBUG ON</b><br>'+pg.length+' editable';
+    if(typeof window.showToast==='function') window.showToast('v20 Debug ON – '+pg.length+' elements');
+    /* update badge with current selection */
+    updateDebugBadge(getSel());
   } else {
     st.textContent='';
     if(badge) badge.style.display='none';
-    var info2=document.getElementById('smk-v19-info'); if(info2) info2.style.display='none';
+    if(info)  info.style.display='none';
     if(typeof window.showToast==='function') window.showToast('Debug OFF');
   }
 };
 
-window.SMK.apply = function(prop,val){
-  var el=getSel(); if(!el){console.warn('[SMASKv19] No element selected');return 0;}
-  var n=forceStyle(el,prop,val);
-  if(prop==='font-family') forceCSSVar(el,CSS_VAR_FONT_MAP,val);
-  verifyAndReport(el,prop,val,n);
+window.SMK.apply = function(prop, val){
+  var el = getSel();
+  if(!el){ console.warn('[SMASKv20] No element selected'); return 0; }
+  var varMap = prop==='font-family' ? FONT_VAR_MAP :
+               prop==='font-size'   ? SIZE_VAR_MAP  :
+               prop==='font-weight' ? WEIGHT_VAR_MAP : null;
+  var n = applyAll(el, prop, val, varMap);
+  verifyAndReport(el, prop, val, n);
   return n;
 };
 
 window.SMK.rescan = function(){
   if(typeof window.smkScanEditable==='function') window.smkScanEditable();
   if(typeof window.scanEditableElements==='function') window.scanEditableElements();
-  console.log('[SMASKv19] rescan done');
+  console.log('[SMASKv20] rescan done');
 };
 
 window.SMK.getSelected = function(){ return getSel(); };
 
 window.SMK.diagnose = function(){
   var el = getSel();
-  if(!el){ console.warn('[SMASKv19] No element selected'); return; }
+  if(!el){ console.warn('[SMASKv20] No element selected'); return; }
   var cs = window.getComputedStyle(el);
-  console.group('[SMASKv19] DIAGNOSE');
-  console.log('Element    :', el.tagName, el.className);
-  console.log('Text       :', (el.textContent||'').trim().slice(0,60));
-  console.log('inline FF  :', el.style.fontFamily);
+  console.group('[SMASKv20] DIAGNOSE');
+  console.log('el        :', el.tagName, el.className);
+  console.log('text      :', (el.textContent||'').trim().slice(0,60));
+  console.log('inline FF :', el.style.fontFamily);
   console.log('computed FF:', cs.fontFamily.slice(0,80));
   console.log('computed FS:', cs.fontSize);
   console.log('computed FW:', cs.fontWeight);
-  console.log('Shadow DOM :', hasShadowRoot(el));
-  console.log('outerHTML  :', el.outerHTML.slice(0,400));
+  console.log('shadow     :', hasShadow(el));
+  console.log('data-smkid :', el.dataset.smkid||'(not set)');
+  console.log('outerHTML  :', el.outerHTML.slice(0,500));
   ['--t1-font-family','--t2-font-family','--t3-font-family','--body-font-family'].forEach(function(v){
     console.log('CSS var '+v+':', cs.getPropertyValue(v)||'(not set)');
   });
+  /* also log live CSS rules */
+  var id = el.dataset.smkid;
+  if(id && _liveRules[id]) console.log('live-css rules:', JSON.stringify(_liveRules[id]));
   console.groupEnd();
 };
 
-/* ── 11. Init ────────────────────────────────────────────────────── */
-function init(){
-  hookSelectElement();
-  hookSmkDoSelect();
-  hookSmkOnSelect();
-  console.log('[SMASKv19] Initialized. Commands:');
-  console.log('  SMK.debug()    – toggle debug outlines');
-  console.log('  SMK.diagnose() – diagnose selected element');
-  console.log('  SMK.apply(prop,val) – force apply style');
-  console.log('  SMK.rescan()   – re-scan editable elements');
-}
+window.SMK.clearOverrides = function(){
+  _liveRules = {};
+  rebuildLiveCSS();
+  console.log('[SMASKv20] Live CSS overrides cleared');
+};
 
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+/* ── Init ───────────────────────────────────────────────────────────────── */
+console.log('[SMASKv20] Initialized. API: SMK.debug() SMK.diagnose() SMK.apply(prop,val) SMK.rescan()');
 
 })();
 </script>
+
 
 
 </body>
