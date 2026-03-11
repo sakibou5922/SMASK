@@ -2898,6 +2898,53 @@ function smkScanEditable(){
   window.smkScanEditable = smkScanEditable;
 }
 
+/* ─── PUBLIC UTILITY API ──────────────────────────────────────────────────
+   Exposed for external use, testing, and console debugging
+   ──────────────────────────────────────────────────────────────────────── */
+
+/** Re-scan all visible text elements and register them as editable.
+ *  Call this after dynamic content is injected into the page.
+ *  @returns {number} count of newly registered elements
+ */
+window.scanEditableElements = function(){
+  var before = document.querySelectorAll('[data-editable="true"]').length;
+  if(typeof smkScanEditable === 'function') smkScanEditable();
+  var after  = document.querySelectorAll('[data-editable="true"]').length;
+  console.log('[SMASK] scanEditableElements: '+before+' → '+after+' (+'+(after-before)+')');
+  return after;
+};
+
+/** Find the deepest element that actually renders the visible text of el.
+ *  E.g. for <a class="cta"><span>Book Now</span></a> returns the <span>.
+ *  @param {Element} el – any registered editable element
+ *  @returns {Element} the effective target element
+ */
+window.getEffectiveEditableTarget = function(el){
+  if(typeof getEffectiveTarget === 'function') return getEffectiveTarget(el);
+  return el;
+};
+
+/** Apply a CSS style property to the currently selected element
+ *  (and its effective target + inline descendants).
+ *  @param {string} styleKey – CSS property name (e.g. 'font-size', 'color')
+ *  @param {string} value    – CSS value (e.g. '24px', '#ff0000')
+ */
+window.applyStyleToSelected = function(styleKey, value){
+  var el = (typeof getEl === 'function') ? getEl() : window.smaskEl || window.selectedEl;
+  if(!el){ console.warn('[SMASK] applyStyleToSelected: no element selected'); return; }
+  if(typeof smkSaveHist === 'function') smkSaveHist();
+  if(typeof applyToEffective === 'function'){
+    applyToEffective(el, styleKey, value);
+  } else if(typeof setStyle === 'function'){
+    setStyle(el, styleKey, value);
+  } else {
+    el.style.setProperty(styleKey, value, 'important');
+  }
+  console.log('[SMASK] applyStyleToSelected:', styleKey, '=', value, '→', el.tagName);
+};
+/* ─── end PUBLIC UTILITY API ─────────────────────────────────────────────── */
+
+
 function selectElement(el){
   // 以前の選択解除
   if(selectedEl){ selectedEl.classList.remove('el-selected'); }
@@ -5672,7 +5719,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v16-script">
+<script id="smask-v17-script">
 (function(){
 'use strict';
 
@@ -5933,27 +5980,51 @@ function smkOnSelect(el){
   updateFontUI(el);
   smkSaveHist();
   showTabControls();
-  /* Debug console output */
+  /* Debug console output + persistent visual panel */
   if(window._smkDebugMode){
     var eff = window._smkEffectiveTarget;
-    console.log('[SMASK] Selected:', el.tagName, el.className.slice(0,40));
-    console.log('[SMASK] Effective target:', eff.tagName, eff.className.slice(0,40));
-    console.log('[SMASK] Text preview:', (el.textContent||'').trim().slice(0,40));
-    /* Visual debug badge */
+    var st  = window.getComputedStyle(eff);
+    var appliedStyles = {
+      'font-family'    : (eff.style.fontFamily    || st.fontFamily   ).slice(0,30),
+      'font-size'      : (eff.style.fontSize       || st.fontSize     ),
+      'font-weight'    : (eff.style.fontWeight     || st.fontWeight   ),
+      'color'          : (eff.style.color          || st.color        ),
+      'letter-spacing' : (eff.style.letterSpacing  || st.letterSpacing),
+      'line-height'    : (eff.style.lineHeight     || st.lineHeight   )
+    };
+    console.group('[SMASK DEBUG]');
+    console.log('Selected  :', el.tagName, '.'+el.className.split(' ').join('.').slice(0,50));
+    console.log('Effective :', eff.tagName, '.'+eff.className.split(' ').join('.').slice(0,50));
+    console.log('Text      :', (el.textContent||'').trim().slice(0,60));
+    console.log('Styles    :', appliedStyles);
+    console.groupEnd();
+    /* Visual debug badge – persistent while debug mode ON */
     var badge = document.getElementById('smk-debug-badge');
-    if(!badge){ badge=document.createElement('div'); badge.id='smk-debug-badge';
-      badge.style.cssText='position:fixed;bottom:70px;left:10px;z-index:9999999;'+
-        'background:#1a1a1a;color:#8BC34A;font-size:10px;padding:6px 10px;'+
-        'border-radius:6px;border:1px solid #C6A75C;max-width:280px;word-break:break-all;';
-      document.body.appendChild(badge); }
-    badge.style.display='block';
-    badge.innerHTML = '<b style="color:#C6A75C">SEL:</b> '+el.tagName+
-      ' <span style="color:#888">'+el.className.slice(0,30)+'</span><br>'+
-      '<b style="color:#8BC34A">EFF:</b> '+eff.tagName+
-      ' <span style="color:#888">'+eff.className.slice(0,30)+'</span><br>'+
-      '<span style="color:#ccc">"'+(el.textContent||'').trim().slice(0,35)+'"</span>';
+    if(!badge){
+      badge = document.createElement('div');
+      badge.id = 'smk-debug-badge';
+      badge.style.cssText = 'position:fixed;bottom:70px;left:10px;z-index:9999999;'+
+        'background:rgba(15,15,15,.95);color:#8BC34A;font-size:10px;padding:8px 12px;'+
+        'border-radius:8px;border:1px solid #C6A75C;max-width:300px;word-break:break-all;'+
+        'line-height:1.6;box-shadow:0 4px 12px rgba(0,0,0,.5);';
+      document.body.appendChild(badge);
+    }
+    badge.style.display = 'block';
+    badge.innerHTML =
+      '<div style="color:#C6A75C;font-weight:700;margin-bottom:4px;font-size:9px;letter-spacing:.08em">▶ SMASK DEBUG</div>'+
+      '<b style="color:#C6A75C">SEL:</b> <code style="color:#fff">'+el.tagName+'</code>'+
+        ' <span style="color:#777">.'+el.className.split(' ').slice(0,2).join('.')+'</span><br>'+
+      '<b style="color:#8BC34A">EFF:</b> <code style="color:#fff">'+eff.tagName+'</code>'+
+        ' <span style="color:#777">.'+eff.className.split(' ').slice(0,2).join('.')+'</span><br>'+
+      '<span style="color:#aaa">TEXT: &ldquo;'+(el.textContent||'').trim().slice(0,40)+'&rdquo;</span>'+
+      '<hr style="border-color:#333;margin:4px 0">'+
+      '<span style="color:#C6A75C">font-family:</span> <span style="color:#ddd">'+appliedStyles['font-family']+'</span><br>'+
+      '<span style="color:#C6A75C">font-size:</span> <span style="color:#ddd">'+appliedStyles['font-size']+'</span> '+
+      '<span style="color:#C6A75C">weight:</span> <span style="color:#ddd">'+appliedStyles['font-weight']+'</span><br>'+
+      '<span style="color:#C6A75C">color:</span> <span style="color:#ddd">'+appliedStyles['color']+'</span><br>'+
+      '<span style="color:#C6A75C">tracking:</span> <span style="color:#ddd">'+appliedStyles['letter-spacing']+'</span> '+
+      '<span style="color:#C6A75C">leading:</span> <span style="color:#ddd">'+appliedStyles['line-height']+'</span>';
     clearTimeout(window._smkDebugTimer);
-    window._smkDebugTimer = setTimeout(function(){ badge.style.display='none'; }, 4000);
   }
 }
 
@@ -6084,11 +6155,11 @@ function getEffectiveTarget(el){
     return false;
   }
   if(hasOwnText(el)) return el;
-  /* Otherwise look for the shallowest child that is an inline text wrapper */
-  var INLINE_TAGS = ['SPAN','STRONG','EM','B','I','SMALL','LABEL','A'];
+  /* Otherwise look for the shallowest child that is an inline or block text wrapper */
+  var INLINE_TAGS = ['SPAN','STRONG','EM','B','I','SMALL','LABEL','A','P','DIV'];
   var found = null;
   function descend(node, depth){
-    if(depth > 4) return;
+    if(depth > 5) return;
     for(var child=node.firstChild; child; child=child.nextSibling){
       if(child.nodeType === 1){
         if(INLINE_TAGS.indexOf(child.tagName) >= 0 && hasOwnText(child)){
@@ -6113,8 +6184,10 @@ function applyToEffective(el, prop, val){
   setStyle(el, prop, val);
   var eff = getEffectiveTarget(el);
   if(eff && eff !== el) setStyle(eff, prop, val);
-  /* Also apply to ALL inline text descendants to catch multi-span structures */
-  el.querySelectorAll('span,strong,em,b,i,small,label').forEach(function(child){
+  /* Also apply to ALL inline text descendants to catch multi-span/multi-a structures */
+  el.querySelectorAll('span,strong,em,b,i,small,label,a,p').forEach(function(child){
+    /* skip admin UI children just in case */
+    if(child.closest('#smask-admin-panel')) return;
     setStyle(child, prop, val);
   });
 }
@@ -6225,7 +6298,7 @@ window.smkApplyWeight = function(v){
 window.smkApplyLS = function(v){
   var el=getEl(); if(!el) return;
   var em = parseInt(v)/100;
-  setStyle(el, 'letter-spacing', em+'em');
+  applyToEffective(el, 'letter-spacing', em+'em');
   var ve = document.getElementById('smk-ls-val');
   if(ve) ve.textContent = em.toFixed(2)+'em';
   updateSliderGrad('smk-ls-range', parseInt(v));
@@ -6234,7 +6307,7 @@ window.smkApplyLS = function(v){
 window.smkApplyLH = function(v){
   var el=getEl(); if(!el) return;
   var r = parseInt(v)/100;
-  setStyle(el, 'line-height', String(r));
+  applyToEffective(el, 'line-height', String(r));
   var ve = document.getElementById('smk-lh-val');
   if(ve) ve.textContent = r.toFixed(2);
   updateSliderGrad('smk-lh-range', parseInt(v));
@@ -6242,14 +6315,15 @@ window.smkApplyLH = function(v){
 
 window.smkApplyAlign = function(v){
   var el=getEl(); if(!el) return;
-  setStyle(el, 'text-align', v);
+  applyToEffective(el, 'text-align', v);
 };
 
 window.smkToggleItalic = function(){
   var el=getEl(); if(!el) return;
-  var cur = el.style.fontStyle || getComputedStyle(el).fontStyle;
+  var eff=(typeof getEffectiveTarget==='function')?getEffectiveTarget(el):el;
+  var cur = eff.style.fontStyle || getComputedStyle(eff).fontStyle;
   var next = (cur==='italic') ? 'normal' : 'italic';
-  setStyle(el, 'font-style', next);
+  applyToEffective(el, 'font-style', next);
   var btn = document.getElementById('smk-italic-btn');
   if(btn) btn.classList.toggle('active', next==='italic');
 };
@@ -6607,31 +6681,52 @@ window._smkDebugMode = false;
 window.smkDebug = function(){
   window._smkDebugMode = !window._smkDebugMode;
   var st = document.getElementById('smk-debug-style');
-  if(!st){
-    st = document.createElement('style');
-    st.id = 'smk-debug-style';
-    document.head.appendChild(st);
-  }
+  if(!st){ st=document.createElement('style'); st.id='smk-debug-style'; document.head.appendChild(st); }
+
+  /* Hide badge when turning off */
+  var badge = document.getElementById('smk-debug-badge');
+
   if(window._smkDebugMode){
-    st.textContent = '.page-editable,[data-editable="true"]{' +
-      'outline:1px dashed rgba(198,167,92,.55) !important;' +
-      'outline-offset:1px !important;}';
-    console.log('[SMASK] Debug ON – editable elements outlined in gold');
-    /* Count and log */
+    /* Gold outline on all editable elements */
+    st.textContent =
+      '.page-editable,[data-editable="true"]{outline:1.5px dashed rgba(198,167,92,.65)!important;outline-offset:2px!important;}'+
+      '.page-editable:hover,[data-editable="true"]:hover{outline-color:rgba(198,167,92,1)!important;background:rgba(198,167,92,.05)!important;}';
     var all = document.querySelectorAll('.page-editable,[data-editable="true"]');
-    console.log('[SMASK] Total editable elements:', all.length);
-    all.forEach(function(el){
-      var isAdmin = !!el.closest('#smask-admin-panel,#login-overlay,#css-modal');
-      if(isAdmin) console.warn('[SMASK] Admin element registered (should not be):', el.tagName, el.textContent.slice(0,20));
+    /* Filter to page-only (exclude admin) */
+    var pageEls = Array.prototype.filter.call(all, function(el){
+      return !el.closest('#smask-admin-panel,#login-overlay,#css-modal,#smk-maint-overlay,.dev-banner');
     });
+    console.group('[SMASK DEBUG ON]');
+    console.log('Total editable elements (page):', pageEls.length);
+    pageEls.forEach(function(el,i){
+      if(i<30) console.log(' ['+i+']', el.tagName, el.className.slice(0,30), '"'+(el.textContent||'').trim().slice(0,25)+'"');
+    });
+    console.groupEnd();
+    /* Persistent info banner */
+    var info = document.getElementById('smk-debug-info');
+    if(!info){
+      info = document.createElement('div');
+      info.id = 'smk-debug-info';
+      info.style.cssText = 'position:fixed;top:8px;right:8px;z-index:9999998;'+
+        'background:rgba(10,10,10,.92);color:#C6A75C;font-size:9px;padding:6px 10px;'+
+        'border-radius:6px;border:1px solid #C6A75C33;line-height:1.7;'+
+        'box-shadow:0 4px 16px rgba(0,0,0,.6);pointer-events:none;';
+      document.body.appendChild(info);
+    }
+    info.style.display = 'block';
+    info.innerHTML = '🔍 <b>SMASK DEBUG ON</b><br>'+
+      'Editable: <b style="color:#fff">'+pageEls.length+'</b> elements<br>'+
+      '<span style="color:#888">Click element to inspect</span>';
+    showToast('Debug ON – '+pageEls.length+' editable elements outlined');
   } else {
     st.textContent = '';
+    if(badge) badge.style.display = 'none';
+    var info2 = document.getElementById('smk-debug-info');
+    if(info2) info2.style.display = 'none';
     console.log('[SMASK] Debug OFF');
-    var b = document.getElementById('smk-debug-badge');
-    if(b) b.style.display='none';
+    showToast('Debug OFF');
   }
-  return 'Debug mode: ' + (window._smkDebugMode ? 'ON' : 'OFF');
-};
+};;
 /* ─── end DEBUG HELPERS ─── */
 /* ============================================================
    SITE SETTINGS  (independent from design-edit logic)
