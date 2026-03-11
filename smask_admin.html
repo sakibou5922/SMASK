@@ -5719,7 +5719,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v18-script">
+<script id="smask-v19-script">
 (function(){
 'use strict';
 
@@ -7423,136 +7423,263 @@ window.smkDebug = function(){
 </style>
 
 
-<script id="smask-v18-override">
+<script id="smask-v19-override">
 /* ═══════════════════════════════════════════════════════════════════════
-   SMASK v18 – Style Apply Override
-   Guarantees that ALL style changes reach the actual rendered DOM nodes
-   regardless of existing inline styles or !important conflicts.
+   SMASK v19 – Style Apply Override  (dual-strategy + verified apply)
+
+   Strategy:
+     1. forceStyle()       – write inline !important to el + all descendants
+     2. forceCSSVar()      – write CSS custom property directly on el
+                              so that var(--t2-font-family) etc. resolve correctly
+     3. verifyAndReport()  – check getComputedStyle 60 ms after apply;
+                              success toast ONLY if computed value changed;
+                              failure: full diagnostic log + outerHTML
+     4. Shadow DOM scan    – detect shadow roots in subtree
    ═══════════════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
 
-/* ── Admin roots to never touch ─────────────────────────────────── */
+/* ── Admin exclusion ──────────────────────────────────────────────── */
 var ADMIN_SEL =
   '#smask-admin-panel,#smk-panel-toggle-btn,#login-overlay,' +
   '#css-modal,#smk-maint-overlay,.dev-banner,' +
   '#smk-pane-font,#smk-pane-color,#smk-pane-select,#smk-pane-site';
-
 function isAdmin(el){ return !!(el && el.closest && el.closest(ADMIN_SEL)); }
 
-/* ── 1. forceStyle: write prop=val with !important to el and ALL
-        non-admin descendants ──────────────────────────────────────── */
+/* ── CSS variable map: which CSS var controls which elements ──────── */
+// Matches the page's existing CSS:
+//   h1,h2,h3           → --t2-font-family
+//   h4,h5,h6           → --t3-font-family
+//   p.page-editable / .page-editable p  → --body-font-family
+//   span/a/button/li etc. inherit from parent — so we set on parent too
+var CSS_VAR_FONT_MAP = [
+  { tags: ['H1','H2','H3'],  varName: '--t2-font-family'   },
+  { tags: ['H4','H5','H6'],  varName: '--t3-font-family'   },
+  { tags: ['P'],             varName: '--body-font-family'  },
+];
+// For size / weight the page also uses CSS vars:
+//   h1-h3 → --t2-size / --t2-weight
+//   h4-h6 → --t3-size / --t3-weight
+//   p     → --body-size / --body-weight
+var CSS_VAR_SIZE_MAP = [
+  { tags: ['H1','H2','H3'], varName: '--t2-size'   },
+  { tags: ['H4','H5','H6'], varName: '--t3-size'   },
+  { tags: ['P'],            varName: '--body-size'  },
+];
+var CSS_VAR_WEIGHT_MAP = [
+  { tags: ['H1','H2','H3'], varName: '--t2-weight'   },
+  { tags: ['H4','H5','H6'], varName: '--t3-weight'   },
+  { tags: ['P'],            varName: '--body-weight'  },
+];
+
+/* ── 1. forceStyle: inline !important on el + all descendants ─────── */
 function forceStyle(el, prop, val){
   if(!el || isAdmin(el)) return 0;
   var count = 0;
   function write(node){
     if(!node || !node.style) return;
-    try{
-      node.style.setProperty(prop, val, 'important');
-      count++;
-    }catch(e){}
+    try{ node.style.setProperty(prop, val, 'important'); count++; }catch(e){}
   }
   write(el);
-  /* All element descendants */
   var all = el.querySelectorAll('*');
   for(var i=0; i<all.length; i++){
-    var child = all[i];
-    if(!isAdmin(child)) write(child);
+    if(!isAdmin(all[i])) write(all[i]);
   }
   return count;
 }
 
-/* ── 2. Canonical selected-element store ────────────────────────── */
-window._smkV18sel = null;
-
-function setSel(el){
+/* ── 2. forceCSSVar: write CSS custom property on el directly ──────
+   This makes  var(--t2-font-family)  resolve to our value for this
+   specific element, overriding the :root fallback.  ─────────────── */
+function forceCSSVar(el, varMap, value){
   if(!el || isAdmin(el)) return;
-  window._smkV18sel  = el;
-  window.smaskEl     = el;   /* legacy compat */
-  window.selectedEl  = el;
-  window.smaskSelected = el;
+  var tag = el.tagName;
+  for(var i=0; i<varMap.length; i++){
+    if(varMap[i].tags.indexOf(tag) >= 0){
+      try{ el.style.setProperty(varMap[i].varName, value); }catch(e){}
+    }
+  }
+  /* Also walk up to the closest container that might match */
+  var par = el.parentElement;
+  while(par && par !== document.body){
+    if(!isAdmin(par)){
+      tag = par.tagName;
+      for(var j=0; j<varMap.length; j++){
+        if(varMap[j].tags.indexOf(tag) >= 0){
+          try{ par.style.setProperty(varMap[j].varName, value); }catch(e){}
+        }
+      }
+    }
+    par = par.parentElement;
+  }
 }
 
+/* ── 3. Shadow DOM detection ─────────────────────────────────────── */
+function hasShadowRoot(el){
+  if(!el) return false;
+  if(el.shadowRoot) return true;
+  var all = el.querySelectorAll('*');
+  for(var i=0; i<all.length; i++){
+    if(all[i].shadowRoot) return true;
+  }
+  return false;
+}
+
+/* ── 4. verifyAndReport: check computed style after 60 ms ──────────
+   Returns a Promise-like that resolves with {ok, computed, expected} ─ */
+function verifyAndReport(el, prop, expectedValue, nodeCount){
+  /* Normalize expected: strip quotes, lowercase, first font name only */
+  function normalize(s){
+    return String(s||'').replace(/['"]/g,'').split(',')[0].trim().toLowerCase();
+  }
+  var exp = normalize(expectedValue);
+
+  setTimeout(function(){
+    /* Check el itself AND its first few text-bearing children */
+    var targets = [el];
+    var kids = el.querySelectorAll('span,strong,em,p,h1,h2,h3,h4,h5,h6,a,button,li');
+    for(var i=0; i<Math.min(kids.length,3); i++) targets.push(kids[i]);
+
+    var foundOk = false;
+    var results = targets.map(function(node){
+      var cs = window.getComputedStyle(node);
+      var computed = cs[prop] || cs.getPropertyValue(prop) || '';
+      var ok = normalize(computed).indexOf(exp) >= 0 || exp === 'inherit';
+      if(ok) foundOk = true;
+      return { tag: node.tagName, inline: node.style[prop]||'', computed: computed.slice(0,60), ok: ok };
+    });
+
+    if(foundOk){
+      /* ✅ Confirmed visual change */
+      var msg = '✅ ' + prop + ' → ' + expectedValue.slice(0,25) + ' (確認済)';
+      if(typeof window.showToast === 'function') window.showToast(msg);
+      console.log('[SMASKv19] ✅ CONFIRMED', prop, '=', expectedValue, '| nodes:', nodeCount);
+      if(window._smkV19debugMode) updateDebugBadge(el);
+    } else {
+      /* ❌ Computed style did NOT change */
+      var shadowWarning = hasShadowRoot(el) ? ' [SHADOW DOM DETECTED]' : '';
+      var msg2 = '⚠ 見た目未変化' + shadowWarning + ' – コンソール確認';
+      if(typeof window.showToast === 'function') window.showToast(msg2);
+
+      console.group('[SMASKv19] ❌ STYLE NOT REFLECTED' + shadowWarning);
+      console.warn('prop     :', prop);
+      console.warn('expected :', expectedValue);
+      console.warn('nodes written:', nodeCount);
+      console.log ('─── Selected Element ───');
+      console.log ('tagName  :', el.tagName);
+      console.log ('class    :', el.className);
+      console.log ('id       :', el.id || '(none)');
+      console.log ('inline style[' + prop + ']:', el.style[prop] || el.style.getPropertyValue(prop));
+      console.log ('computed[' + prop + ']:', window.getComputedStyle(el)[prop]);
+      console.log ('outerHTML (truncated):', el.outerHTML.slice(0, 300));
+      console.log ('─── Children results ───');
+      results.forEach(function(r, i){
+        console.log('[' + i + ']', r.tag, r.ok ? '✓':'✗',
+          'inline:', r.inline, '| computed:', r.computed);
+      });
+      if(hasShadowRoot(el)){
+        console.warn('⚠ Shadow DOM found in element subtree – styles may not penetrate shadow boundary');
+      }
+      /* Check if CSS variable rule is overriding */
+      var cs2 = window.getComputedStyle(el);
+      console.log ('─── CSS Custom Properties on element ───');
+      ['--t1-font-family','--t2-font-family','--t3-font-family','--body-font-family'].forEach(function(v){
+        console.log(v + ':', cs2.getPropertyValue(v) || '(not set)');
+      });
+      console.groupEnd();
+
+      /* Last resort: try CSS variable approach directly */
+      console.log('[SMASKv19] Attempting CSS variable override as fallback...');
+      if(prop === 'font-family'){
+        var tag2 = el.tagName;
+        var varName = tag2.match(/^H[123]$/) ? '--t2-font-family' :
+                      tag2.match(/^H[456]$/) ? '--t3-font-family' :
+                      tag2 === 'P'           ? '--body-font-family' : null;
+        if(varName){
+          try{ el.style.setProperty(varName, expectedValue); }catch(e){}
+          /* Also on :root as last resort */
+          try{ document.documentElement.style.setProperty(varName, expectedValue); }catch(e){}
+          console.log('[SMASKv19] CSS var fallback applied:', varName, '=', expectedValue);
+          /* Re-check after 100ms */
+          setTimeout(function(){
+            var cf = window.getComputedStyle(el).fontFamily;
+            if(normalize(cf).indexOf(exp) >= 0){
+              console.log('[SMASKv19] ✅ CSS var fallback WORKED. computed:', cf.slice(0,60));
+              if(typeof window.showToast === 'function') window.showToast('✅ CSS変数経由で適用完了');
+            } else {
+              console.error('[SMASKv19] ❌ Both approaches failed. computed:', cf.slice(0,60));
+              if(typeof window.showToast === 'function') window.showToast('❌ スタイル適用失敗 – 詳細はコンソール');
+            }
+          }, 100);
+        }
+      }
+    }
+  }, 60);
+}
+
+/* ── 5. Canonical selection store ───────────────────────────────── */
+window._smkV19sel = null;
+function setSel(el){
+  if(!el || isAdmin(el)) return;
+  window._smkV19sel    = el;
+  window.smaskEl       = el;
+  window.selectedEl    = el;
+  window.smaskSelected = el;
+}
 function getSel(){
-  return window._smkV18sel
+  return window._smkV19sel
       || window.smaskEl
       || window.selectedEl
       || window.smaskSelected
       || null;
 }
 
-/* ── 3. Hook ALL existing selection entry points ─────────────────── */
-/* 3a: patch window.selectElement (called by registerEl click handlers) */
-function patchSelectElement(){
+/* ── 6. Hook selection entry points ─────────────────────────────── */
+function hookSelectElement(){
   var orig = window.selectElement;
-  window.selectElement = function(el){
-    setSel(el);
-    if(typeof orig === 'function') try{ orig.call(this, el); }catch(e){}
-  };
+  window.selectElement = function(el){ setSel(el); if(typeof orig==='function') try{orig.call(this,el);}catch(e){} };
 }
-
-/* 3b: patch window.smkDoSelect (called by patchEditable touch handlers) */
-function patchSmkDoSelect(){
+function hookSmkDoSelect(){
   var orig = window.smkDoSelect;
-  window.smkDoSelect = function(el){
-    setSel(el);
-    if(typeof orig === 'function') try{ orig.call(this, el); }catch(e){}
-  };
+  window.smkDoSelect = function(el){ setSel(el); if(typeof orig==='function') try{orig.call(this,el);}catch(e){} };
 }
-
-/* 3c: patch window.smkOnSelect (final common path inside IIFE) */
-function patchSmkOnSelect(){
+function hookSmkOnSelect(){
   var orig = window.smkOnSelect;
-  window.smkOnSelect = function(el){
-    setSel(el);
-    if(typeof orig === 'function') try{ orig.call(this, el); }catch(e){}
-  };
+  window.smkOnSelect = function(el){ setSel(el); if(typeof orig==='function') try{orig.call(this,el);}catch(e){} };
 }
-
-/* 3d: document-level capture pointerdown — last safety net */
 document.addEventListener('pointerdown', function(e){
-  var t = e.target;
-  if(isAdmin(t)) return;
-  /* Only capture when SELECT MODE is on */
-  var clickMode = window.clickMode;
-  if(!clickMode) return;
-  /* Walk up to nearest page-editable */
-  var cur = t;
+  if(isAdmin(e.target) || !window.clickMode) return;
+  var cur = e.target;
   while(cur && cur !== document.body){
-    if(cur.classList && (cur.classList.contains('page-editable') || cur.dataset.editable)){
-      setSel(cur);
-      return;
-    }
+    if(cur.classList && (cur.classList.contains('page-editable') || cur.dataset.editable)){ setSel(cur); return; }
     cur = cur.parentElement;
   }
 }, true);
 
-/* ── 4. Font loading helper ─────────────────────────────────────── */
+/* ── 7. Font loading helper ─────────────────────────────────────── */
 function ensureFont(css){
   var family = css.replace(/['"]/g,'').split(',')[0].trim();
   if(!family) return;
-  window._v18fonts = window._v18fonts || {};
-  if(window._v18fonts[family]) return;
-  window._v18fonts[family] = true;
+  window._smkV19fonts = window._smkV19fonts || {};
+  if(window._smkV19fonts[family]) return;
+  window._smkV19fonts[family] = true;
   var link = document.createElement('link');
-  link.rel = 'stylesheet';
+  link.rel  = 'stylesheet';
   link.href = 'https://fonts.googleapis.com/css2?family='
     + encodeURIComponent(family).replace(/%20/g,'+') + ':wght@300;400;500;600;700&display=swap';
   document.head.appendChild(link);
 }
 
-/* ── 5. Override apply functions ─────────────────────────────────── */
+/* ── 8. Override apply functions ──────────────────────────────── */
 
-/* 5a: smkApplyFont */
+/* 8a ── smkApplyFont ────────────────────────────────────────────── */
 var _origApplyFont = window.smkApplyFont;
 window.smkApplyFont = function(name){
   var el = getSel();
   if(!name || !el){
-    if(typeof _origApplyFont === 'function') try{ _origApplyFont.apply(this, arguments); }catch(e){}
+    if(typeof _origApplyFont==='function') try{_origApplyFont.apply(this,arguments);}catch(e){}
     return;
   }
-
-  /* Build CSS value */
   var css;
   if(window.SMK_FONTS){
     var f = window.SMK_FONTS.find(function(x){ return x.n===name; });
@@ -7560,127 +7687,113 @@ window.smkApplyFont = function(name){
   } else {
     css = '"'+name+'", sans-serif';
   }
-
   ensureFont(css);
 
+  /* Step 1: inline !important on el + all descendants */
   var n = forceStyle(el, 'font-family', css);
 
-  /* Show toast */
-  var msg = 'Font → ' + name + ' (' + n + ' nodes)';
-  if(typeof window.showToast === 'function') window.showToast(msg);
+  /* Step 2: write CSS variable directly on element (overrides :root var) */
+  forceCSSVar(el, CSS_VAR_FONT_MAP, css);
+  /* Also write CSS var on each child that matches */
+  var kids = el.querySelectorAll('h1,h2,h3,h4,h5,h6,p');
+  kids.forEach(function(k){ if(!isAdmin(k)) forceCSSVar(k, CSS_VAR_FONT_MAP, css); });
 
-  /* Debug log */
-  var eff = el;
-  console.group('[SMASKv18] smkApplyFont');
-  console.log('Selected :', el.tagName, el.className.slice(0,40));
-  console.log('Font CSS :', css);
-  console.log('Nodes updated:', n);
-  try{
-    var allDesc = [el].concat(Array.prototype.slice.call(el.querySelectorAll('*')));
-    allDesc.slice(0,5).forEach(function(node){
-      console.log('  ' + node.tagName + ' inlineFF:', node.style.fontFamily,
-                  ' computedFF:', window.getComputedStyle(node).fontFamily.slice(0,40));
-    });
-  }catch(e){}
+  /* Step 3: show neutral toast, then verify computed style after 60ms */
+  if(typeof window.showToast==='function') window.showToast('Applying font…');
+
+  console.group('[SMASKv19] smkApplyFont');
+  console.log('el       :', el.tagName, el.className.slice(0,40));
+  console.log('font CSS :', css);
+  console.log('nodes    :', n);
+  console.log('shadowDOM:', hasShadowRoot(el));
   console.groupEnd();
 
+  verifyAndReport(el, 'font-family', css, n);
   updateDebugBadge(el);
 };
 
-/* 5b: smkApplyColor */
+/* 8b ── smkApplyColor ───────────────────────────────────────────── */
 var _origApplyColor = window.smkApplyColor;
 window.smkApplyColor = function(type, val){
   var el = getSel();
-  if(!el){
-    if(typeof _origApplyColor === 'function') try{ _origApplyColor.apply(this, arguments); }catch(e){}
-    return;
+  if(!el){ if(typeof _origApplyColor==='function') try{_origApplyColor.apply(this,arguments);}catch(e){} return; }
+  var n = 0;
+  if(type==='text'){
+    n = forceStyle(el, 'color', val);
+    verifyAndReport(el, 'color', val, n);
+  } else if(type==='bg'){
+    if(val==='transparent') try{el.style.removeProperty('background-color');}catch(e){}
+    else { try{el.style.setProperty('background-color', val, 'important'); n=1;}catch(e){} }
+  } else if(type==='border'){
+    try{
+      el.style.setProperty('border-color', val, 'important');
+      el.style.setProperty('border-style', 'solid', 'important');
+      el.style.setProperty('border-width', '1px', 'important');
+      n = 1;
+    }catch(e){}
   }
-  if(type === 'text'){
-    forceStyle(el, 'color', val);
-    console.log('[SMASKv18] color→text:', val, 'on', el.tagName);
-  } else if(type === 'bg'){
-    try{ el.style.setProperty('background-color', val === 'transparent' ? '' : val, 'important'); }catch(e){}
-  } else if(type === 'border'){
-    try{ el.style.setProperty('border-color', val, 'important');
-         el.style.setProperty('border-style', 'solid', 'important');
-         el.style.setProperty('border-width', '1px', 'important'); }catch(e){}
-  }
-  if(typeof _origApplyColor === 'function') try{ _origApplyColor.apply(this, arguments); }catch(e){}
-  updateDebugBadge(el);
+  if(typeof _origApplyColor==='function') try{_origApplyColor.apply(this,arguments);}catch(e){}
 };
 
-/* 5c: smkApplySize */
+/* 8c ── smkApplySize ────────────────────────────────────────────── */
 var _origApplySize = window.smkApplySize;
 window.smkApplySize = function(v){
   var el = getSel();
-  if(!el){
-    if(typeof _origApplySize === 'function') try{ _origApplySize.apply(this, arguments); }catch(e){}
-    return;
-  }
-  var px = Math.max(8, Math.min(300, parseFloat(v)||16));
-  forceStyle(el, 'font-size', px+'px');
-  console.log('[SMASKv18] size:', px+'px', 'on', el.tagName);
-  if(typeof _origApplySize === 'function') try{ _origApplySize.apply(this, arguments); }catch(e){}
+  if(!el){ if(typeof _origApplySize==='function') try{_origApplySize.apply(this,arguments);}catch(e){} return; }
+  var px = Math.max(8,Math.min(300,parseFloat(v)||16));
+  var n = forceStyle(el, 'font-size', px+'px');
+  forceCSSVar(el, CSS_VAR_SIZE_MAP, px+'px');
+  verifyAndReport(el, 'font-size', px+'px', n);
+  if(typeof _origApplySize==='function') try{_origApplySize.apply(this,arguments);}catch(e){}
 };
 
-/* 5d: smkApplyWeight */
+/* 8d ── smkApplyWeight ──────────────────────────────────────────── */
 var _origApplyWeight = window.smkApplyWeight;
 window.smkApplyWeight = function(v){
   var el = getSel();
-  if(!el){
-    if(typeof _origApplyWeight === 'function') try{ _origApplyWeight.apply(this, arguments); }catch(e){}
-    return;
-  }
-  forceStyle(el, 'font-weight', String(v));
-  console.log('[SMASKv18] weight:', v, 'on', el.tagName);
-  if(typeof _origApplyWeight === 'function') try{ _origApplyWeight.apply(this, arguments); }catch(e){}
+  if(!el){ if(typeof _origApplyWeight==='function') try{_origApplyWeight.apply(this,arguments);}catch(e){} return; }
+  var n = forceStyle(el, 'font-weight', String(v));
+  forceCSSVar(el, CSS_VAR_WEIGHT_MAP, String(v));
+  verifyAndReport(el, 'font-weight', String(v), n);
+  if(typeof _origApplyWeight==='function') try{_origApplyWeight.apply(this,arguments);}catch(e){}
 };
 
-/* 5e: smkApplyLS */
+/* 8e ── smkApplyLS ──────────────────────────────────────────────── */
 var _origApplyLS = window.smkApplyLS;
 window.smkApplyLS = function(v){
   var el = getSel();
-  if(!el){
-    if(typeof _origApplyLS === 'function') try{ _origApplyLS.apply(this, arguments); }catch(e){}
-    return;
-  }
+  if(!el){ if(typeof _origApplyLS==='function') try{_origApplyLS.apply(this,arguments);}catch(e){} return; }
   var em = parseInt(v)/100;
   forceStyle(el, 'letter-spacing', em+'em');
-  if(typeof _origApplyLS === 'function') try{ _origApplyLS.apply(this, arguments); }catch(e){}
+  if(typeof _origApplyLS==='function') try{_origApplyLS.apply(this,arguments);}catch(e){}
 };
 
-/* 5f: smkApplyLH */
+/* 8f ── smkApplyLH ──────────────────────────────────────────────── */
 var _origApplyLH = window.smkApplyLH;
 window.smkApplyLH = function(v){
   var el = getSel();
-  if(!el){
-    if(typeof _origApplyLH === 'function') try{ _origApplyLH.apply(this, arguments); }catch(e){}
-    return;
-  }
+  if(!el){ if(typeof _origApplyLH==='function') try{_origApplyLH.apply(this,arguments);}catch(e){} return; }
   var r = parseInt(v)/100;
   forceStyle(el, 'line-height', String(r));
-  if(typeof _origApplyLH === 'function') try{ _origApplyLH.apply(this, arguments); }catch(e){}
+  if(typeof _origApplyLH==='function') try{_origApplyLH.apply(this,arguments);}catch(e){}
 };
 
-/* 5g: smkApplyAlign */
+/* 8g ── smkApplyAlign ───────────────────────────────────────────── */
 var _origApplyAlign = window.smkApplyAlign;
 window.smkApplyAlign = function(v){
   var el = getSel();
-  if(!el){
-    if(typeof _origApplyAlign === 'function') try{ _origApplyAlign.apply(this, arguments); }catch(e){}
-    return;
-  }
+  if(!el){ if(typeof _origApplyAlign==='function') try{_origApplyAlign.apply(this,arguments);}catch(e){} return; }
   forceStyle(el, 'text-align', v);
-  if(typeof _origApplyAlign === 'function') try{ _origApplyAlign.apply(this, arguments); }catch(e){}
+  if(typeof _origApplyAlign==='function') try{_origApplyAlign.apply(this,arguments);}catch(e){}
 };
 
-/* ── 6. Debug badge ─────────────────────────────────────────────── */
+/* ── 9. Debug badge ─────────────────────────────────────────────── */
 function updateDebugBadge(el){
-  if(!window._smkV18debugMode || !el) return;
-  var badge = document.getElementById('smk-v18-badge');
+  if(!window._smkV19debugMode || !el) return;
+  var badge = document.getElementById('smk-v19-badge');
   if(!badge){
     badge = document.createElement('div');
-    badge.id = 'smk-v18-badge';
+    badge.id = 'smk-v19-badge';
     badge.style.cssText = 'position:fixed;bottom:70px;left:10px;z-index:9999999;'+
       'background:rgba(10,10,10,.96);color:#8BC34A;font-size:10px;padding:8px 12px;'+
       'border-radius:8px;border:1px solid #C6A75C;max-width:320px;word-break:break-all;'+
@@ -7690,102 +7803,99 @@ function updateDebugBadge(el){
   var st = window.getComputedStyle(el);
   badge.style.display = 'block';
   badge.innerHTML =
-    '<div style="color:#C6A75C;font-weight:700;font-size:9px;margin-bottom:4px">▶ SMASKv18 DEBUG</div>'+
+    '<div style="color:#C6A75C;font-weight:700;font-size:9px;margin-bottom:4px">▶ SMASKv19</div>'+
     '<b style="color:#C6A75C">SEL:</b> <code style="color:#fff">'+el.tagName+'</code>'+
-      ' <span style="color:#666">.'+el.className.split(' ').slice(0,2).join('.')+'</span><br>'+
-    '<span style="color:#aaa">TEXT: &ldquo;'+(el.textContent||'').trim().slice(0,35)+'&rdquo;</span>'+
+    ' <span style="color:#555">.'+el.className.split(' ').slice(0,2).join('.')+'</span><br>'+
+    '<span style="color:#aaa">"'+(el.textContent||'').trim().slice(0,35)+'"</span>'+
     '<hr style="border-color:#333;margin:4px 0">'+
-    '<span style="color:#C6A75C">inline font-family:</span><br>'+
-    '<span style="color:#fff">'+(el.style.fontFamily||'(none)')+'</span><br>'+
-    '<span style="color:#C6A75C">computed font-family:</span><br>'+
-    '<span style="color:#ddd">'+st.fontFamily.slice(0,50)+'</span><br>'+
+    '<span style="color:#C6A75C">inline FF:</span> <span style="color:#fff">'+(el.style.fontFamily||'–')+'</span><br>'+
+    '<span style="color:#C6A75C">computed FF:</span><br><span style="color:#ddd">'+st.fontFamily.slice(0,50)+'</span><br>'+
     '<span style="color:#C6A75C">size:</span> <span style="color:#ddd">'+st.fontSize+'</span> '+
-    '<span style="color:#C6A75C">weight:</span> <span style="color:#ddd">'+st.fontWeight+'</span><br>'+
-    '<span style="color:#C6A75C">color:</span> <span style="color:#ddd">'+st.color+'</span>';
+    '<span style="color:#C6A75C">w:</span> <span style="color:#ddd">'+st.fontWeight+'</span> '+
+    '<span style="color:#C6A75C">color:</span> <span style="color:#ddd">'+st.color+'</span>'+
+    (hasShadowRoot(el) ? '<br><span style="color:#e57373">⚠ Shadow DOM</span>' : '');
 }
 
-/* ── 7. Public API ──────────────────────────────────────────────── */
+/* ── 10. Public API (window.SMK) ─────────────────────────────────── */
 window.SMK = window.SMK || {};
 
-/** Toggle gold outline on all editable elements + info banner */
 window.SMK.debug = function(){
-  window._smkV18debugMode = !window._smkV18debugMode;
-  var st = document.getElementById('smk-v18-debug-style');
-  if(!st){
-    st = document.createElement('style');
-    st.id = 'smk-v18-debug-style';
-    document.head.appendChild(st);
-  }
-  var badge = document.getElementById('smk-v18-badge');
-  if(window._smkV18debugMode){
-    st.textContent =
-      '.page-editable,[data-editable="true"]{outline:1.5px dashed rgba(198,167,92,.7)!important;outline-offset:2px!important;}'+
+  window._smkV19debugMode = !window._smkV19debugMode;
+  var st = document.getElementById('smk-v19-debug-style');
+  if(!st){ st=document.createElement('style'); st.id='smk-v19-debug-style'; document.head.appendChild(st); }
+  var badge = document.getElementById('smk-v19-badge');
+  if(window._smkV19debugMode){
+    st.textContent='.page-editable,[data-editable="true"]{outline:1.5px dashed rgba(198,167,92,.7)!important;outline-offset:2px!important;}'+
       '.page-editable:hover{outline-color:#C6A75C!important;background:rgba(198,167,92,.06)!important;}';
-    var all = document.querySelectorAll('.page-editable,[data-editable="true"]');
-    var pageOnly = Array.prototype.filter.call(all, function(e){ return !isAdmin(e); });
-    console.group('[SMASKv18] Debug ON');
-    console.log('Editable page elements:', pageOnly.length);
-    pageOnly.forEach(function(el,i){
-      if(i<20) console.log(' ['+i+']', el.tagName, el.className.slice(0,30),
-        '"'+(el.textContent||'').trim().slice(0,25)+'"');
-    });
+    var all=document.querySelectorAll('.page-editable,[data-editable="true"]');
+    var pg=Array.prototype.filter.call(all,function(e){return !isAdmin(e);});
+    console.group('[SMASKv19] Debug ON');
+    console.log('Editable page elements:',pg.length);
+    pg.forEach(function(el,i){ if(i<25) console.log(' ['+i+']',el.tagName,el.className.slice(0,30),'"'+(el.textContent||'').trim().slice(0,25)+'"'); });
     console.groupEnd();
-    /* info banner */
-    var info = document.getElementById('smk-v18-info');
-    if(!info){
-      info = document.createElement('div');
-      info.id = 'smk-v18-info';
-      info.style.cssText = 'position:fixed;top:8px;right:8px;z-index:9999998;'+
-        'background:rgba(10,10,10,.9);color:#C6A75C;font-size:9px;padding:6px 10px;'+
-        'border-radius:6px;border:1px solid #C6A75C44;pointer-events:none;font-family:monospace;';
-      document.body.appendChild(info);
-    }
-    info.style.display = 'block';
-    info.innerHTML = '🔍 <b>v18 DEBUG ON</b> – '+pageOnly.length+' editable<br>'+
-      '<span style="color:#888">tap element to inspect</span>';
-    if(typeof window.showToast==='function') window.showToast('Debug ON – '+pageOnly.length+' elements');
+    var info=document.getElementById('smk-v19-info');
+    if(!info){ info=document.createElement('div'); info.id='smk-v19-info';
+      info.style.cssText='position:fixed;top:8px;right:8px;z-index:9999998;background:rgba(10,10,10,.9);color:#C6A75C;font-size:9px;padding:6px 10px;border-radius:6px;border:1px solid #C6A75C44;pointer-events:none;font-family:monospace;';
+      document.body.appendChild(info); }
+    info.style.display='block';
+    info.innerHTML='🔍 <b>v19 DEBUG ON</b><br>'+pg.length+' editable<br><span style="color:#888">tap→inspect</span>';
+    if(typeof window.showToast==='function') window.showToast('v19 Debug ON – '+pg.length+' elements');
   } else {
-    st.textContent = '';
-    if(badge) badge.style.display = 'none';
-    var info2 = document.getElementById('smk-v18-info');
-    if(info2) info2.style.display = 'none';
+    st.textContent='';
+    if(badge) badge.style.display='none';
+    var info2=document.getElementById('smk-v19-info'); if(info2) info2.style.display='none';
     if(typeof window.showToast==='function') window.showToast('Debug OFF');
   }
 };
 
-/** Re-scan all visible text elements */
-window.SMK.rescan = function(){
-  if(typeof window.smkScanEditable==='function') window.smkScanEditable();
-  if(typeof window.scanEditableElements==='function') window.scanEditableElements();
-  console.log('[SMASKv18] rescan done');
-};
-
-/** Directly apply a style to the currently selected element and all its descendants */
-window.SMK.apply = function(prop, val){
-  var el = getSel();
-  if(!el){ console.warn('[SMASKv18] No element selected'); return 0; }
-  var n = forceStyle(el, prop, val);
-  console.log('[SMASKv18] apply', prop, '=', val, '→', n, 'nodes', 'on', el.tagName);
-  updateDebugBadge(el);
+window.SMK.apply = function(prop,val){
+  var el=getSel(); if(!el){console.warn('[SMASKv19] No element selected');return 0;}
+  var n=forceStyle(el,prop,val);
+  if(prop==='font-family') forceCSSVar(el,CSS_VAR_FONT_MAP,val);
+  verifyAndReport(el,prop,val,n);
   return n;
 };
 
-/** Get currently selected element */
+window.SMK.rescan = function(){
+  if(typeof window.smkScanEditable==='function') window.smkScanEditable();
+  if(typeof window.scanEditableElements==='function') window.scanEditableElements();
+  console.log('[SMASKv19] rescan done');
+};
+
 window.SMK.getSelected = function(){ return getSel(); };
 
-/* ── 8. Initialization ─────────────────────────────────────────── */
+window.SMK.diagnose = function(){
+  var el = getSel();
+  if(!el){ console.warn('[SMASKv19] No element selected'); return; }
+  var cs = window.getComputedStyle(el);
+  console.group('[SMASKv19] DIAGNOSE');
+  console.log('Element    :', el.tagName, el.className);
+  console.log('Text       :', (el.textContent||'').trim().slice(0,60));
+  console.log('inline FF  :', el.style.fontFamily);
+  console.log('computed FF:', cs.fontFamily.slice(0,80));
+  console.log('computed FS:', cs.fontSize);
+  console.log('computed FW:', cs.fontWeight);
+  console.log('Shadow DOM :', hasShadowRoot(el));
+  console.log('outerHTML  :', el.outerHTML.slice(0,400));
+  ['--t1-font-family','--t2-font-family','--t3-font-family','--body-font-family'].forEach(function(v){
+    console.log('CSS var '+v+':', cs.getPropertyValue(v)||'(not set)');
+  });
+  console.groupEnd();
+};
+
+/* ── 11. Init ────────────────────────────────────────────────────── */
 function init(){
-  patchSelectElement();
-  patchSmkDoSelect();
-  patchSmkOnSelect();
-  console.log('[SMASKv18] Override script initialized.');
-  console.log('  SMK.debug()  – toggle debug outlines');
-  console.log('  SMK.apply(prop,val) – apply style to selection');
-  console.log('  SMK.rescan() – re-scan editable elements');
-  console.log('  SMK.getSelected() – get currently selected element');
+  hookSelectElement();
+  hookSmkDoSelect();
+  hookSmkOnSelect();
+  console.log('[SMASKv19] Initialized. Commands:');
+  console.log('  SMK.debug()    – toggle debug outlines');
+  console.log('  SMK.diagnose() – diagnose selected element');
+  console.log('  SMK.apply(prop,val) – force apply style');
+  console.log('  SMK.rescan()   – re-scan editable elements');
 }
 
-if(document.readyState === 'loading'){
+if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
@@ -7793,6 +7903,7 @@ if(document.readyState === 'loading'){
 
 })();
 </script>
+
 
 </body>
 </html>
