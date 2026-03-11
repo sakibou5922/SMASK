@@ -5719,7 +5719,7 @@ html body #smask-pub-fab {
 
 
 
-<script id="smask-v17-script">
+<script id="smask-v18-script">
 (function(){
 'use strict';
 
@@ -7421,6 +7421,378 @@ window.smkDebug = function(){
   }
 }
 </style>
+
+
+<script id="smask-v18-override">
+/* ═══════════════════════════════════════════════════════════════════════
+   SMASK v18 – Style Apply Override
+   Guarantees that ALL style changes reach the actual rendered DOM nodes
+   regardless of existing inline styles or !important conflicts.
+   ═══════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── Admin roots to never touch ─────────────────────────────────── */
+var ADMIN_SEL =
+  '#smask-admin-panel,#smk-panel-toggle-btn,#login-overlay,' +
+  '#css-modal,#smk-maint-overlay,.dev-banner,' +
+  '#smk-pane-font,#smk-pane-color,#smk-pane-select,#smk-pane-site';
+
+function isAdmin(el){ return !!(el && el.closest && el.closest(ADMIN_SEL)); }
+
+/* ── 1. forceStyle: write prop=val with !important to el and ALL
+        non-admin descendants ──────────────────────────────────────── */
+function forceStyle(el, prop, val){
+  if(!el || isAdmin(el)) return 0;
+  var count = 0;
+  function write(node){
+    if(!node || !node.style) return;
+    try{
+      node.style.setProperty(prop, val, 'important');
+      count++;
+    }catch(e){}
+  }
+  write(el);
+  /* All element descendants */
+  var all = el.querySelectorAll('*');
+  for(var i=0; i<all.length; i++){
+    var child = all[i];
+    if(!isAdmin(child)) write(child);
+  }
+  return count;
+}
+
+/* ── 2. Canonical selected-element store ────────────────────────── */
+window._smkV18sel = null;
+
+function setSel(el){
+  if(!el || isAdmin(el)) return;
+  window._smkV18sel  = el;
+  window.smaskEl     = el;   /* legacy compat */
+  window.selectedEl  = el;
+  window.smaskSelected = el;
+}
+
+function getSel(){
+  return window._smkV18sel
+      || window.smaskEl
+      || window.selectedEl
+      || window.smaskSelected
+      || null;
+}
+
+/* ── 3. Hook ALL existing selection entry points ─────────────────── */
+/* 3a: patch window.selectElement (called by registerEl click handlers) */
+function patchSelectElement(){
+  var orig = window.selectElement;
+  window.selectElement = function(el){
+    setSel(el);
+    if(typeof orig === 'function') try{ orig.call(this, el); }catch(e){}
+  };
+}
+
+/* 3b: patch window.smkDoSelect (called by patchEditable touch handlers) */
+function patchSmkDoSelect(){
+  var orig = window.smkDoSelect;
+  window.smkDoSelect = function(el){
+    setSel(el);
+    if(typeof orig === 'function') try{ orig.call(this, el); }catch(e){}
+  };
+}
+
+/* 3c: patch window.smkOnSelect (final common path inside IIFE) */
+function patchSmkOnSelect(){
+  var orig = window.smkOnSelect;
+  window.smkOnSelect = function(el){
+    setSel(el);
+    if(typeof orig === 'function') try{ orig.call(this, el); }catch(e){}
+  };
+}
+
+/* 3d: document-level capture pointerdown — last safety net */
+document.addEventListener('pointerdown', function(e){
+  var t = e.target;
+  if(isAdmin(t)) return;
+  /* Only capture when SELECT MODE is on */
+  var clickMode = window.clickMode;
+  if(!clickMode) return;
+  /* Walk up to nearest page-editable */
+  var cur = t;
+  while(cur && cur !== document.body){
+    if(cur.classList && (cur.classList.contains('page-editable') || cur.dataset.editable)){
+      setSel(cur);
+      return;
+    }
+    cur = cur.parentElement;
+  }
+}, true);
+
+/* ── 4. Font loading helper ─────────────────────────────────────── */
+function ensureFont(css){
+  var family = css.replace(/['"]/g,'').split(',')[0].trim();
+  if(!family) return;
+  window._v18fonts = window._v18fonts || {};
+  if(window._v18fonts[family]) return;
+  window._v18fonts[family] = true;
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family='
+    + encodeURIComponent(family).replace(/%20/g,'+') + ':wght@300;400;500;600;700&display=swap';
+  document.head.appendChild(link);
+}
+
+/* ── 5. Override apply functions ─────────────────────────────────── */
+
+/* 5a: smkApplyFont */
+var _origApplyFont = window.smkApplyFont;
+window.smkApplyFont = function(name){
+  var el = getSel();
+  if(!name || !el){
+    if(typeof _origApplyFont === 'function') try{ _origApplyFont.apply(this, arguments); }catch(e){}
+    return;
+  }
+
+  /* Build CSS value */
+  var css;
+  if(window.SMK_FONTS){
+    var f = window.SMK_FONTS.find(function(x){ return x.n===name; });
+    css = f ? f.css : ('"'+name+'", sans-serif');
+  } else {
+    css = '"'+name+'", sans-serif';
+  }
+
+  ensureFont(css);
+
+  var n = forceStyle(el, 'font-family', css);
+
+  /* Show toast */
+  var msg = 'Font → ' + name + ' (' + n + ' nodes)';
+  if(typeof window.showToast === 'function') window.showToast(msg);
+
+  /* Debug log */
+  var eff = el;
+  console.group('[SMASKv18] smkApplyFont');
+  console.log('Selected :', el.tagName, el.className.slice(0,40));
+  console.log('Font CSS :', css);
+  console.log('Nodes updated:', n);
+  try{
+    var allDesc = [el].concat(Array.prototype.slice.call(el.querySelectorAll('*')));
+    allDesc.slice(0,5).forEach(function(node){
+      console.log('  ' + node.tagName + ' inlineFF:', node.style.fontFamily,
+                  ' computedFF:', window.getComputedStyle(node).fontFamily.slice(0,40));
+    });
+  }catch(e){}
+  console.groupEnd();
+
+  updateDebugBadge(el);
+};
+
+/* 5b: smkApplyColor */
+var _origApplyColor = window.smkApplyColor;
+window.smkApplyColor = function(type, val){
+  var el = getSel();
+  if(!el){
+    if(typeof _origApplyColor === 'function') try{ _origApplyColor.apply(this, arguments); }catch(e){}
+    return;
+  }
+  if(type === 'text'){
+    forceStyle(el, 'color', val);
+    console.log('[SMASKv18] color→text:', val, 'on', el.tagName);
+  } else if(type === 'bg'){
+    try{ el.style.setProperty('background-color', val === 'transparent' ? '' : val, 'important'); }catch(e){}
+  } else if(type === 'border'){
+    try{ el.style.setProperty('border-color', val, 'important');
+         el.style.setProperty('border-style', 'solid', 'important');
+         el.style.setProperty('border-width', '1px', 'important'); }catch(e){}
+  }
+  if(typeof _origApplyColor === 'function') try{ _origApplyColor.apply(this, arguments); }catch(e){}
+  updateDebugBadge(el);
+};
+
+/* 5c: smkApplySize */
+var _origApplySize = window.smkApplySize;
+window.smkApplySize = function(v){
+  var el = getSel();
+  if(!el){
+    if(typeof _origApplySize === 'function') try{ _origApplySize.apply(this, arguments); }catch(e){}
+    return;
+  }
+  var px = Math.max(8, Math.min(300, parseFloat(v)||16));
+  forceStyle(el, 'font-size', px+'px');
+  console.log('[SMASKv18] size:', px+'px', 'on', el.tagName);
+  if(typeof _origApplySize === 'function') try{ _origApplySize.apply(this, arguments); }catch(e){}
+};
+
+/* 5d: smkApplyWeight */
+var _origApplyWeight = window.smkApplyWeight;
+window.smkApplyWeight = function(v){
+  var el = getSel();
+  if(!el){
+    if(typeof _origApplyWeight === 'function') try{ _origApplyWeight.apply(this, arguments); }catch(e){}
+    return;
+  }
+  forceStyle(el, 'font-weight', String(v));
+  console.log('[SMASKv18] weight:', v, 'on', el.tagName);
+  if(typeof _origApplyWeight === 'function') try{ _origApplyWeight.apply(this, arguments); }catch(e){}
+};
+
+/* 5e: smkApplyLS */
+var _origApplyLS = window.smkApplyLS;
+window.smkApplyLS = function(v){
+  var el = getSel();
+  if(!el){
+    if(typeof _origApplyLS === 'function') try{ _origApplyLS.apply(this, arguments); }catch(e){}
+    return;
+  }
+  var em = parseInt(v)/100;
+  forceStyle(el, 'letter-spacing', em+'em');
+  if(typeof _origApplyLS === 'function') try{ _origApplyLS.apply(this, arguments); }catch(e){}
+};
+
+/* 5f: smkApplyLH */
+var _origApplyLH = window.smkApplyLH;
+window.smkApplyLH = function(v){
+  var el = getSel();
+  if(!el){
+    if(typeof _origApplyLH === 'function') try{ _origApplyLH.apply(this, arguments); }catch(e){}
+    return;
+  }
+  var r = parseInt(v)/100;
+  forceStyle(el, 'line-height', String(r));
+  if(typeof _origApplyLH === 'function') try{ _origApplyLH.apply(this, arguments); }catch(e){}
+};
+
+/* 5g: smkApplyAlign */
+var _origApplyAlign = window.smkApplyAlign;
+window.smkApplyAlign = function(v){
+  var el = getSel();
+  if(!el){
+    if(typeof _origApplyAlign === 'function') try{ _origApplyAlign.apply(this, arguments); }catch(e){}
+    return;
+  }
+  forceStyle(el, 'text-align', v);
+  if(typeof _origApplyAlign === 'function') try{ _origApplyAlign.apply(this, arguments); }catch(e){}
+};
+
+/* ── 6. Debug badge ─────────────────────────────────────────────── */
+function updateDebugBadge(el){
+  if(!window._smkV18debugMode || !el) return;
+  var badge = document.getElementById('smk-v18-badge');
+  if(!badge){
+    badge = document.createElement('div');
+    badge.id = 'smk-v18-badge';
+    badge.style.cssText = 'position:fixed;bottom:70px;left:10px;z-index:9999999;'+
+      'background:rgba(10,10,10,.96);color:#8BC34A;font-size:10px;padding:8px 12px;'+
+      'border-radius:8px;border:1px solid #C6A75C;max-width:320px;word-break:break-all;'+
+      'line-height:1.7;box-shadow:0 4px 16px rgba(0,0,0,.6);font-family:monospace;';
+    document.body.appendChild(badge);
+  }
+  var st = window.getComputedStyle(el);
+  badge.style.display = 'block';
+  badge.innerHTML =
+    '<div style="color:#C6A75C;font-weight:700;font-size:9px;margin-bottom:4px">▶ SMASKv18 DEBUG</div>'+
+    '<b style="color:#C6A75C">SEL:</b> <code style="color:#fff">'+el.tagName+'</code>'+
+      ' <span style="color:#666">.'+el.className.split(' ').slice(0,2).join('.')+'</span><br>'+
+    '<span style="color:#aaa">TEXT: &ldquo;'+(el.textContent||'').trim().slice(0,35)+'&rdquo;</span>'+
+    '<hr style="border-color:#333;margin:4px 0">'+
+    '<span style="color:#C6A75C">inline font-family:</span><br>'+
+    '<span style="color:#fff">'+(el.style.fontFamily||'(none)')+'</span><br>'+
+    '<span style="color:#C6A75C">computed font-family:</span><br>'+
+    '<span style="color:#ddd">'+st.fontFamily.slice(0,50)+'</span><br>'+
+    '<span style="color:#C6A75C">size:</span> <span style="color:#ddd">'+st.fontSize+'</span> '+
+    '<span style="color:#C6A75C">weight:</span> <span style="color:#ddd">'+st.fontWeight+'</span><br>'+
+    '<span style="color:#C6A75C">color:</span> <span style="color:#ddd">'+st.color+'</span>';
+}
+
+/* ── 7. Public API ──────────────────────────────────────────────── */
+window.SMK = window.SMK || {};
+
+/** Toggle gold outline on all editable elements + info banner */
+window.SMK.debug = function(){
+  window._smkV18debugMode = !window._smkV18debugMode;
+  var st = document.getElementById('smk-v18-debug-style');
+  if(!st){
+    st = document.createElement('style');
+    st.id = 'smk-v18-debug-style';
+    document.head.appendChild(st);
+  }
+  var badge = document.getElementById('smk-v18-badge');
+  if(window._smkV18debugMode){
+    st.textContent =
+      '.page-editable,[data-editable="true"]{outline:1.5px dashed rgba(198,167,92,.7)!important;outline-offset:2px!important;}'+
+      '.page-editable:hover{outline-color:#C6A75C!important;background:rgba(198,167,92,.06)!important;}';
+    var all = document.querySelectorAll('.page-editable,[data-editable="true"]');
+    var pageOnly = Array.prototype.filter.call(all, function(e){ return !isAdmin(e); });
+    console.group('[SMASKv18] Debug ON');
+    console.log('Editable page elements:', pageOnly.length);
+    pageOnly.forEach(function(el,i){
+      if(i<20) console.log(' ['+i+']', el.tagName, el.className.slice(0,30),
+        '"'+(el.textContent||'').trim().slice(0,25)+'"');
+    });
+    console.groupEnd();
+    /* info banner */
+    var info = document.getElementById('smk-v18-info');
+    if(!info){
+      info = document.createElement('div');
+      info.id = 'smk-v18-info';
+      info.style.cssText = 'position:fixed;top:8px;right:8px;z-index:9999998;'+
+        'background:rgba(10,10,10,.9);color:#C6A75C;font-size:9px;padding:6px 10px;'+
+        'border-radius:6px;border:1px solid #C6A75C44;pointer-events:none;font-family:monospace;';
+      document.body.appendChild(info);
+    }
+    info.style.display = 'block';
+    info.innerHTML = '🔍 <b>v18 DEBUG ON</b> – '+pageOnly.length+' editable<br>'+
+      '<span style="color:#888">tap element to inspect</span>';
+    if(typeof window.showToast==='function') window.showToast('Debug ON – '+pageOnly.length+' elements');
+  } else {
+    st.textContent = '';
+    if(badge) badge.style.display = 'none';
+    var info2 = document.getElementById('smk-v18-info');
+    if(info2) info2.style.display = 'none';
+    if(typeof window.showToast==='function') window.showToast('Debug OFF');
+  }
+};
+
+/** Re-scan all visible text elements */
+window.SMK.rescan = function(){
+  if(typeof window.smkScanEditable==='function') window.smkScanEditable();
+  if(typeof window.scanEditableElements==='function') window.scanEditableElements();
+  console.log('[SMASKv18] rescan done');
+};
+
+/** Directly apply a style to the currently selected element and all its descendants */
+window.SMK.apply = function(prop, val){
+  var el = getSel();
+  if(!el){ console.warn('[SMASKv18] No element selected'); return 0; }
+  var n = forceStyle(el, prop, val);
+  console.log('[SMASKv18] apply', prop, '=', val, '→', n, 'nodes', 'on', el.tagName);
+  updateDebugBadge(el);
+  return n;
+};
+
+/** Get currently selected element */
+window.SMK.getSelected = function(){ return getSel(); };
+
+/* ── 8. Initialization ─────────────────────────────────────────── */
+function init(){
+  patchSelectElement();
+  patchSmkDoSelect();
+  patchSmkOnSelect();
+  console.log('[SMASKv18] Override script initialized.');
+  console.log('  SMK.debug()  – toggle debug outlines');
+  console.log('  SMK.apply(prop,val) – apply style to selection');
+  console.log('  SMK.rescan() – re-scan editable elements');
+  console.log('  SMK.getSelected() – get currently selected element');
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
 
 </body>
 </html>
