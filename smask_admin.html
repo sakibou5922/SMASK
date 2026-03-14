@@ -7791,12 +7791,43 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
       window.__METAL_DETAILS_PLATINUM__ = combined.results.platinum;
       window.__METAL_DETAILS_SILVER__ = combined.results.silver;
 
+      const toPriceMap = (items = []) =>
+        Object.fromEntries(items.map(item => [item.gradeCode, item.priceYenPerG]));
+
+      const marketData = {
+        meta: {
+          sourceDate: combined.results.gold?.sourceDate ?? null,
+          sourceName: combined.results.gold?.sourceName ?? null,
+          inputMethod: combined.results.gold?.inputMethod ?? null,
+          enteredBy: combined.results.gold?.enteredBy ?? null,
+          note: combined.results.gold?.note ?? null,
+          publishedAt: combined.results.gold?.publishedAt ?? null
+        },
+        metals: {
+          gold: {
+            prices: toPriceMap(combined.results.gold?.items ?? []),
+            raw: combined.results.gold ?? null
+          },
+          platinum: {
+            prices: toPriceMap(combined.results.platinum?.items ?? []),
+            raw: combined.results.platinum ?? null
+          },
+          silver: {
+            prices: toPriceMap(combined.results.silver?.items ?? []),
+            raw: combined.results.silver ?? null
+          }
+        }
+      };
+
+      window.__MARKET_DATA__ = marketData;
+      console.log('marketData:', marketData);
+
       debug.textContent =
         'gold=' + combined.statuses.gold +
         ' / platinum=' + combined.statuses.platinum +
         ' / silver=' + combined.statuses.silver +
         '\n\n' +
-        JSON.stringify(combined, null, 2);
+        JSON.stringify(marketData, null, 2);
 
       console.log('metal-details combined response:', combined);
     } catch (err) {
