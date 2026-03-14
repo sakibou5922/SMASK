@@ -7822,12 +7822,34 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
       window.__MARKET_DATA__ = marketData;
       console.log('marketData:', marketData);
 
+      const uiMarketData = {
+        sourceDate: marketData.meta.sourceDate,
+        sourceName: marketData.meta.sourceName,
+        inputMethod: marketData.meta.inputMethod,
+        enteredBy: marketData.meta.enteredBy,
+        note: marketData.meta.note,
+        publishedAt: marketData.meta.publishedAt,
+
+        goldIngot: marketData.metals.gold.prices.INGOT ?? null,
+        goldK24: marketData.metals.gold.prices.K24 ?? null,
+        goldK18: marketData.metals.gold.prices.K18 ?? null,
+
+        platinumIngot: marketData.metals.platinum.prices.INGOT ?? null,
+        platinumPt900: marketData.metals.platinum.prices.PT900 ?? null,
+
+        silverIngot: marketData.metals.silver.prices.INGOT ?? null,
+        silverSv925: marketData.metals.silver.prices.SV925 ?? null
+      };
+
+      window.__UI_MARKET_DATA__ = uiMarketData;
+      console.log('uiMarketData:', uiMarketData);
+
       debug.textContent =
         'gold=' + combined.statuses.gold +
         ' / platinum=' + combined.statuses.platinum +
         ' / silver=' + combined.statuses.silver +
         '\n\n' +
-        JSON.stringify(marketData, null, 2);
+        JSON.stringify(uiMarketData, null, 2);
 
       console.log('metal-details combined response:', combined);
     } catch (err) {
