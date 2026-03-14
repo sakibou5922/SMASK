@@ -7704,7 +7704,7 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 })();
 </script>
 <script>
-  const METAL_DETAILS_URL = 'https://hhocycyvxhqxcghgwhqs.supabase.co/functions/v1/metal-details';
+  const METAL_DETAILS_URL = 'https://hhocycyvxhqxcghgwhqs.supabase.co/functions/v1/metal-details?metal=gold';
 
   async function loadMetalDetailsDebug() {
     let debug = document.getElementById('metal-debug');
@@ -7735,10 +7735,12 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
     try {
       const res = await fetch(METAL_DETAILS_URL, {
-        method: 'GET',
+        method: 'POST',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: '{}'
       });
 
       const rawText = await res.text();
@@ -7767,9 +7769,3 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
   window.addEventListener('load', loadMetalDetailsDebug);
 </script>
-
-
-
-
-</body>
-</html>
