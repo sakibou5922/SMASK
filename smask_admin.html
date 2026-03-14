@@ -7707,15 +7707,6 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
   const METAL_DETAILS_BASE_URL = 'https://hhocycyvxhqxcghgwhqs.supabase.co/functions/v1/metal-details';
   const METALS = ['gold', 'platinum', 'silver'];
 
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   function formatYenPerGram(value) {
     if (value == null || value === '' || Number.isNaN(Number(value))) return '-';
     return Number(value).toLocaleString('ja-JP') + ' 円/g';
@@ -7767,25 +7758,12 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
   }
 
   function toPriceMap(items = []) {
-    return Object.fromEntries(
-      items.map(item => [item.gradeCode, item.priceYenPerG])
-    );
+    return Object.fromEntries(items.map(item => [item.gradeCode, item.priceYenPerG]));
   }
 
   function setTextByDataLabel(label, text) {
     const el = document.querySelector('[data-label="' + label + '"]');
     if (el) el.textContent = text;
-  }
-
-  function hideByDataLabel(label) {
-    const el = document.querySelector('[data-label="' + label + '"]');
-    if (el) el.style.display = 'none';
-  }
-
-  function hideEnglishMetalLabels() {
-    hideByDataLabel('金ラベル');
-    hideByDataLabel('プラチナラベル');
-    hideByDataLabel('銀ラベル');
   }
 
   function findCardByTitleLabel(label) {
@@ -7819,74 +7797,90 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
     }) || null;
   }
 
-  function renderPriceLinesHtml(lines) {
-    const rows = lines.map((line, index) => `
-      <div style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        padding:${index === 0 ? '0 0 8px 0' : '8px 0'};
-        border-bottom:${index === lines.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.06)'};
-      ">
-        <span style="
-          font-size:13px;
-          color:#666;
-          font-weight:500;
-          letter-spacing:.02em;
-        ">${escapeHtml(line.label)}</span>
-        <span style="
-          font-size:18px;
-          font-weight:800;
-          color:#1A1A1A;
-          white-space:nowrap;
-        ">${escapeHtml(formatYenPerGram(line.value))}</span>
-      </div>
-    `).join('');
+  function styleCardForTanakaLikeLayout(card) {
+    if (!card) return;
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
+    card.style.justifyContent = 'flex-start';
+    card.style.minHeight = '340px';
+  }
 
+  function styleDetailButton(card) {
+    if (!card) return;
+    const btn = card.querySelector('button,[data-label$="詳細ボタン"],a');
+    if (!btn) return;
+    btn.textContent = '詳細を見る';
+    btn.style.marginTop = 'auto';
+    btn.style.paddingTop = '16px';
+    btn.style.fontSize = '14px';
+    btn.style.fontWeight = '600';
+    btn.style.color = '#111';
+    btn.style.background = 'transparent';
+    btn.style.border = 'none';
+    btn.style.boxShadow = 'none';
+  }
+
+  function renderTanakaLikePriceBlock(rows) {
     return `
-      <div style="
-        min-height:80px;
-        height:100%;
-        border-radius:12px;
-        background:linear-gradient(180deg,#F8F8F8 0%,#ECECEC 100%);
-        border:1px solid rgba(0,0,0,0.06);
-        padding:14px 16px;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
-      ">
-        <div style="display:grid;gap:0;">${rows}</div>
+      <div style="display:grid;gap:14px;">
+        ${rows.map(row => `
+          <div>
+            <div style="
+              font-size:12px;
+              color:#8f8f8f;
+              line-height:1.5;
+              margin-bottom:2px;
+              font-weight:400;
+            ">${row.label}</div>
+            <div style="
+              font-size:18px;
+              line-height:1.35;
+              font-weight:800;
+              color:#111111;
+              letter-spacing:.01em;
+            ">${formatYenPerGram(row.value)}</div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
 
-  function injectPriceCard(titleLabel, lines) {
+  function injectTanakaLikeCard(titleLabel, rows) {
     const card = findCardByTitleLabel(titleLabel);
     const placeholder = findCardPlaceholder(card);
-    if (!placeholder) return false;
+    if (!card || !placeholder) return false;
+
+    styleCardForTanakaLikeLayout(card);
 
     placeholder.style.height = 'auto';
-    placeholder.style.minHeight = '80px';
-    placeholder.innerHTML = renderPriceLinesHtml(lines);
-    placeholder.setAttribute('data-market-injected', 'true');
+    placeholder.style.minHeight = '0';
+    placeholder.style.background = 'transparent';
+    placeholder.style.border = 'none';
+    placeholder.style.borderRadius = '0';
+    placeholder.style.marginBottom = '10px';
+    placeholder.style.padding = '0';
+    placeholder.style.boxShadow = 'none';
+    placeholder.innerHTML = renderTanakaLikePriceBlock(rows);
 
+    styleDetailButton(card);
     return true;
   }
 
   function renderExistingMarketCards(uiMarketData) {
-    injectPriceCard('金タイトル', [
-      { label: 'インゴット', value: uiMarketData.goldIngot },
-      { label: '24金', value: uiMarketData.goldK24 },
-      { label: '18金', value: uiMarketData.goldK18 }
+    injectTanakaLikeCard('金タイトル', [
+      { label: 'インゴット参考価格', value: uiMarketData.goldIngot },
+      { label: '24金参考価格', value: uiMarketData.goldK24 },
+      { label: '18金参考価格', value: uiMarketData.goldK18 }
     ]);
 
-    injectPriceCard('プラチナタイトル', [
-      { label: 'インゴット', value: uiMarketData.platinumIngot },
-      { label: 'Pt900', value: uiMarketData.platinumPt900 }
+    injectTanakaLikeCard('プラチナタイトル', [
+      { label: 'インゴット参考価格', value: uiMarketData.platinumIngot },
+      { label: 'Pt900参考価格', value: uiMarketData.platinumPt900 }
     ]);
 
-    injectPriceCard('銀タイトル', [
-      { label: 'インゴット', value: uiMarketData.silverIngot },
-      { label: 'SV925', value: uiMarketData.silverSv925 }
+    injectTanakaLikeCard('銀タイトル', [
+      { label: 'インゴット参考価格', value: uiMarketData.silverIngot },
+      { label: 'SV925参考価格', value: uiMarketData.silverSv925 }
     ]);
   }
 
@@ -7895,18 +7889,13 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
     setTextByDataLabel(
       '相場ステータス',
-      allOk
-        ? '更新日 ' + formatShortDate(uiMarketData.sourceDate)
-        : '取得失敗'
+      allOk ? '更新日 ' + formatShortDate(uiMarketData.sourceDate) : '取得失敗'
     );
 
     const subTextEl = document.querySelector('[data-label="相場サブテキスト"]');
     if (subTextEl) {
       subTextEl.textContent =
-        '参考価格（1gあたり） / ソース: ' +
-        (uiMarketData.sourceName || '-') +
-        ' / 公開: ' +
-        formatDateTimeJa(uiMarketData.publishedAt);
+        '参考価格（1gあたり） / 公開: ' + formatDateTimeJa(uiMarketData.publishedAt);
     }
   }
 
@@ -7982,7 +7971,6 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
       window.__UI_MARKET_DATA__ = uiMarketData;
 
-      hideEnglishMetalLabels();
       updateMarketSectionMeta(uiMarketData, combined);
       renderExistingMarketCards(uiMarketData);
     } catch (err) {
