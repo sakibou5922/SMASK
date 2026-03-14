@@ -7703,6 +7703,70 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
 })();
 </script>
+<script>
+  const METAL_DETAILS_URL = 'https://hhcoycyvxhqxcghgwhqs.supabase.co/functions/v1/metal-details';
+
+  async function loadMetalDetailsDebug() {
+    let debug = document.getElementById('metal-debug');
+
+    if (!debug) {
+      debug = document.createElement('pre');
+      debug.id = 'metal-debug';
+      debug.style.position = 'fixed';
+      debug.style.right = '16px';
+      debug.style.bottom = '16px';
+      debug.style.zIndex = '99999';
+      debug.style.width = '420px';
+      debug.style.maxHeight = '50vh';
+      debug.style.overflow = 'auto';
+      debug.style.padding = '12px';
+      debug.style.background = 'rgba(0,0,0,0.85)';
+      debug.style.color = '#00ff9c';
+      debug.style.fontSize = '12px';
+      debug.style.lineHeight = '1.5';
+      debug.style.borderRadius = '12px';
+      debug.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
+      debug.style.whiteSpace = 'pre-wrap';
+      debug.textContent = 'metal-details 読み込み待機中...';
+      document.body.appendChild(debug);
+    }
+
+    debug.textContent = 'metal-details 読み込み中...';
+
+    try {
+      const res = await fetch(METAL_DETAILS_URL, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      const rawText = await res.text();
+      let data;
+
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = rawText;
+      }
+
+      window.__METAL_DETAILS__ = data;
+
+      debug.textContent =
+        'HTTP ' + res.status + '\n\n' +
+        (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+
+      console.log('metal-details response:', data);
+    } catch (err) {
+      debug.textContent =
+        '読込失敗:\n' + (err && err.message ? err.message : err);
+
+      console.error('metal-details load error:', err);
+    }
+  }
+
+  window.addEventListener('load', loadMetalDetailsDebug);
+</script>
 
 
 
