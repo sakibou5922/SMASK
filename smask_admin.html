@@ -7775,6 +7775,28 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
     return Number(value).toLocaleString('ja-JP') + ' 円/g';
   }
 
+  function formatShortDate(value) {
+    if (!value) return '-';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '.' + m + '.' + day;
+  }
+
+  function formatDateTimeJa(value) {
+    if (!value) return '-';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return y + '.' + m + '.' + day + ' ' + hh + ':' + mm;
+  }
+
   async function fetchMetalDetails(metal) {
     const url = METAL_DETAILS_BASE_URL + '?metal=' + encodeURIComponent(metal);
     const res = await fetch(url, {
@@ -7849,6 +7871,117 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
         </div>
       </div>
     `;
+  }
+
+  function setTextByDataLabel(label, text) {
+    const el = document.querySelector('[data-label="' + label + '"]');
+    if (el) el.textContent = text;
+  }
+
+  function findCardByTitleLabel(label) {
+    const title = document.querySelector('[data-label="' + label + '"]');
+    if (!title) return null;
+
+    let card = title.closest('.bg-white.border');
+    if (card) return card;
+
+    card = title.parentElement;
+    while (card && card !== document.body) {
+      if (
+        card.tagName === 'DIV' &&
+        typeof card.className === 'string' &&
+        card.className.includes('rounded-2xl') &&
+        card.className.includes('p-6')
+      ) {
+        return card;
+      }
+      card = card.parentElement;
+    }
+    return null;
+  }
+
+  function findCardPlaceholder(card) {
+    if (!card) return null;
+    const divs = Array.from(card.querySelectorAll('div'));
+    return divs.find(el => {
+      const cls = typeof el.className === 'string' ? el.className : '';
+      return cls.includes('h-20') && cls.includes('rounded-lg');
+    }) || null;
+  }
+
+  function renderPriceLinesHtml(lines, accentColor) {
+    const rows = lines.map(line => `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.06);">
+        <span style="font-size:12px;letter-spacing:.06em;color:#666;font-weight:700;">${escapeHtml(line.label)}</span>
+        <span style="font-size:18px;font-weight:800;color:#1A1A1A;">${escapeHtml(formatYenPerGram(line.value))}</span>
+      </div>
+    `).join('');
+
+    return `
+      <div style="
+        min-height:80px;
+        height:100%;
+        border-radius:12px;
+        background:linear-gradient(180deg,#F8F8F8 0%,#ECECEC 100%);
+        border:1px solid rgba(0,0,0,0.06);
+        padding:12px 14px;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
+      ">
+        <div style="font-size:10px;letter-spacing:.12em;color:${accentColor};font-weight:800;margin-bottom:4px;">REFERENCE PRICE</div>
+        <div style="display:grid;gap:0;">${rows}</div>
+      </div>
+    `;
+  }
+
+  function injectPriceCard(titleLabel, lines, accentColor) {
+    const card = findCardByTitleLabel(titleLabel);
+    const placeholder = findCardPlaceholder(card);
+    if (!placeholder) return false;
+
+    placeholder.style.height = 'auto';
+    placeholder.style.minHeight = '80px';
+    placeholder.innerHTML = renderPriceLinesHtml(lines, accentColor);
+    placeholder.setAttribute('data-market-injected', 'true');
+
+    return true;
+  }
+
+  function renderExistingMarketCards(uiMarketData) {
+    injectPriceCard('金タイトル', [
+      { label: 'INGOT', value: uiMarketData.goldIngot },
+      { label: 'K24', value: uiMarketData.goldK24 },
+      { label: 'K18', value: uiMarketData.goldK18 }
+    ], '#C9A84C');
+
+    injectPriceCard('プラチナタイトル', [
+      { label: 'INGOT', value: uiMarketData.platinumIngot },
+      { label: 'PT900', value: uiMarketData.platinumPt900 }
+    ], '#8B8B93');
+
+    injectPriceCard('銀タイトル', [
+      { label: 'INGOT', value: uiMarketData.silverIngot },
+      { label: 'SV925', value: uiMarketData.silverSv925 }
+    ], '#7A7A7A');
+  }
+
+  function updateMarketSectionMeta(uiMarketData, combined) {
+    const allOk = !!combined?.allOk;
+
+    setTextByDataLabel(
+      '相場ステータス',
+      allOk
+        ? '更新日 ' + formatShortDate(uiMarketData.sourceDate) + ' / 取得成功'
+        : '取得失敗あり'
+    );
+
+    const subTextEl = document.querySelector('[data-label="相場サブテキスト"]');
+    if (subTextEl) {
+      subTextEl.textContent =
+        '参照価格（1gあたり） / ソース: ' +
+        (uiMarketData.sourceName || '-') +
+        ' / 公開: ' +
+        formatDateTimeJa(uiMarketData.publishedAt);
+    }
   }
 
   async function loadAllMetalDetailsDebug() {
@@ -7927,6 +8060,9 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
       window.__UI_MARKET_DATA__ = uiMarketData;
       console.log('uiMarketData:', uiMarketData);
+
+      updateMarketSectionMeta(uiMarketData, combined);
+      renderExistingMarketCards(uiMarketData);
 
       renderMarketPreview(uiMarketData, combined);
 
