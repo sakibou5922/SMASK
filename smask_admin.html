@@ -7704,9 +7704,10 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 })();
 </script>
 <script>
-  const METAL_DETAILS_URL = 'https://hhocycyvxhqxcghgwhqs.supabase.co/functions/v1/metal-details?metal=gold';
+  const METAL_DETAILS_BASE_URL = 'https://hhocycyvxhqxcghgwhqs.supabase.co/functions/v1/metal-details';
+  const METALS = ['gold', 'platinum', 'silver'];
 
-  async function loadMetalDetailsDebug() {
+  function ensureMetalDebugBox() {
     let debug = document.getElementById('metal-debug');
 
     if (!debug) {
@@ -7717,7 +7718,7 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
       debug.style.bottom = '16px';
       debug.style.zIndex = '99999';
       debug.style.width = '420px';
-      debug.style.maxHeight = '50vh';
+      debug.style.maxHeight = '60vh';
       debug.style.overflow = 'auto';
       debug.style.padding = '12px';
       debug.style.background = 'rgba(0,0,0,0.85)';
@@ -7731,39 +7732,80 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
       document.body.appendChild(debug);
     }
 
-    debug.textContent = 'metal-details 読み込み中...';
+    return debug;
+  }
+
+  async function fetchMetalDetails(metal) {
+    const url = METAL_DETAILS_BASE_URL + '?metal=' + encodeURIComponent(metal);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    const rawText = await res.text();
+    let data;
 
     try {
-      const res = await fetch(METAL_DETAILS_URL, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
+      data = JSON.parse(rawText);
+    } catch {
+      data = rawText;
+    }
+
+    return {
+      metal,
+      status: res.status,
+      ok: res.ok,
+      data
+    };
+  }
+
+  async function loadAllMetalDetailsDebug() {
+    const debug = ensureMetalDebugBox();
+    debug.textContent = 'metal-details 3金属 読み込み中...';
+
+    try {
+      const results = await Promise.all(
+        METALS.map(fetchMetalDetails)
+      );
+
+      const combined = {
+        fetchedAt: new Date().toISOString(),
+        allOk: results.every(item => item.ok),
+        results: {
+          gold: results.find(item => item.metal === 'gold')?.data ?? null,
+          platinum: results.find(item => item.metal === 'platinum')?.data ?? null,
+          silver: results.find(item => item.metal === 'silver')?.data ?? null
+        },
+        statuses: {
+          gold: results.find(item => item.metal === 'gold')?.status ?? null,
+          platinum: results.find(item => item.metal === 'platinum')?.status ?? null,
+          silver: results.find(item => item.metal === 'silver')?.status ?? null
         }
-      });
+      };
 
-      const rawText = await res.text();
-      let data;
-
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        data = rawText;
-      }
-
-      window.__METAL_DETAILS__ = data;
+      window.__METAL_DETAILS_ALL__ = combined;
+      window.__METAL_DETAILS_GOLD__ = combined.results.gold;
+      window.__METAL_DETAILS_PLATINUM__ = combined.results.platinum;
+      window.__METAL_DETAILS_SILVER__ = combined.results.silver;
 
       debug.textContent =
-        'HTTP ' + res.status + '\n\n' +
-        (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+        'gold=' + combined.statuses.gold +
+        ' / platinum=' + combined.statuses.platinum +
+        ' / silver=' + combined.statuses.silver +
+        '\n\n' +
+        JSON.stringify(combined, null, 2);
 
-      console.log('metal-details response:', data);
+      console.log('metal-details combined response:', combined);
     } catch (err) {
       debug.textContent =
         '読込失敗:\n' + (err && err.message ? err.message : err);
 
-      console.error('metal-details load error:', err);
+      console.error('metal-details combined load error:', err);
     }
   }
 
-  window.addEventListener('load', loadMetalDetailsDebug);
+  window.addEventListener('load', loadAllMetalDetailsDebug);
 </script>
