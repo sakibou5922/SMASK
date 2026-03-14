@@ -7777,6 +7777,17 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
     if (el) el.textContent = text;
   }
 
+  function hideByDataLabel(label) {
+    const el = document.querySelector('[data-label="' + label + '"]');
+    if (el) el.style.display = 'none';
+  }
+
+  function hideEnglishMetalLabels() {
+    hideByDataLabel('金ラベル');
+    hideByDataLabel('プラチナラベル');
+    hideByDataLabel('銀ラベル');
+  }
+
   function findCardByTitleLabel(label) {
     const title = document.querySelector('[data-label="' + label + '"]');
     if (!title) return null;
@@ -7808,11 +7819,28 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
     }) || null;
   }
 
-  function renderPriceLinesHtml(lines, accentColor) {
-    const rows = lines.map(line => `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.06);">
-        <span style="font-size:12px;letter-spacing:.06em;color:#666;font-weight:700;">${escapeHtml(line.label)}</span>
-        <span style="font-size:18px;font-weight:800;color:#1A1A1A;">${escapeHtml(formatYenPerGram(line.value))}</span>
+  function renderPriceLinesHtml(lines) {
+    const rows = lines.map((line, index) => `
+      <div style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        padding:${index === 0 ? '0 0 8px 0' : '8px 0'};
+        border-bottom:${index === lines.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.06)'};
+      ">
+        <span style="
+          font-size:13px;
+          color:#666;
+          font-weight:500;
+          letter-spacing:.02em;
+        ">${escapeHtml(line.label)}</span>
+        <span style="
+          font-size:18px;
+          font-weight:800;
+          color:#1A1A1A;
+          white-space:nowrap;
+        ">${escapeHtml(formatYenPerGram(line.value))}</span>
       </div>
     `).join('');
 
@@ -7823,23 +7851,22 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
         border-radius:12px;
         background:linear-gradient(180deg,#F8F8F8 0%,#ECECEC 100%);
         border:1px solid rgba(0,0,0,0.06);
-        padding:12px 14px;
+        padding:14px 16px;
         box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
       ">
-        <div style="font-size:10px;letter-spacing:.12em;color:${accentColor};font-weight:800;margin-bottom:4px;">REFERENCE PRICE</div>
         <div style="display:grid;gap:0;">${rows}</div>
       </div>
     `;
   }
 
-  function injectPriceCard(titleLabel, lines, accentColor) {
+  function injectPriceCard(titleLabel, lines) {
     const card = findCardByTitleLabel(titleLabel);
     const placeholder = findCardPlaceholder(card);
     if (!placeholder) return false;
 
     placeholder.style.height = 'auto';
     placeholder.style.minHeight = '80px';
-    placeholder.innerHTML = renderPriceLinesHtml(lines, accentColor);
+    placeholder.innerHTML = renderPriceLinesHtml(lines);
     placeholder.setAttribute('data-market-injected', 'true');
 
     return true;
@@ -7847,20 +7874,20 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
   function renderExistingMarketCards(uiMarketData) {
     injectPriceCard('金タイトル', [
-      { label: 'INGOT', value: uiMarketData.goldIngot },
-      { label: 'K24', value: uiMarketData.goldK24 },
-      { label: 'K18', value: uiMarketData.goldK18 }
-    ], '#C9A84C');
+      { label: 'インゴット', value: uiMarketData.goldIngot },
+      { label: '24金', value: uiMarketData.goldK24 },
+      { label: '18金', value: uiMarketData.goldK18 }
+    ]);
 
     injectPriceCard('プラチナタイトル', [
-      { label: 'INGOT', value: uiMarketData.platinumIngot },
-      { label: 'PT900', value: uiMarketData.platinumPt900 }
-    ], '#8B8B93');
+      { label: 'インゴット', value: uiMarketData.platinumIngot },
+      { label: 'Pt900', value: uiMarketData.platinumPt900 }
+    ]);
 
     injectPriceCard('銀タイトル', [
-      { label: 'INGOT', value: uiMarketData.silverIngot },
+      { label: 'インゴット', value: uiMarketData.silverIngot },
       { label: 'SV925', value: uiMarketData.silverSv925 }
-    ], '#7A7A7A');
+    ]);
   }
 
   function updateMarketSectionMeta(uiMarketData, combined) {
@@ -7869,14 +7896,14 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
     setTextByDataLabel(
       '相場ステータス',
       allOk
-        ? '更新日 ' + formatShortDate(uiMarketData.sourceDate) + ' / 取得成功'
-        : '取得失敗あり'
+        ? '更新日 ' + formatShortDate(uiMarketData.sourceDate)
+        : '取得失敗'
     );
 
     const subTextEl = document.querySelector('[data-label="相場サブテキスト"]');
     if (subTextEl) {
       subTextEl.textContent =
-        '参照価格（1gあたり） / ソース: ' +
+        '参考価格（1gあたり） / ソース: ' +
         (uiMarketData.sourceName || '-') +
         ' / 公開: ' +
         formatDateTimeJa(uiMarketData.publishedAt);
@@ -7955,6 +7982,7 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
       window.__UI_MARKET_DATA__ = uiMarketData;
 
+      hideEnglishMetalLabels();
       updateMarketSectionMeta(uiMarketData, combined);
       renderExistingMarketCards(uiMarketData);
     } catch (err) {
