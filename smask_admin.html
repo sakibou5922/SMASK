@@ -7735,12 +7735,10 @@ console.log('API: SMK.debug() | SMK.diagnose() | SMK.apply(prop,val) | SMK.resca
 
     try {
       const res = await fetch(METAL_DETAILS_URL, {
-        method: 'POST',
+        method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: '{}'
+          'Accept': 'application/json'
+        }
       });
 
       const rawText = await res.text();
